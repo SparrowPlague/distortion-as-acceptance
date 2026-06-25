@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radio — I am not good enough</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #eceef0; overflow: hidden; }
+  canvas { display: block; }
+  #hint {
+    position: fixed;
+    bottom: 28px;
+    width: 100%;
+    text-align: center;
+    color: #000;
+    font: 500 clamp(8px, 1.6vh, 14px)/1 'Courier New', monospace;
+    letter-spacing: 0.18em;
+    pointer-events: none;
+    text-transform: uppercase;
+  }
+  #experience-info {
+    position: fixed;
+    top: 16%;
+    right: 5%;
+    text-align: right;
+    color: #000;
+    font: 500 clamp(9px, 1.9vh, 16px)/1.6 'Courier New', monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  #zoom-fade {
+    position: fixed;
+    inset: 0;
+    background: #f2ede4;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+<div id="hint">scroll to deep dive (layer 2) &nbsp;·&nbsp; click buttons &nbsp;·&nbsp; drag vol slider</div>
+<div id="zoom-fade"></div>
+<div id="experience-info">
+  <strong>Experience (layer 1)</strong><br>
+  1: Select a thought<br>
+  2: Play the thought<br>
+  3: Listen to pitch, robot, reverb &amp; pan<br>
+  4: Listen to the combinations on the mixer
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+console.log('radio-v2.html build check: chassis metalness=0.48 envMapIntensity=0.16-0.17, antenna icon size=0.9, camera z=13');
+
+// ── Renderer ───────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.6;
+document.body.appendChild(renderer.domElement);
+
+// ── Scene + Camera ─────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xeceef0);
+scene.fog = new THREE.Fog(0xeceef0, 20, 45);
+
+// Environment map — HDR gives the metal body real reflections (metalness needs this).
+// Linear HDR data — no colorSpace set, three.js auto-converts the equirect to a PMREM-style
+// cubeUV map internally once assigned to scene.environment.
+new HDRLoader().load('monochrome.hdr', (hdrTexture) => {
+  hdrTexture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.environment = hdrTexture;
+}, undefined, (err) => {
+  // Common failure: opening this file directly via file:// — fetch() for local files
+  // is blocked by the browser, so the HDR silently never loads. Lighting doesn't
+  // depend on it, but reflections will look flatter without it.
+  console.error('monochrome.hdr failed to load — serve this folder over http(s) if you need env reflections.', err);
+});
+
+const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 80);
+camera.position.set(0, 0.4, 13);
+
+// Keep the HORIZONTAL framing constant across window shapes — on a narrower/shorter
+// window (e.g. a laptop screen vs. a wide desktop monitor), widen the vertical FOV
+// instead of letting the scene's horizontal extent shrink, which is what was pushing
+// the antenna sideways into the "Experience" text box.
+const BASE_FOV_DEG = 40;     // vertical FOV tuned at BASE_ASPECT — a bit wider than the original 36°
+                              // so there's always headroom above the antenna, on every screen shape
+const BASE_ASPECT  = 1.9;    // ~widescreen desktop reference
+const baseHalfVFov = BASE_FOV_DEG * Math.PI / 360;
+const baseHalfHFov = Math.atan(Math.tan(baseHalfVFov) * BASE_ASPECT);
+
+function fitCamera() {
+  const aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = aspect;
+  camera.fov = aspect < BASE_ASPECT
+    ? Math.atan(Math.tan(baseHalfHFov) / aspect) * 360 / Math.PI
+    : BASE_FOV_DEG;
+  camera.updateProjectionMatrix();
+}
+fitCamera();
+
+// ── Post-processing — bloom on the glowing screen ───────────────────────────
+// High threshold so only the bright screen/emissive accents bloom; polished metal
+// speculars and the rest of the scene stay clean instead of washing out.
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.04,   // strength
+  0.2,    // radius
+  0.98    // threshold
+);
+composer.addPass(bloomPass);
+
+// Scene rig — radio, mixer, figure, cable, plugs and the screen-glow light all live
+// here so the whole composition can be shifted together as one unit.
+const sceneRig = new THREE.Group();
+scene.add(sceneRig);
+sceneRig.position.x = -1.0;
+
+// ── Lights — three-point (key / fill / rim). Direct lights + ambient carry the visible
+// lighting on their own; the HDR environment only adds reflection detail on top, so the
+// scene still reads correctly if monochrome.hdr fails to load (e.g. opened via file://,
+// where fetch() for local files is blocked by the browser).
+scene.add(new THREE.AmbientLight(0xfff8f0, 0.7));
+
+// Key — warm, the main shadow-casting light
+const keyLight = new THREE.DirectionalLight(0xfff0df, 0.7);
+keyLight.position.set(4, 9, 5);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.setScalar(4096);
+keyLight.shadow.camera.left = -8;
+keyLight.shadow.camera.right = 8;
+keyLight.shadow.camera.top = 7;
+keyLight.shadow.camera.bottom = -7;
+keyLight.shadow.camera.near = 0.5;
+keyLight.shadow.camera.far = 25;
+keyLight.shadow.bias = -0.0006;
+scene.add(keyLight);
+
+// Fill — cool, lower intensity, positioned opposite the key, no shadow
+const fillLight = new THREE.DirectionalLight(0xbfd9ff, 0.3);
+fillLight.position.set(-5, 5, 4);
+scene.add(fillLight);
+
+// Rim — from behind/above, separates the model silhouette from the background
+const rimLight = new THREE.DirectionalLight(0xcfe6ff, 0.15);
+rimLight.position.set(0, 7, -8);
+scene.add(rimLight);
+
+const screenGlow = new THREE.PointLight(0x00ff88, 0, 6);
+screenGlow.position.set(-0.7, 0.8, 2);   // follows the radio's screen
+sceneRig.add(screenGlow);
+
+// ── Shared geometries + materials ──────────────────────────────────────────
+// Chassis — main body + edge trim: metalness 0.85-0.9, roughness 0.2-0.25
+// envMapIntensity kept low — monochrome.hdr has a hot bright spot (luminance ~39 vs a
+// ~0.35 median) that mirrors harshly across low-roughness metal otherwise.
+const bodyMat = new THREE.MeshStandardMaterial({
+  color: 0x9b9ba2,
+  roughness: 0.48,
+  metalness: 0.48,
+  envMapIntensity: 0.16,
+});
+const edgeMat = new THREE.MeshStandardMaterial({
+  color: 0xb4b4bc,
+  roughness: 0.46,
+  metalness: 0.48,
+  envMapIntensity: 0.17,
+});
+// Antenna/trim — brighter, more polished: metalness 0.85-0.9, roughness ~0.2
+const metalMat = new THREE.MeshStandardMaterial({
+  color: 0x8899aa,
+  roughness: 0.2,
+  metalness: 0.88,
+  envMapIntensity: 0.4,
+});
+const darkMat = new THREE.MeshStandardMaterial({
+  color: 0x0e0e1a,
+  roughness: 0.9,
+  metalness: 0.12,
+  envMapIntensity: 0.02,
+});
+
+// ── Radio group ────────────────────────────────────────────────────────────
+const radio = new THREE.Group();
+radio.scale.setScalar(0.78);
+radio.position.x = 0.2;   // shifted right; the figure sits back-left
+sceneRig.add(radio);
+
+// Body — slightly taller than before (3.9 → 4.6) for more vertical space
+const bodyMesh = new THREE.Mesh(new RoundedBoxGeometry(5.8, 4.6, 1.3, 10, 0.28), bodyMat);
+bodyMesh.castShadow = true;
+bodyMesh.receiveShadow = true;
+radio.add(bodyMesh);
+
+// Edge strips (top + bottom) — repositioned for new height
+[-2.18, 2.18].forEach(y => {
+  const strip = new THREE.Mesh(new RoundedBoxGeometry(5.6, 0.22, 1.2, 6, 0.08), edgeMat);
+  strip.position.y = y;
+  strip.castShadow = true;
+  radio.add(strip);
+});
+
+// Side rails (left + right) — taller to match body
+[-2.78, 2.78].forEach(x => {
+  const rail = new THREE.Mesh(new RoundedBoxGeometry(0.12, 4.36, 1.18, 6, 0.05), edgeMat);
+  rail.position.x = x;
+  rail.castShadow = true;
+  radio.add(rail);
+});
+
+// Antenna — base repositioned to new body top (y=2.3)
+const antBase = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 0.3, 14), metalMat);
+antBase.position.set(2.3, 2.45, 0);   // center at body_top(2.3) + half_height(0.15)
+antBase.castShadow = true;
+radio.add(antBase);
+
+// rotation.z = -0.14 leans stick outward. bottom at (2.3, 2.60) = top of antBase.
+// bottom_offset = rotate(0,-1.1,0) by z=-0.14 → (-0.1535, -1.089)
+// center = (2.3+0.1535, 2.60+1.089) = (2.453, 3.689)
+const antStick = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.05, 2.2, 10), metalMat);
+antStick.position.set(2.453, 3.689, 0);
+antStick.rotation.z = -0.14;
+antStick.castShadow = true;
+radio.add(antStick);
+
+// (divider removed)
+
+// ── Screen ─────────────────────────────────────────────────────────────────
+const SW = 512, SH = 290;
+const screenCanvas = document.createElement('canvas');
+screenCanvas.width = SW; screenCanvas.height = SH;
+const sCtx = screenCanvas.getContext('2d');
+const screenTex = new THREE.CanvasTexture(screenCanvas);
+
+let isPlaying = false;
+
+// ── Audio ───────────────────────────────────────────────────────────────────
+// Main thought audio — started/paused by PLAY, looped by LOOP, volume by slider
+const thoughtAudio = new Audio('Thought Audio.wav');
+thoughtAudio.preload = 'auto';
+thoughtAudio.volume = 0.5;
+
+// When the file finishes (and loop is off), reset the play state visually
+thoughtAudio.addEventListener('ended', () => {
+  if (thoughtAudio.loop) return;
+  isPlaying = false;
+  playBtn.position.z = BTN_Z_UP;
+  playIcon.position.z = BTN_Z_UP + 0.16;
+  playBtn.material.emissive.setHex(0x00963c);
+  screenGlow.intensity = 0;
+  redrawScreen();
+});
+
+// Thoughts to cycle through with ◄ ► arrows
+const THOUGHTS = [
+  'I am not good enough',
+  'I will never succeed',
+  'Nobody understands me',
+  'I am a failure',
+  'I don\'t deserve this',
+  'I am too much',
+  'I am not worthy of love',
+];
+let thoughtIdx = 0;
+
+function redrawScreen() {
+  const glow = isPlaying ? 0.22 : 0.10;
+  const dimC  = isPlaying ? '#00ffcc' : '#00dd88';
+  const dimS  = isPlaying ? '#00ffaa' : '#00cc77';
+
+  // Background
+  const bg = sCtx.createRadialGradient(SW/2, SH/2, 8, SW/2, SH/2, 260);
+  bg.addColorStop(0, isPlaying ? '#002218' : '#001510');
+  bg.addColorStop(1, '#000500');
+  sCtx.fillStyle = bg;
+  sCtx.fillRect(0, 0, SW, SH);
+
+  // Scanlines
+  for (let y = 0; y < SH; y += 3) {
+    sCtx.fillStyle = 'rgba(0,0,0,0.30)';
+    sCtx.fillRect(0, y, SW, 1);
+  }
+
+  // Centre glow wash
+  const wash = sCtx.createRadialGradient(SW/2, SH*0.62, 0, SW/2, SH*0.62, 230);
+  wash.addColorStop(0, `rgba(0,255,136,${glow})`);
+  wash.addColorStop(1, 'rgba(0,255,136,0)');
+  sCtx.fillStyle = wash;
+  sCtx.fillRect(0, 0, SW, SH);
+
+  sCtx.save();
+
+  // ── Top-left: channel info (lowered) ──────────────────────────────────────
+  sCtx.shadowColor = dimS;
+  sCtx.shadowBlur = isPlaying ? 12 : 6;
+  sCtx.fillStyle = isPlaying ? 'rgba(0,255,180,0.78)' : 'rgba(0,210,130,0.62)';
+  sCtx.font = 'bold 18px "Courier New", Courier, monospace';
+  sCtx.textAlign = 'left';
+  sCtx.textBaseline = 'top';
+  sCtx.fillText('Channel: MIND radio, Always on!', 25, 26);
+
+  // Thin separator under channel line
+  sCtx.strokeStyle = isPlaying ? 'rgba(0,255,136,0.28)' : 'rgba(0,200,100,0.18)';
+  sCtx.lineWidth = 1;
+  sCtx.beginPath();
+  sCtx.moveTo(14, 54); sCtx.lineTo(SW - 14, 54);
+  sCtx.stroke();
+
+  // ── "Negative thought of the day:" label (raised) ─────────────────────────
+  sCtx.shadowBlur = isPlaying ? 16 : 8;
+  sCtx.fillStyle = isPlaying ? 'rgba(0,255,190,0.82)' : 'rgba(0,220,140,0.65)';
+  sCtx.font = 'italic 20px "Courier New", Courier, monospace';
+  sCtx.textAlign = 'center';
+  sCtx.textBaseline = 'middle';
+  sCtx.fillText('Negative thought of the day:', SW / 2, 122);
+
+  // ── Main thought (raised) — distorts while audio plays ────────────────────
+  const TY = 176;
+  sCtx.font = 'bold 29px "Courier New", Courier, monospace';
+  sCtx.textAlign = 'center';
+  sCtx.textBaseline = 'middle';
+  const thought = THOUGHTS[thoughtIdx];
+
+  if (isPlaying) {
+    const t = Date.now();
+    const jx = Math.sin(t * 0.021) * 2 + (Math.random() - 0.5) * 3;
+    const spike = Math.random() < 0.12 ? (Math.random() - 0.5) * 16 : 0;
+    // Chromatic split — red and cyan ghosts pulled apart
+    sCtx.shadowBlur = 0;
+    sCtx.fillStyle = 'rgba(255,40,90,0.55)';
+    sCtx.fillText(thought, SW / 2 - 3 + jx + spike, TY + (Math.random() - 0.5) * 2.5);
+    sCtx.fillStyle = 'rgba(0,190,255,0.55)';
+    sCtx.fillText(thought, SW / 2 + 3 - jx, TY - (Math.random() - 0.5) * 2.5);
+    // Main glowing pass on top
+    sCtx.shadowColor = dimS;
+    sCtx.shadowBlur = 30;
+    sCtx.fillStyle = dimC;
+    sCtx.fillText(thought, SW / 2 + jx * 0.4, TY);
+    // Horizontal slice displacement — VHS tear through the text
+    if (Math.random() < 0.4) {
+      const sliceY = TY - 18 + Math.random() * 36;
+      const sliceH = 3 + Math.random() * 7;
+      const shift  = (Math.random() - 0.5) * 34;
+      const strip = sCtx.getImageData(0, sliceY, SW, sliceH);
+      sCtx.putImageData(strip, shift, sliceY);
+    }
+  } else {
+    sCtx.shadowColor = dimS;
+    sCtx.shadowBlur = 14;
+    sCtx.fillStyle = dimC;
+    sCtx.fillText(thought, SW / 2, TY);
+    sCtx.shadowBlur = 22;
+    sCtx.fillText(thought, SW / 2, TY);  // double pass for glow
+  }
+
+  sCtx.restore();
+
+  // Corner brackets
+  sCtx.strokeStyle = `rgba(0,255,128,${isPlaying ? 0.55 : 0.28})`;
+  sCtx.lineWidth = 2.5;
+  sCtx.lineCap = 'square';
+  const bs = 22, bp = 10;
+  [[bp,bp,1,1],[SW-bp,bp,-1,1],[bp,SH-bp,1,-1],[SW-bp,SH-bp,-1,-1]].forEach(([x,y,sx,sy]) => {
+    sCtx.beginPath();
+    sCtx.moveTo(x + sx * bs, y);
+    sCtx.lineTo(x, y);
+    sCtx.lineTo(x, y + sy * bs);
+    sCtx.stroke();
+  });
+
+  // Blinking cursor when playing (after main thought)
+  if (isPlaying) {
+    const t = Date.now() * 0.003;
+    if (Math.sin(t) > 0) {
+      sCtx.font = 'bold 29px "Courier New", Courier, monospace';
+      const tw = sCtx.measureText(thought).width;
+      sCtx.fillStyle = 'rgba(0,255,136,0.8)';
+      sCtx.fillRect(SW/2 + tw/2 + 6, 162, 9, 28);
+    }
+  }
+
+  screenTex.needsUpdate = true;
+}
+redrawScreen();
+
+// Screen bezel — taller to match new canvas (SH=290, aspect≈1.766:1)
+const bezel = new THREE.Mesh(
+  new RoundedBoxGeometry(3.4, 2.0, 0.14, 6, 0.1),
+  new THREE.MeshStandardMaterial({ color: 0x0c0c1c, roughness: 0.92, metalness: 0.08 })
+);
+bezel.position.set(-0.5, 1.12, 0.6);
+radio.add(bezel);
+
+// Screen plane — height = width * (SH/SW) = 3.18 * (290/512) ≈ 1.80
+const screenMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(3.18, 1.80),
+  new THREE.MeshBasicMaterial({ map: screenTex })
+);
+screenMesh.position.set(-0.5, 1.12, 0.69);
+radio.add(screenMesh);
+
+// ── Speaker grille ─────────────────────────────────────────────────────────
+const grilleBg = new THREE.Mesh(
+  new RoundedBoxGeometry(1.4, 2.2, 0.1, 6, 0.14),
+  new THREE.MeshStandardMaterial({ color: 0x0d0d1c, roughness: 0.96, metalness: 0.06 })
+);
+grilleBg.position.set(2.05, 0.7, 0.59);
+radio.add(grilleBg);
+
+// Dot grid (speaker holes)
+const dotGeo = new THREE.CircleGeometry(0.055, 8);
+const dotMat = new THREE.MeshBasicMaterial({ color: 0x060610 });
+for (let row = -5; row <= 5; row++) {
+  for (let col = -2; col <= 2; col++) {
+    const dist = Math.abs(row) * 0.38 + Math.abs(col) * 0.55;
+    if (dist > 2.55) continue;
+    const dot = new THREE.Mesh(dotGeo, dotMat);
+    dot.position.set(2.05 + col * 0.2, 0.7 + row * 0.2, 0.66);
+    radio.add(dot);
+  }
+}
+
+// Speaker ring
+const spkRing = new THREE.Mesh(
+  new THREE.TorusGeometry(0.32, 0.055, 10, 36),
+  new THREE.MeshStandardMaterial({ color: 0x555566, roughness: 0.25, metalness: 0.85 })
+);
+spkRing.position.set(2.05, 0.7, 0.63);
+radio.add(spkRing);
+
+const spkDome = new THREE.Mesh(
+  new THREE.SphereGeometry(0.15, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.5),
+  new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.7, metalness: 0.4 })
+);
+spkDome.position.set(2.05, 0.7, 0.63);
+spkDome.rotation.x = -Math.PI / 2;
+radio.add(spkDome);
+
+// ── Shared button constants ────────────────────────────────────────────────
+const BTN_Z_UP   = 0.73;   // cap protrudes prominently above housing mouth
+const BTN_Z_DOWN = 0.61;   // cap recedes into socket when pressed
+
+// Canvas label helper — engraved style, same as "Thought selection"
+// (hexColor kept for signature compat)
+function makeLabel(text, hexColor, x, y, z, w = 0.74, parent = radio) {
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 34;
+  const cx = c.getContext('2d');
+  cx.font = 'bold 17px "Courier New", monospace';
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  // Catch-light below, dark recessed text on top — stamped-in-metal look
+  cx.fillStyle = 'rgba(255,255,255,0.25)';
+  cx.fillText(text, 64, 18.3);
+  cx.fillStyle = 'rgba(0,0,0,1.0)';
+  cx.fillText(text, 64, 17);
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, w * 34 / 128),   // height proportional to width
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true })
+  );
+  m.position.set(x, y, z);
+  parent.add(m);
+}
+
+// Engraved label — dark recessed text with a light catch-light edge below,
+// so it reads as stamped into the metal rather than printed on it
+function makeEngravedLabel(text, x, y, z, w = 1.35) {
+  const c = document.createElement('canvas');
+  c.width = 320; c.height = 48;
+  const cx = c.getContext('2d');
+  cx.font = 'bold 27px "Courier New", monospace';
+  cx.textAlign = 'right';   // right-aligned so the text ends exactly at the plane's right edge
+  cx.textBaseline = 'middle';
+  // Catch-light: bright edge offset downward (light from above hits groove's lower lip)
+  cx.fillStyle = 'rgba(255,255,255,0.25)';
+  cx.fillText(text, 318, 26);
+  // Recessed dark text on top
+  cx.fillStyle = 'rgba(0,0,0,1.0)';
+  cx.fillText(text, 318, 24);
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, w * 48 / 320),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true })
+  );
+  m.position.set(x, y, z);
+  radio.add(m);
+}
+
+// Shared soft-shadow texture for buttons (radial gradient, dark centre → clear edge)
+const btnShadowTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(64, 64, 8, 64, 64, 62);
+  grad.addColorStop(0,    'rgba(0,0,0,0.40)');
+  grad.addColorStop(0.55, 'rgba(0,0,0,0.20)');
+  grad.addColorStop(1,    'rgba(0,0,0,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+})();
+
+// Button factory — depth comes from material shading, no black frame.
+// Two-tone cap texture — vertical left/right split, used by the mixer's split buttons.
+function makeSplitTexture(hexA, hexB) {
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#' + hexA.toString(16).padStart(6, '0');
+  ctx.fillRect(0, 0, 32, 64);
+  ctx.fillStyle = '#' + hexB.toString(16).padStart(6, '0');
+  ctx.fillRect(32, 0, 32, 64);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+// `parent` defaults to the radio; the mixer passes its own group (same local
+// layout works because both bodies are 1.3 deep with the front face at z=0.65).
+function makeBtn(x, y, radius, color, emissiveHex, parent = radio) {
+  // Soft fake drop shadow on the body face — offset down-left (key light is upper right)
+  const drop = new THREE.Mesh(
+    new THREE.PlaneGeometry(radius * 3.3, radius * 3.3),
+    new THREE.MeshBasicMaterial({ map: btnShadowTex, transparent: true, depthWrite: false })
+  );
+  drop.position.set(x - 0.035, y - 0.07, 0.688);
+  parent.add(drop);
+
+  // Thin body-toned rim — trim ring, matte like the rest of the chassis
+  const rim = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius + 0.062, radius + 0.062, 0.07, 32),
+    new THREE.MeshStandardMaterial({ color: 0x5a5a62, roughness: 0.55, metalness: 0.3, envMapIntensity: 0.12 })
+  );
+  rim.rotation.x = Math.PI / 2;
+  rim.position.set(x, y, 0.648);
+  parent.add(rim);
+
+  // Cap — tapered so the edge is narrower than the base, giving a natural bevel highlight.
+  // Matte plastic knob feel — low-moderate metalness keeps the colour saturated.
+  const cap = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius * 1.08, 0.30, 40),
+    new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.4,
+      metalness: 0.3,
+      emissive: new THREE.Color(emissiveHex),
+      envMapIntensity: 0.5,   // low env reflection — white sheen desaturates colour
+    })
+  );
+  cap.rotation.x = Math.PI / 2;
+  cap.position.set(x, y, BTN_Z_UP);
+  cap.castShadow = true;
+  parent.add(cap);
+  return cap;
+}
+
+// ── Bottom row: 4 effect push-buttons + 1 volume slider ───────────────────
+const ROW_Y = -1.62;   // moved down to give more space (was -1.2)
+
+// Saturation strategy: dark albedo + strong same-hue emissive.
+// Emissive bypasses lighting, so the hue stays deep no matter how bright
+// the ambient light is (bright diffuse washes to pastel under ACES).
+const EFFECT_CONFIG = [
+  { label: 'PITCH',  color: 0x7a0010, emissive: 0xb8001e, activeEm: 0xff2244, x: -2.2 },
+  { label: 'ROBOT',  color: 0x00427e, emissive: 0x0072c0, activeEm: 0x22aaff, x: -1.1 },
+  { label: 'REVERB', color: 0x500080, emissive: 0x8812cc, activeEm: 0xcc44ff, x:  0.0 },
+  { label: 'PAN',    color: 0x7a4f00, emissive: 0xc88408, activeEm: 0xffaa22, x:  1.1 },
+];
+
+const effectBtns = EFFECT_CONFIG.map(ec => {
+  const cap = makeBtn(ec.x, ROW_Y, 0.24, ec.color, ec.emissive);
+  makeLabel(ec.label, ec.color, ec.x, ROW_Y - 0.38, 0.67);
+  return { cap, ec, active: false };
+});
+
+// ── Volume slider (right side) ─────────────────────────────────────────────
+const SLIDER_X   =  2.2;
+const SLIDER_MINY = -1.87;   // moved up 10% + 5% of track height
+const SLIDER_MAXY = -0.67;
+const SLIDER_MIDY = (SLIDER_MINY + SLIDER_MAXY) / 2;
+const TRACK_H     =  SLIDER_MAXY - SLIDER_MINY;   // 1.2 units
+
+// Track groove (recessed)
+const trackGroove = new THREE.Mesh(
+  new RoundedBoxGeometry(0.1, TRACK_H, 0.12, 4, 0.04),
+  new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.9, metalness: 0.3 })
+);
+trackGroove.position.set(SLIDER_X, SLIDER_MIDY, 0.60);
+radio.add(trackGroove);
+
+// Fill bar — 1-unit box, scaled & repositioned each drag
+const sliderFill = new THREE.Mesh(
+  new THREE.BoxGeometry(0.08, 1, 0.08),
+  new THREE.MeshStandardMaterial({ color: 0x33cc66, roughness: 0.4, metalness: 0.5, emissive: new THREE.Color(0x082214) })
+);
+sliderFill.position.set(SLIDER_X, SLIDER_MINY, 0.61);
+sliderFill.scale.y = 0.5;
+sliderFill.position.y = SLIDER_MINY + 0.5 * TRACK_H * 0.5;
+radio.add(sliderFill);
+
+// Track rail markers (tick lines)
+for (let t = 0; t <= 4; t++) {
+  const ty = SLIDER_MINY + (t / 4) * TRACK_H;
+  const tick = new THREE.Mesh(
+    new THREE.BoxGeometry(0.22, 0.025, 0.05),
+    new THREE.MeshStandardMaterial({ color: 0x555558, roughness: 0.8 })
+  );
+  tick.position.set(SLIDER_X, ty, 0.625);
+  radio.add(tick);
+}
+
+// Slider handle (the grabbable thumb)
+const sliderHandle = new THREE.Mesh(
+  new RoundedBoxGeometry(0.52, 0.22, 0.2, 4, 0.06),
+  new THREE.MeshStandardMaterial({
+    color: 0x33cc66, roughness: 0.22, metalness: 0.65,
+    emissive: new THREE.Color(0x0a2e14),
+  })
+);
+sliderHandle.position.set(SLIDER_X, SLIDER_MIDY, 0.68);
+sliderHandle.castShadow = true;
+radio.add(sliderHandle);
+
+// Handle grip lines (decorative notches on the thumb) — stored for animation
+const sliderGrips = [-1, 0, 1].map(g => {
+  const grip = new THREE.Mesh(
+    new THREE.BoxGeometry(0.38, 0.025, 0.06),
+    new THREE.MeshStandardMaterial({ color: 0x1a6633, roughness: 0.5 })
+  );
+  grip.position.set(SLIDER_X, SLIDER_MIDY + g * 0.065, 0.705);
+  radio.add(grip);
+  return { mesh: grip, offset: g * 0.065 };
+});
+
+makeLabel('VOL', 0x33cc66, SLIDER_X, SLIDER_MINY - 0.12, 0.67);
+
+// Slider state
+const volSlider = { handle: sliderHandle, fill: sliderFill, y: SLIDER_MIDY };
+
+function setSliderY(newY) {
+  const clamped = THREE.MathUtils.clamp(newY, SLIDER_MINY, SLIDER_MAXY);
+  volSlider.y = clamped;
+  // Move handle and grip lines together
+  sliderHandle.position.y = clamped;
+  sliderGrips.forEach(g => { g.mesh.position.y = clamped + g.offset; });
+  // Fill bar grows upward from bottom of track
+  const frac = (clamped - SLIDER_MINY) / TRACK_H;
+  const fillH = Math.max(0.01, frac * TRACK_H);
+  sliderFill.scale.y = fillH;
+  sliderFill.position.y = SLIDER_MINY + fillH / 2;
+  // Slider position = audio volume — floored at 10% so the radio never goes silent
+  thoughtAudio.volume = Math.max(0.1, frac);
+}
+setSliderY(SLIDER_MIDY); // initialise fill bar at 50 %
+
+// ── Play / Loop buttons ────────────────────────────────────────────────────
+const BTN_Y = -0.62;   // moved down for more gap below screen (was -0.28)
+
+const playBtn = makeBtn(-1.85, BTN_Y, 0.26, 0x005626, 0x00963c);
+const loopBtn = makeBtn(-0.9,  BTN_Y, 0.26, 0x003a74, 0x0066b4);
+
+// Play icon
+const playIconCvs = document.createElement('canvas');
+playIconCvs.width = 64; playIconCvs.height = 64;
+{ const c = playIconCvs.getContext('2d');
+  c.fillStyle = 'rgba(255,255,255,0.92)';
+  c.beginPath(); c.moveTo(16, 11); c.lineTo(54, 32); c.lineTo(16, 53); c.closePath(); c.fill(); }
+const playIcon = new THREE.Mesh(
+  new THREE.PlaneGeometry(0.38, 0.38),
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(playIconCvs), transparent: true })
+);
+playIcon.position.set(-1.85, BTN_Y, BTN_Z_UP + 0.16);
+radio.add(playIcon);
+
+// Loop icon — rounded-rectangle repeat symbol (standard media-player loop icon)
+const loopIconCvs = document.createElement('canvas');
+loopIconCvs.width = 64; loopIconCvs.height = 64;
+{ const c = loopIconCvs.getContext('2d');
+  c.strokeStyle = 'rgba(255,255,255,0.92)';
+  c.fillStyle   = 'rgba(255,255,255,0.92)';
+  c.lineWidth   = 5;
+  c.lineJoin    = 'round';
+  c.lineCap     = 'round';
+
+  // Rounded rectangle — the "loop path"
+  const lx = 7, ty = 15, rx2 = 57, by = 49, rad = 9;
+  c.beginPath();
+  c.moveTo(lx + rad, ty);
+  c.lineTo(rx2 - rad, ty);
+  c.arcTo(rx2, ty,  rx2, ty + rad, rad);
+  c.lineTo(rx2, by - rad);
+  c.arcTo(rx2, by,  rx2 - rad, by, rad);
+  c.lineTo(lx + rad, by);
+  c.arcTo(lx,  by,  lx,  by - rad, rad);
+  c.lineTo(lx,  ty + rad);
+  c.arcTo(lx,  ty,  lx + rad, ty, rad);
+  c.closePath();
+  c.stroke();
+
+  // Arrowhead top-right — pointing clockwise (→ direction)
+  c.beginPath();
+  c.moveTo(rx2 - 1, ty - 7);   // tip
+  c.lineTo(rx2 + 9, ty + 2);
+  c.lineTo(rx2 - 1, ty + 11);
+  c.closePath();
+  c.fill();
+
+  // Arrowhead bottom-left — pointing clockwise (← direction)
+  c.beginPath();
+  c.moveTo(lx + 1, by - 11);   // tip
+  c.lineTo(lx - 9, by - 2);
+  c.lineTo(lx + 1, by + 7);
+  c.closePath();
+  c.fill();
+}
+const loopIcon = new THREE.Mesh(
+  new THREE.PlaneGeometry(0.38, 0.38),
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(loopIconCvs), transparent: true })
+);
+loopIcon.position.set(-0.9, BTN_Y, BTN_Z_UP + 0.16);
+radio.add(loopIcon);
+
+makeLabel('PLAY', 0x22cc66, -1.85, BTN_Y - 0.40, 0.67);
+makeLabel('LOOP', 0x2288dd, -0.9,  BTN_Y - 0.40, 0.67);
+
+let isLooping = false;
+
+// ── Thought navigation arrow buttons (below screen) ────────────────────────
+// Pair right edge flush with screen right edge (bezel right = -0.5 + 1.7 = 1.2)
+const ARR_Y = -0.38;
+const ARR_LEFT_X  = 0.41;
+const ARR_RIGHT_X = 0.94;
+
+// Engraved "Thought selection" label — text ends at the screen's right edge (1.2),
+// same alignment as the right arrow button (0.94 + 0.26 rim ≈ 1.2)
+makeEngravedLabel('Thought selection', 1.2 - 1.35 / 2, ARR_Y + 0.36, 0.66);
+
+const prevThoughtBtn = makeBtn(ARR_LEFT_X,  ARR_Y, 0.20, 0x55555e, 0x1a1a20);
+const nextThoughtBtn = makeBtn(ARR_RIGHT_X, ARR_Y, 0.20, 0x55555e, 0x1a1a20);
+
+// Arrow face icons — filled triangles on 64×64 canvas
+function makeArrowIcon(dir) {  // dir: -1 = ◄  +1 = ►
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  const cx = c.getContext('2d');
+  cx.fillStyle = 'rgba(255,255,255,0.92)';
+  cx.beginPath();
+  // Coordinates chosen so the triangle's centroid sits at canvas centre (32)
+  if (dir < 0) { cx.moveTo(41, 10); cx.lineTo(13, 32); cx.lineTo(41, 54); }
+  else         { cx.moveTo(23, 10); cx.lineTo(51, 32); cx.lineTo(23, 54); }
+  cx.closePath(); cx.fill();
+  return new THREE.CanvasTexture(c);
+}
+
+const prevArrowIcon = new THREE.Mesh(
+  new THREE.PlaneGeometry(0.26, 0.26),
+  new THREE.MeshBasicMaterial({ map: makeArrowIcon(-1), transparent: true })
+);
+prevArrowIcon.position.set(ARR_LEFT_X, ARR_Y, BTN_Z_UP + 0.16);
+radio.add(prevArrowIcon);
+
+const nextArrowIcon = new THREE.Mesh(
+  new THREE.PlaneGeometry(0.26, 0.26),
+  new THREE.MeshBasicMaterial({ map: makeArrowIcon(+1), transparent: true })
+);
+nextArrowIcon.position.set(ARR_RIGHT_X, ARR_Y, BTN_Z_UP + 0.16);
+radio.add(nextArrowIcon);
+
+// ── Mixer — square metal box right of the radio, on the floor ──────────────
+// Same scale, materials and lighting as the radio (same scene)
+const mixer = new THREE.Group();
+mixer.scale.setScalar(0.78);
+// Floor at y=-1.79; box half-height 1.1 * 0.78 = 0.858 → rests on the floor
+mixer.position.set(3.9, -0.932, 1.4);   // brought further forward
+mixer.rotation.y = -0.28;   // turned slightly toward the left (toward the radio)
+sceneRig.add(mixer);
+
+// Body — same depth as the radio (1.3) so makeBtn's z-layout matches exactly
+const mixerBody = new THREE.Mesh(new RoundedBoxGeometry(2.2, 2.2, 1.3, 8, 0.18), bodyMat);
+mixerBody.castShadow = true;
+mixerBody.receiveShadow = true;
+mixer.add(mixerBody);
+
+// Edge strips top + bottom — same edgeMat trim as the radio
+[-1.02, 1.02].forEach(y => {
+  const strip = new THREE.Mesh(new RoundedBoxGeometry(2.08, 0.14, 1.2, 6, 0.06), edgeMat);
+  strip.position.y = y;
+  strip.castShadow = true;
+  mixer.add(strip);
+});
+
+// 4 round buttons, 2×2 grid — same buttons/colours as the radio's effect row,
+// with engraved MIX 1–4 labels beneath them (same style as the radio labels)
+// First 3 are two-tone (split left/right); PAN (4th) stays single-colour.
+const MIXER_SPLIT = [
+  { a: 0x7a0010, b: 0x00427e, emOffA: 0xb8001e, emOffB: 0x0072c0, emOnA: 0xff2244, emOnB: 0x22aaff },   // red / blue
+  { a: 0x7a0010, b: 0x500080, emOffA: 0xb8001e, emOffB: 0x8812cc, emOnA: 0xff2244, emOnB: 0xcc44ff },   // red / purple
+  { a: 0x00427e, b: 0x500080, emOffA: 0x0072c0, emOffB: 0x8812cc, emOnA: 0x22aaff, emOnB: 0xcc44ff },   // blue / purple
+];
+
+const mixerBtns = EFFECT_CONFIG.map((ec, i) => {
+  const bx = (i % 2 === 0) ? -0.55 : 0.55;
+  // Bottom row raised so its labels clear the bottom edge strip (strip at y=-1.02)
+  const by = (i < 2) ? 0.55 : -0.42;
+  const cap = makeBtn(bx, by, 0.24, ec.color, ec.emissive, mixer);
+  makeLabel(`MIX ${i + 1}`, 0x000000, bx, by - 0.42, 0.67, 0.74, mixer);
+
+  const split = MIXER_SPLIT[i];
+  let splitOff = null, splitOn = null;
+  if (split) {
+    cap.material.dispose();
+    splitOff = makeSplitTexture(split.emOffA, split.emOffB);
+    splitOn  = makeSplitTexture(split.emOnA, split.emOnB);
+    cap.material = new THREE.MeshStandardMaterial({
+      map: makeSplitTexture(split.a, split.b),
+      roughness: 0.4,
+      metalness: 0.3,
+      emissive: new THREE.Color(0xffffff),
+      emissiveMap: splitOff,
+      envMapIntensity: 0.5,
+    });
+  }
+  return { cap, ec, active: false, splitOff, splitOn };
+});
+
+// ── Audio cable — out of the radio's right side, into the mixer ────────────
+// Radio right face ≈ x 1.22 (world); mixer left face (rotated -0.28) lands at
+// roughly world (1.58, -1.10, -0.25). Cable sags toward the floor in between.
+const cableCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(2.36, -0.75,  0.15),   // exit: radio right side
+  new THREE.Vector3(2.70, -1.68,  0.65),   // sag near the floor
+  new THREE.Vector3(3.07, -1.10,  1.15),   // entry: mixer left side (rotated, forward)
+]);
+const cableMat = new THREE.MeshStandardMaterial({ color: 0x1c1c20, roughness: 0.62, metalness: 0.25 });
+const cable = new THREE.Mesh(new THREE.TubeGeometry(cableCurve, 40, 0.045, 10), cableMat);
+cable.castShadow = true;
+sceneRig.add(cable);
+
+// Plugs (connectors) at both ends — short metal-dark cylinders
+const plugMat = new THREE.MeshStandardMaterial({ color: 0x2e2e34, roughness: 0.2, metalness: 0.88 });
+
+// Radio-side plug (world space, axis along x)
+const radioPlug = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.22, 14), plugMat);
+radioPlug.rotation.z = Math.PI / 2;
+radioPlug.position.set(2.40, -0.75, 0.15);
+radioPlug.castShadow = true;
+sceneRig.add(radioPlug);
+
+// Mixer-side plug — child of the mixer group so it follows its rotation
+const mixerPlug = new THREE.Mesh(new THREE.CylinderGeometry(0.083, 0.083, 0.28, 14), plugMat);
+mixerPlug.rotation.z = Math.PI / 2;
+mixerPlug.position.set(-1.13, -0.215, 0);   // just outside the left face, in mixer-local coords
+mixerPlug.castShadow = true;
+mixer.add(mixerPlug);
+
+// ── Brain in a jar — replaces the figure, sits in the same spot, far back-left ─
+const FIGURE_SPOT = { x: -6.2, floorY: -1.79, z: -5.5, rotY: 0.55 - Math.PI / 2, targetHeight: 1.8 };
+
+new GLTFLoader().load('brain_in_a_jar.glb', (gltf) => {
+  const brain = gltf.scene;
+
+  // Model units are unknown ahead of time — normalize to a sensible tabletop
+  // height, then sit it on the floor at the spot the figure used to stand.
+  const size = new THREE.Box3().setFromObject(brain).getSize(new THREE.Vector3());
+  brain.scale.setScalar(FIGURE_SPOT.targetHeight / size.y);
+
+  const box = new THREE.Box3().setFromObject(brain);
+  brain.position.set(FIGURE_SPOT.x, FIGURE_SPOT.floorY - box.min.y, FIGURE_SPOT.z);
+  brain.rotation.y = FIGURE_SPOT.rotY;
+
+  brain.traverse(child => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  sceneRig.add(brain);
+}, undefined, (err) => {
+  console.error('brain_in_a_jar.glb failed to load', err);
+});
+
+// ── Signal icon — 3 arcs that light up one at a time, looping like a signal-strength meter ─
+function makeArcTexture(radius, lineWidth) {
+  const c = document.createElement('canvas');
+  c.width = 160; c.height = 160;
+  const g = c.getContext('2d');
+  g.strokeStyle = '#666670';
+  g.lineCap = 'round';
+  g.lineWidth = lineWidth;
+  g.beginPath();
+  g.arc(22, 80, radius, -0.62, 0.62);
+  g.stroke();
+  return new THREE.CanvasTexture(c);
+}
+
+const ARC_DEFS = [[34, 7], [66, 8], [98, 9]];   // inner → outer, like radiating sound
+
+function makeSignalIcon(parent, x, y, z, size, { flip = false, rotZ = 0, reversed = false } = {}) {
+  const arcs = ARC_DEFS.map(([r, lw]) => {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(size, size),
+      new THREE.MeshBasicMaterial({ map: makeArcTexture(r, lw), transparent: true })
+    );
+    m.position.set(x, y, z);
+    if (flip) m.scale.x = -1;   // mirror: arcs open to the left
+    m.rotation.z = rotZ;
+    m.visible = false;
+    parent.add(m);
+    return m;
+  });
+  return { arcs, reversed };
+}
+
+function updateSignalIcon(icon, step) {
+  const n = icon.arcs.length;
+  icon.arcs.forEach((arc, i) => {
+    const order = icon.reversed ? (n - 1 - i) : i;
+    arc.visible = order <= step;
+  });
+}
+
+// Above the jar — normal orientation, as if transmitting (fills inner → outer)
+const jarSignal = makeSignalIcon(sceneRig, -6.2, 0.6, -5.5, 0.9, { rotZ: Math.PI / 2 });
+// Above the antenna tip (radio-local) — flipped + reversed, as if receiving (fills outer → inner)
+const antennaSignal = makeSignalIcon(radio, 2.62, 5.25, 0, 0.9, { rotZ: Math.PI / 2, flip: true, reversed: true });
+
+// ── Ground (shadow) — raised so the radio rests on it ──────────────────────
+// Radio bottom: (-2.18 - 0.11) local * 0.78 scale ≈ -1.79
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(50, 50),
+  new THREE.ShadowMaterial({ opacity: 0.35 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -1.79;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ── Scroll zoom (no OrbitControls — avoids pointer-event conflicts) ────────
+// Scrolling past the closest zoom level dives through the screen into a new page.
+let isZoomTransitioning = false;
+let zoomTransitionStart = 0;
+let zoomTransitionFov = 36;
+const ZOOM_TRANSITION_MS = 1200;
+const zoomFadeEl = document.getElementById('zoom-fade');
+
+renderer.domElement.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (isZoomTransitioning) return;
+
+  const zoomingIn = e.deltaY < 0;
+  if (zoomingIn && camera.position.z <= 7.05) {
+    isZoomTransitioning = true;
+    zoomTransitionStart = performance.now();
+    zoomTransitionFov = camera.fov;
+    return;
+  }
+  camera.position.z = THREE.MathUtils.clamp(camera.position.z + e.deltaY * 0.02, 7, 22);
+}, { passive: false });
+
+// ── Interaction ────────────────────────────────────────────────────────────
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+let isDraggingSlider = false;
+let prevPointerY = 0;          // kept for any future use
+let sliderDragStartClientY = 0;
+let sliderDragStartLocalY  = 0;
+
+const effectCapMeshes = effectBtns.map(b => b.cap);
+const mixerCapMeshes  = mixerBtns.map(b => b.cap);
+const allHit = [sliderHandle, playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, ...effectCapMeshes, ...mixerCapMeshes];
+
+function raycastHit(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+  mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(allHit);
+  return hits[0]?.object ?? null;
+}
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  const hit = raycastHit(e);
+  if (!hit) return;
+
+  // Volume slider — drag up/down
+  if (hit === sliderHandle) {
+    isDraggingSlider = true;
+    sliderDragStartClientY = e.clientY;
+    sliderDragStartLocalY  = volSlider.y;
+    renderer.domElement.setPointerCapture(e.pointerId);
+    renderer.domElement.style.cursor = 'ns-resize';
+    sliderHandle.material.emissive.setHex(0x1a6633);
+    return;
+  }
+
+  // Play button — starts / pauses the thought audio
+  if (hit === playBtn) {
+    isPlaying = !isPlaying;
+    playBtn.position.z = isPlaying ? BTN_Z_DOWN : BTN_Z_UP;
+    playIcon.position.z = playBtn.position.z + 0.16;
+    playBtn.material.emissive.setHex(isPlaying ? 0x00cc55 : 0x00963c);
+    screenGlow.intensity = isPlaying ? 1.2 : 0;
+    if (isPlaying) thoughtAudio.play().catch(() => {});
+    else thoughtAudio.pause();
+    redrawScreen();
+    return;
+  }
+
+  // Loop button — only arms looping; audio playback starts via PLAY only
+  if (hit === loopBtn) {
+    isLooping = !isLooping;
+    thoughtAudio.loop = isLooping;
+    loopBtn.position.z = isLooping ? BTN_Z_DOWN : BTN_Z_UP;
+    loopIcon.position.z = loopBtn.position.z + 0.16;
+    loopBtn.material.emissive.setHex(isLooping ? 0x2288ff : 0x0066b4);
+    return;
+  }
+
+  // Thought navigation arrows
+  if (hit === prevThoughtBtn || hit === nextThoughtBtn) {
+    const dir = hit === nextThoughtBtn ? 1 : -1;
+    thoughtIdx = (thoughtIdx + dir + THOUGHTS.length) % THOUGHTS.length;
+    // Brief press-down animation
+    hit.position.z = BTN_Z_DOWN;
+    setTimeout(() => { hit.position.z = BTN_Z_UP; }, 120);
+    if (hit === prevThoughtBtn) prevArrowIcon.position.z = BTN_Z_DOWN + 0.16;
+    else                        nextArrowIcon.position.z = BTN_Z_DOWN + 0.16;
+    setTimeout(() => {
+      prevArrowIcon.position.z = nextArrowIcon.position.z = BTN_Z_UP + 0.16;
+    }, 120);
+    redrawScreen();
+    return;
+  }
+
+  // Effect buttons
+  const ei = effectCapMeshes.indexOf(hit);
+  if (ei >= 0) {
+    const eb = effectBtns[ei];
+    eb.active = !eb.active;
+    eb.cap.position.z = eb.active ? BTN_Z_DOWN : BTN_Z_UP;
+    eb.cap.material.emissive.setHex(eb.active ? eb.ec.activeEm : eb.ec.emissive);
+    return;
+  }
+
+  // Mixer buttons — same toggle behaviour as the effect buttons
+  const mi = mixerCapMeshes.indexOf(hit);
+  if (mi >= 0) {
+    const mb = mixerBtns[mi];
+    mb.active = !mb.active;
+    mb.cap.position.z = mb.active ? BTN_Z_DOWN : BTN_Z_UP;
+    if (mb.splitOff) {
+      mb.cap.material.emissiveMap = mb.active ? mb.splitOn : mb.splitOff;
+    } else {
+      mb.cap.material.emissive.setHex(mb.active ? mb.ec.activeEm : mb.ec.emissive);
+    }
+  }
+});
+
+renderer.domElement.addEventListener('pointermove', e => {
+  if (isDraggingSlider) {
+    // Absolute delta from drag-start — works reliably in both directions
+    const dy = -(e.clientY - sliderDragStartClientY) * (TRACK_H / 110);
+    setSliderY(sliderDragStartLocalY + dy);
+    return;
+  }
+  const hit = raycastHit(e);
+  renderer.domElement.style.cursor = hit ? 'pointer' : 'default';
+});
+
+renderer.domElement.addEventListener('pointerup', () => {
+  if (isDraggingSlider) {
+    isDraggingSlider = false;
+    renderer.domElement.style.cursor = 'default';
+    sliderHandle.material.emissive.setHex(0x0a2e14);
+  }
+});
+
+// ── Resize ─────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  fitCamera();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── Animation loop ──────────────────────────────────────────────────────────
+let lastScreenRedraw = 0;
+const SIGNAL_STEP_MS = 450;
+
+renderer.setAnimationLoop(time => {
+
+  // Radio rests on the floor — no float animation
+
+  // Screen pulse when playing
+  if (isPlaying) {
+    const pulse = 0.9 + Math.sin(time * 0.0028) * 0.1;
+    screenGlow.intensity = 1.2 * pulse;
+    // Fast redraw while playing — animates the glitch distortion (+ cursor blink)
+    if (time - lastScreenRedraw > 80) {
+      lastScreenRedraw = time;
+      redrawScreen();
+    }
+  }
+
+  // Subtle slider handle emissive breathing
+  if (!isDraggingSlider) {
+    sliderHandle.material.emissiveIntensity = 0.05 + Math.sin(time * 0.001) * 0.025;
+  }
+
+  // Signal icons — arcs fill up one at a time, looping
+  const signalStep = Math.floor(time / SIGNAL_STEP_MS) % 3;
+  updateSignalIcon(jarSignal, signalStep);
+  updateSignalIcon(antennaSignal, signalStep);
+
+  // Zoom-into-screen transition — dives the camera through the screen, fades out,
+  // then hands off to the "inside the radio" page.
+  if (isZoomTransitioning) {
+    const t = Math.min((performance.now() - zoomTransitionStart) / ZOOM_TRANSITION_MS, 1);
+    const ease = t * t;   // accelerating dive
+    camera.position.z = THREE.MathUtils.lerp(7, 0.3, ease);
+    camera.fov = THREE.MathUtils.lerp(zoomTransitionFov, 75, ease);
+    camera.updateProjectionMatrix();
+    zoomFadeEl.style.opacity = t;
+    if (t >= 1) {
+      window.location.href = 'inside.html';
+    }
+  }
+
+  composer.render();
+});
+
+// Debug hook (harmless in production — read-only state inspection)
+window.__radioState = () => ({
+  isPlaying, isLooping, thoughtIdx,
+  volume: thoughtAudio.volume,
+  playBtnZ: playBtn.position.z,
+});
+</script>
+</body>
+</html>

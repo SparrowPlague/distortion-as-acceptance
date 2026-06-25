@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inside</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #23252a; overflow: hidden; }
+  canvas { display: block; }
+  #go-back {
+    position: fixed;
+    bottom: 48px;
+    left: 48px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  #go-back .circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.08);
+    transition: background 0.2s;
+  }
+  #go-back:hover .circle {
+    background: rgba(255,255,255,0.22);
+  }
+  #go-back span {
+    color: #fff;
+    font: 500 13px/1 'Courier New', monospace;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div id="go-back">
+  <div class="circle"></div>
+  <span>Go back</span>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// ── Renderer ───────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.9;
+document.body.appendChild(renderer.domElement);
+
+// ── Scene + Camera ─────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x23252a);
+scene.fog = new THREE.Fog(0x23252a, 14, 32);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 80);
+camera.position.set(2, 5.0, 8);
+camera.lookAt(-2, 2.5, -3);
+
+// Environment map — reuses the same HDR as the radio scene, for PBR reflections
+// on the metal-ish room surfaces. Linear HDR data — no colorSpace set.
+new HDRLoader().load('monochrome.hdr', (hdrTexture) => {
+  hdrTexture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.environment = hdrTexture;
+}, undefined, (err) => {
+  console.error('monochrome.hdr failed to load — serve this folder over http(s) for env reflections.', err);
+});
+
+// ── Lights — ambient + three-point ──────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xcfd6dd, 0.5));
+
+// Key — the main shadow-casting light
+const keyLight = new THREE.DirectionalLight(0xfff3e6, 1.3);
+keyLight.position.set(5, 9, 4);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.setScalar(2048);
+keyLight.shadow.camera.left = -12;
+keyLight.shadow.camera.right = 12;
+keyLight.shadow.camera.top = 12;
+keyLight.shadow.camera.bottom = -12;
+keyLight.shadow.camera.near = 0.5;
+keyLight.shadow.camera.far = 30;
+keyLight.shadow.bias = -0.0006;
+scene.add(keyLight);
+
+// Fill — cooler, lower intensity, opposite side, no shadow
+const fillLight = new THREE.DirectionalLight(0xbfd9ff, 0.5);
+fillLight.position.set(-6, 5, 5);
+scene.add(fillLight);
+
+// Rim — separates the walls/floor edges from the background
+const rimLight = new THREE.DirectionalLight(0xcfe6ff, 0.6);
+rimLight.position.set(-4, 6, -8);
+scene.add(rimLight);
+
+// ── Materials — metal-ish, PBR, tuned conservatively to avoid blown-out specular ─
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x8a8d92,
+  roughness: 0.5,
+  metalness: 0.55,
+  envMapIntensity: 0.5,
+});
+const wallMat = new THREE.MeshStandardMaterial({
+  color: 0x82858a,
+  roughness: 0.55,
+  metalness: 0.5,
+  envMapIntensity: 0.45,
+});
+
+// ── Room — floor, back wall, left wall (open corner) ────────────────────────
+// Floor/back wall extend further right than before (left edge stays fixed where the
+// left wall is) — the room wasn't wide enough on the right, exposing the void.
+const ROOM_LEFT_X = -8, ROOM_RIGHT_X = 16;
+const ROOM_WIDTH = ROOM_RIGHT_X - ROOM_LEFT_X;
+const ROOM_CENTER_X = (ROOM_LEFT_X + ROOM_RIGHT_X) / 2;
+const ROOM_DEPTH = 16, ROOM_HEIGHT = 10;
+
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH), floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.set(ROOM_CENTER_X, 0, -ROOM_DEPTH / 2 + 8);
+floor.receiveShadow = true;
+scene.add(floor);
+
+const backWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT), wallMat);
+backWall.position.set(ROOM_CENTER_X, ROOM_HEIGHT / 2, -8);
+backWall.receiveShadow = true;
+scene.add(backWall);
+
+const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT), wallMat);
+leftWall.rotation.y = Math.PI / 2;
+leftWall.position.set(ROOM_LEFT_X, ROOM_HEIGHT / 2, 0);
+leftWall.receiveShadow = true;
+scene.add(leftWall);
+
+// ── Back-wall buttons — circle + torus frame + mirrored branded label, one per
+// effect, spaced out to the left of the red PITCH one ───────────────────────
+const MARKER_X = 8 - 0.25 * 16;    // kept anchored to the original 16-wide back wall, not the extended floor
+const MARKER_Y = 0.2 * ROOM_HEIGHT;
+const MARKER_SPACING = 3.2;
+
+function makeButtonMarker(x, y, color, label) {
+  // Frame — a real torus instead of a flat ring, so it has actual depth/mass
+  const frame = new THREE.Mesh(
+    new THREE.TorusGeometry(0.6, 0.05, 16, 48),
+    new THREE.MeshStandardMaterial({ color: 0x4a4a4e, roughness: 0.28, metalness: 0.8, envMapIntensity: 0.55 })
+  );
+  frame.position.set(x, y, -7.95);
+  scene.add(frame);
+
+  const circle = new THREE.Mesh(
+    new THREE.CircleGeometry(0.55, 32),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.35, envMapIntensity: 0.35 })
+  );
+  circle.position.set(x, y, -7.94);
+  scene.add(circle);
+
+  // Branded label underneath — mirrored, engraved look (no glow, just grey/black)
+  const brandTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 160;
+    const g = c.getContext('2d');
+    g.font = 'bold 92px "Courier New", monospace';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillStyle = '#2a2a2c';
+    g.fillText(label, c.width / 2, c.height / 2 + 3);
+    g.fillStyle = 'rgba(0,0,0,0.6)';
+    g.fillText(label, c.width / 2, c.height / 2);
+    return new THREE.CanvasTexture(c);
+  })();
+  const brand = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.3, 0.41),
+    new THREE.MeshBasicMaterial({ map: brandTex, transparent: true })
+  );
+  brand.position.set(x, y - 0.95, -7.95);
+  brand.scale.x = -1;   // mirrored
+  scene.add(brand);
+
+  return { frame, circle, x, y };
+}
+
+// ── Wires — one per button, from the centre of its circle down to the board ─
+const BOARD_X = -3, BOARD_Z = -3;
+
+function makeWire(startX, startY, midX, midY, midZ, endX, endY, endZ) {
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(startX, startY, -7.9),                 // exits from the centre of the circle
+    new THREE.Vector3(startX - 0.25, startY - 0.55, -7.6),    // droops down naturally right at the attachment
+    new THREE.Vector3(startX - 1.6, 1.2, -6.5),               // sweeps down off the wall
+    new THREE.Vector3(midX, midY, midZ),                     // its own distinct route across the floor
+    new THREE.Vector3(endX, endY, endZ),                      // ends near/under the board
+  ]);
+  const wire = new THREE.Mesh(
+    new THREE.TubeGeometry(curve, 48, 0.035, 8),
+    new THREE.MeshStandardMaterial({ color: 0x4a4a4e, roughness: 0.5, metalness: 0.35 })
+  );
+  wire.castShadow = true;
+  wire.receiveShadow = true;
+  scene.add(wire);
+
+  // Tiny connector dot where the wire attaches to the circle
+  const connector = new THREE.Mesh(
+    new THREE.CircleGeometry(0.06, 16),
+    new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.5, metalness: 0.2 })
+  );
+  connector.position.set(startX, startY, -7.89);
+  scene.add(connector);
+}
+
+const pitchMarker   = makeButtonMarker(MARKER_X, MARKER_Y, 0xb23030, 'PITCH');
+const robotMarker   = makeButtonMarker(MARKER_X - MARKER_SPACING,     MARKER_Y, 0x2f5fb0, 'ROBOT');
+const reverbMarker  = makeButtonMarker(MARKER_X - MARKER_SPACING * 2, MARKER_Y, 0x7c3aa0, 'REVERB');
+const panningMarker = makeButtonMarker(MARKER_X - MARKER_SPACING * 3, MARKER_Y, 0xcfa227, 'PANNING');
+
+// Each wire takes its own route and ends at a different spot around the board,
+// so they read as four separate connections rather than overlapping paths
+makeWire(pitchMarker.x,   pitchMarker.y,  -1.8, 0.35, -4.4,  BOARD_X - 0.8, 0.65, BOARD_Z + 0.3);
+makeWire(robotMarker.x,   robotMarker.y,  -3.0, 0.2,  -5.2,  BOARD_X - 0.3, 0.55, BOARD_Z - 0.6);
+makeWire(reverbMarker.x,  reverbMarker.y, -2.6, 1.0,  -5.6,  BOARD_X + 0.5, 0.5,  BOARD_Z + 0.5);
+makeWire(panningMarker.x, panningMarker.y, -4.4, 0.04, -3.4, BOARD_X + 0.2, 0.6,  BOARD_Z - 0.3);
+
+// ── Floor cables — front of the room, simulating loose internal radio wiring.
+// Each cable is two fixed anchors (off-screen near the camera, off-screen through
+// the bottom-left corner) with a smooth lateral wave relaxed through a small
+// verlet-style distance-constraint solver — this removes sharp hand-placed kinks
+// and lets the slack settle naturally, instead of an authored zig-zag path.
+function relaxCable(waypoints, restHeight, segments, waveAmp, wavePhase, waveFreq) {
+  // waypoints: [start, ...visible via-points..., end] as [x, z] pairs. The via-point
+  // is required — a pure start→end relax between two off-screen anchors never dips
+  // through the visible middle of the floor, which is why the cables vanished.
+  const anchors = waypoints.map(p => new THREE.Vector3(p[0], restHeight, p[1]));
+  const legLengths = [];
+  let totalLen = 0;
+  for (let i = 0; i < anchors.length - 1; i++) {
+    const len = anchors[i + 1].distanceTo(anchors[i]);
+    legLengths.push(len);
+    totalLen += len;
+  }
+
+  const points = [];
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const targetDist = t * totalLen;
+    let acc = 0, legIndex = 0;
+    while (legIndex < legLengths.length - 1 && acc + legLengths[legIndex] < targetDist) {
+      acc += legLengths[legIndex];
+      legIndex++;
+    }
+    const legT = legLengths[legIndex] > 0 ? (targetDist - acc) / legLengths[legIndex] : 0;
+    const p = anchors[legIndex].clone().lerp(anchors[legIndex + 1], Math.min(Math.max(legT, 0), 1));
+
+    const legDir = anchors[legIndex + 1].clone().sub(anchors[legIndex]).normalize();
+    const lateral = new THREE.Vector3(-legDir.z, 0, legDir.x);
+    const wave = Math.sin(t * Math.PI * waveFreq + wavePhase) * waveAmp * Math.sin(t * Math.PI);
+    p.addScaledVector(lateral, wave);
+    points.push(p);
+  }
+
+  const restLen = (totalLen * 1.04) / segments;   // slight slack so it can settle, not pull dead straight
+  for (let iter = 0; iter < 120; iter++) {
+    for (let i = 0; i < segments; i++) {
+      const a = points[i], b = points[i + 1];
+      const delta = b.clone().sub(a);
+      const dist = delta.length();
+      const corr = delta.multiplyScalar(0.5 * (dist - restLen) / dist);
+      if (i !== 0) a.add(corr);
+      if (i !== segments) b.sub(corr);
+    }
+    points[0].copy(anchors[0]);
+    points[segments].copy(anchors[anchors.length - 1]);
+    for (let i = 1; i < segments; i++) points[i].y = restHeight;   // stays resting on the floor
+  }
+  return points;
+}
+
+function makeCable(color, points) {
+  const curve = new THREE.CatmullRomCurve3(points);
+  const cable = new THREE.Mesh(
+    new THREE.TubeGeometry(curve, 80, 0.045, 8),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.15, envMapIntensity: 0.2 })
+  );
+  cable.castShadow = true;
+  cable.receiveShadow = true;
+  scene.add(cable);
+}
+
+makeCable(0xb04040, relaxCable([[3.5, 6.5], [-2.0, 1.3], [-11.0, 4.8]], 0.030, 28, 0.6, 0.3, 2.2));   // red
+makeCable(0xb04040, relaxCable([[2.7, 6.8], [-2.8, 1.6], [-10.6, 5.5]], 0.045, 28, 0.7, 2.1, 1.8));   // red
+makeCable(0x484848, relaxCable([[4.0, 5.9], [-1.4, 0.5], [-11.3, 5.2]], 0.025, 28, 0.5, 4.0, 2.6));   // black
+makeCable(0x484848, relaxCable([[2.2, 6.9], [-3.2, 0.3], [-10.8, 5.0]], 0.055, 28, 0.8, 1.0, 2.0));   // black
+makeCable(0x4a70c0, relaxCable([[3.2, 6.4], [-2.4, 0.9], [-11.4, 5.6]], 0.040, 28, 0.4, 5.2, 2.4));   // blue
+
+// ── PCB model — sits flat on the floor, centered in the room ────────────────
+new GLTFLoader().load('Circuitboard.glb', (gltf) => {
+  const pcb = gltf.scene;
+
+  // Auto-detect the thinnest axis (the board's thickness) and rotate it to vertical,
+  // so the board lies flat regardless of how it was originally authored/exported.
+  let size = new THREE.Box3().setFromObject(pcb).getSize(new THREE.Vector3());
+  if (size.z <= size.x && size.z <= size.y) {
+    pcb.rotation.x = -Math.PI / 2;
+  } else if (size.x <= size.y && size.x <= size.z) {
+    pcb.rotation.z = Math.PI / 2;
+  }
+
+  // Scale it up, then place it further back and to the left — closer to the camera
+  // (near z=8) it was sitting low in frame and partly out of view
+  size = new THREE.Box3().setFromObject(pcb).getSize(new THREE.Vector3());
+  const targetFootprint = 5.5;
+  pcb.scale.setScalar(targetFootprint / Math.max(size.x, size.z));
+
+  const box = new THREE.Box3().setFromObject(pcb);
+  const center = box.getCenter(new THREE.Vector3());
+  pcb.position.x += BOARD_X - center.x;
+  pcb.position.z += BOARD_Z - center.z;
+  pcb.position.y -= box.min.y;   // sit flush on the floor (y=0)
+
+  pcb.traverse(child => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  scene.add(pcb);
+}, undefined, (err) => {
+  console.error('Circuitboard.glb failed to load', err);
+});
+
+// ── Resize ─────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── Animation loop ──────────────────────────────────────────────────────────
+renderer.setAnimationLoop(() => {
+  renderer.render(scene, camera);
+});
+
+// ── Go back to the radio ────────────────────────────────────────────────────
+document.getElementById('go-back').addEventListener('click', () => {
+  window.location.href = 'radio-v2.html';
+});
+</script>
+
+</body>
+</html>
