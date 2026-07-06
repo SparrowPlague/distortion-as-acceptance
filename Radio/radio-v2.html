@@ -1076,6 +1076,9 @@ renderer.domElement.addEventListener('wheel', e => {
     isZoomTransitioning = true;
     zoomTransitionStart = performance.now();
     zoomTransitionFov = camera.fov;
+    // Navigate on a plain timer — independent of the render loop, so the
+    // page-change still happens even if a rendering hiccup stalls a frame.
+    setTimeout(() => { window.location.href = 'inside.html'; }, ZOOM_TRANSITION_MS);
     return;
   }
   camera.position.z = THREE.MathUtils.clamp(camera.position.z + e.deltaY * 0.02, 7, 22);
@@ -1306,9 +1309,6 @@ renderer.setAnimationLoop(time => {
     camera.fov = THREE.MathUtils.lerp(zoomTransitionFov, 75, ease);
     camera.updateProjectionMatrix();
     zoomFadeEl.style.opacity = t;
-    if (t >= 1) {
-      window.location.href = 'inside.html';
-    }
   }
 
   composer.render();
