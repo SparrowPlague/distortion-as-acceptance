@@ -48,7 +48,9 @@
   1: Select a thought<br>
   2: Play the thought<br>
   3: Listen to pitch, robot, reverb &amp; pan<br>
-  4: Listen to the combinations on the mixer
+  4: Listen to the combinations on the mixer<br>
+  <br>
+  Press ESC to stop the sound
 </div>
 
 <script type="importmap">
@@ -64,6 +66,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -262,17 +265,57 @@ let isPlaying = false;
 
 // ── Audio ───────────────────────────────────────────────────────────────────
 // Main thought audio — started/paused by PLAY, looped by LOOP, volume by slider
-const thoughtAudio = new Audio('Thought Audio.wav');
+const thoughtAudio = new Audio('I am not good enough.wav');
 thoughtAudio.preload = 'auto';
 thoughtAudio.volume = 0.5;
 
-// When the file finishes (and loop is off), reset the play state visually
-thoughtAudio.addEventListener('ended', () => {
-  if (thoughtAudio.loop) return;
-  isPlaying = false;
+// Pitch-shifted variant — started/paused by the PITCH button, same loop/volume behaviour
+const pitchAudio = new Audio('I am not good enough pitch.wav');
+pitchAudio.preload = 'auto';
+pitchAudio.volume = 0.5;
+
+// Whichever of the two was chosen last — LOOP acts on this one, so looping
+// "follows" the currently chosen file rather than being tied to just PLAY.
+let currentAudio = thoughtAudio;
+
+function stopAudio(audio) {
+  audio.pause();
+  audio.currentTime = 0;
+}
+
+// Reset PLAY / PITCH button visuals — used on natural end-of-file and on ESC
+function setPlayUIOff() {
   playBtn.position.z = BTN_Z_UP;
   playIcon.position.z = BTN_Z_UP + 0.16;
   playBtn.material.emissive.setHex(0x00963c);
+}
+function setPitchUIOff() {
+  const pitchBtn = effectBtns.find(b => b.ec.label === 'PITCH');
+  pitchBtn.active = false;
+  pitchBtn.cap.position.z = BTN_Z_UP;
+  pitchBtn.cap.material.emissive.setHex(pitchBtn.ec.emissive);
+}
+
+// When a file finishes (and loop is off), reset the play state visually
+function onAudioEnded(audio) {
+  if (audio.loop) return;
+  if (audio === thoughtAudio) setPlayUIOff();
+  else setPitchUIOff();
+  isPlaying = false;
+  screenGlow.intensity = 0;
+  redrawScreen();
+}
+thoughtAudio.addEventListener('ended', () => onAudioEnded(thoughtAudio));
+pitchAudio.addEventListener('ended', () => onAudioEnded(pitchAudio));
+
+// ESC stops whichever file is playing
+window.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  stopAudio(thoughtAudio);
+  stopAudio(pitchAudio);
+  setPlayUIOff();
+  setPitchUIOff();
+  isPlaying = false;
   screenGlow.intensity = 0;
   redrawScreen();
 });
@@ -426,11 +469,14 @@ screenMesh.position.set(-0.5, 1.12, 0.69);
 radio.add(screenMesh);
 
 // ── Speaker grille ─────────────────────────────────────────────────────────
+const SPEAKER_X = 2.05;
+const SPEAKER_Y = 0.7 + 2.2 * 0.15;   // moved up 15% of the grille's own height (2.2)
+
 const grilleBg = new THREE.Mesh(
   new RoundedBoxGeometry(1.4, 2.2, 0.1, 6, 0.14),
   new THREE.MeshStandardMaterial({ color: 0x0d0d1c, roughness: 0.96, metalness: 0.06 })
 );
-grilleBg.position.set(2.05, 0.7, 0.59);
+grilleBg.position.set(SPEAKER_X, SPEAKER_Y, 0.59);
 radio.add(grilleBg);
 
 // Dot grid (speaker holes)
@@ -441,7 +487,7 @@ for (let row = -5; row <= 5; row++) {
     const dist = Math.abs(row) * 0.38 + Math.abs(col) * 0.55;
     if (dist > 2.55) continue;
     const dot = new THREE.Mesh(dotGeo, dotMat);
-    dot.position.set(2.05 + col * 0.2, 0.7 + row * 0.2, 0.66);
+    dot.position.set(SPEAKER_X + col * 0.2, SPEAKER_Y + row * 0.2, 0.66);
     radio.add(dot);
   }
 }
@@ -451,14 +497,14 @@ const spkRing = new THREE.Mesh(
   new THREE.TorusGeometry(0.32, 0.055, 10, 36),
   new THREE.MeshStandardMaterial({ color: 0x555566, roughness: 0.25, metalness: 0.85 })
 );
-spkRing.position.set(2.05, 0.7, 0.63);
+spkRing.position.set(SPEAKER_X, SPEAKER_Y, 0.63);
 radio.add(spkRing);
 
 const spkDome = new THREE.Mesh(
   new THREE.SphereGeometry(0.15, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.5),
   new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.7, metalness: 0.4 })
 );
-spkDome.position.set(2.05, 0.7, 0.63);
+spkDome.position.set(SPEAKER_X, SPEAKER_Y, 0.63);
 spkDome.rotation.x = -Math.PI / 2;
 radio.add(spkDome);
 
@@ -673,7 +719,9 @@ function setSliderY(newY) {
   sliderFill.scale.y = fillH;
   sliderFill.position.y = SLIDER_MINY + fillH / 2;
   // Slider position = audio volume — floored at 10% so the radio never goes silent
-  thoughtAudio.volume = Math.max(0.1, frac);
+  const vol = Math.max(0.1, frac);
+  thoughtAudio.volume = vol;
+  pitchAudio.volume = vol;
 }
 setSliderY(SLIDER_MIDY); // initialise fill bar at 50 %
 
@@ -880,7 +928,9 @@ mixer.add(mixerPlug);
 // ── Brain in a jar — replaces the figure, sits in the same spot, far back-left ─
 const FIGURE_SPOT = { x: -6.2, floorY: -1.79, z: -5.5, rotY: 0.55 - Math.PI / 2, targetHeight: 1.8 };
 
-new GLTFLoader().load('brain_in_a_jar.glb', (gltf) => {
+const brainLoader = new GLTFLoader();
+brainLoader.setMeshoptDecoder(MeshoptDecoder);
+brainLoader.load('brain_in_a_jar.glb', (gltf) => {
   const brain = gltf.scene;
 
   // Model units are unknown ahead of time — normalize to a sensible tabletop
@@ -995,6 +1045,12 @@ const effectCapMeshes = effectBtns.map(b => b.cap);
 const mixerCapMeshes  = mixerBtns.map(b => b.cap);
 const allHit = [sliderHandle, playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, ...effectCapMeshes, ...mixerCapMeshes];
 
+// Buttons that light up brighter on hover — play, loop, the 4 effect buttons
+// (pitch/robot/reverb/pan) and the thought-selection arrows.
+const hoverCapMeshes = [playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, ...effectCapMeshes];
+const HOVER_EMISSIVE_INTENSITY = 1.8;
+let hoveredCap = null;
+
 function raycastHit(e) {
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
@@ -1019,23 +1075,30 @@ renderer.domElement.addEventListener('pointerdown', e => {
     return;
   }
 
-  // Play button — starts / pauses the thought audio
+  // Play button — starts / pauses the main thought audio
   if (hit === playBtn) {
+    // Only one file plays at a time — stop pitch if it was the one running
+    if (!pitchAudio.paused) {
+      stopAudio(pitchAudio);
+      setPitchUIOff();
+    }
+    currentAudio = thoughtAudio;
     isPlaying = !isPlaying;
     playBtn.position.z = isPlaying ? BTN_Z_DOWN : BTN_Z_UP;
     playIcon.position.z = playBtn.position.z + 0.16;
     playBtn.material.emissive.setHex(isPlaying ? 0x00cc55 : 0x00963c);
     screenGlow.intensity = isPlaying ? 1.2 : 0;
+    thoughtAudio.loop = isLooping;
     if (isPlaying) thoughtAudio.play().catch(() => {});
     else thoughtAudio.pause();
     redrawScreen();
     return;
   }
 
-  // Loop button — only arms looping; audio playback starts via PLAY only
+  // Loop button — arms looping on whichever file was chosen last (PLAY or PITCH)
   if (hit === loopBtn) {
     isLooping = !isLooping;
-    thoughtAudio.loop = isLooping;
+    currentAudio.loop = isLooping;
     loopBtn.position.z = isLooping ? BTN_Z_DOWN : BTN_Z_UP;
     loopIcon.position.z = loopBtn.position.z + 0.16;
     loopBtn.material.emissive.setHex(isLooping ? 0x2288ff : 0x0066b4);
@@ -1062,6 +1125,27 @@ renderer.domElement.addEventListener('pointerdown', e => {
   const ei = effectCapMeshes.indexOf(hit);
   if (ei >= 0) {
     const eb = effectBtns[ei];
+
+    // PITCH plays its own audio file instead of just toggling a visual state
+    if (eb.ec.label === 'PITCH') {
+      // Only one file plays at a time — stop the main thought audio if it was running
+      if (!thoughtAudio.paused) {
+        stopAudio(thoughtAudio);
+        setPlayUIOff();
+      }
+      currentAudio = pitchAudio;
+      eb.active = !eb.active;
+      isPlaying = eb.active;
+      eb.cap.position.z = eb.active ? BTN_Z_DOWN : BTN_Z_UP;
+      eb.cap.material.emissive.setHex(eb.active ? eb.ec.activeEm : eb.ec.emissive);
+      screenGlow.intensity = eb.active ? 1.2 : 0;
+      pitchAudio.loop = isLooping;
+      if (eb.active) pitchAudio.play().catch(() => {});
+      else pitchAudio.pause();
+      redrawScreen();
+      return;
+    }
+
     eb.active = !eb.active;
     eb.cap.position.z = eb.active ? BTN_Z_DOWN : BTN_Z_UP;
     eb.cap.material.emissive.setHex(eb.active ? eb.ec.activeEm : eb.ec.emissive);
@@ -1091,6 +1175,14 @@ renderer.domElement.addEventListener('pointermove', e => {
   }
   const hit = raycastHit(e);
   renderer.domElement.style.cursor = hit ? 'pointer' : 'default';
+
+  // Hover glow — boost emissiveIntensity on the targeted cap, restore the rest
+  const newHover = hoverCapMeshes.includes(hit) ? hit : null;
+  if (newHover !== hoveredCap) {
+    if (hoveredCap) hoveredCap.material.emissiveIntensity = 1;
+    if (newHover) newHover.material.emissiveIntensity = HOVER_EMISSIVE_INTENSITY;
+    hoveredCap = newHover;
+  }
 });
 
 renderer.domElement.addEventListener('pointerup', () => {
@@ -1099,6 +1191,14 @@ renderer.domElement.addEventListener('pointerup', () => {
     renderer.domElement.style.cursor = 'default';
     sliderHandle.material.emissive.setHex(0x0a2e14);
   }
+});
+
+renderer.domElement.addEventListener('pointerleave', () => {
+  if (hoveredCap) {
+    hoveredCap.material.emissiveIntensity = 1;
+    hoveredCap = null;
+  }
+  renderer.domElement.style.cursor = 'default';
 });
 
 // ── Resize ─────────────────────────────────────────────────────────────────
