@@ -38,9 +38,29 @@
     pointer-events: none;
     z-index: 10;
   }
+  #back-link {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 20;
+    color: #000;
+    font: 500 clamp(8px, 1.5vh, 13px)/1 'Courier New', monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid rgba(0,0,0,0.3);
+    padding: 9px 16px;
+    background: rgba(255,255,255,0.55);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  #back-link:hover {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(0,0,0,0.6);
+  }
 </style>
 </head>
 <body>
+<a id="back-link" href="thesis-experience.html#thoughts">&larr; Back to "I am not good enough"</a>
 <div id="hint">scroll to deep dive (layer 2) &nbsp;·&nbsp; click buttons &nbsp;·&nbsp; drag vol slider</div>
 <div id="zoom-fade"></div>
 <div id="experience-info">
@@ -274,7 +294,12 @@ const pitchAudio = new Audio('I am not good enough pitch.wav');
 pitchAudio.preload = 'auto';
 pitchAudio.volume = 0.5;
 
-// Whichever of the two was chosen last — LOOP acts on this one, so looping
+// Pitch+robot combo — started/paused by the mixer's MIX 1 button
+const mix1Audio = new Audio('I am not good enough mix pitch robot.wav');
+mix1Audio.preload = 'auto';
+mix1Audio.volume = 0.5;
+
+// Whichever file was chosen last — LOOP acts on this one, so looping
 // "follows" the currently chosen file rather than being tied to just PLAY.
 let currentAudio = thoughtAudio;
 
@@ -283,7 +308,20 @@ function stopAudio(audio) {
   audio.currentTime = 0;
 }
 
-// Reset PLAY / PITCH button visuals — used on natural end-of-file and on ESC
+// Stop any of the other audio files that might currently be playing, so only
+// one ever plays at a time, and reset that file's button visuals.
+function stopOtherAudio(except) {
+  [thoughtAudio, pitchAudio, mix1Audio].forEach(a => {
+    if (a !== except && !a.paused) {
+      stopAudio(a);
+      if (a === thoughtAudio) setPlayUIOff();
+      else if (a === pitchAudio) setPitchUIOff();
+      else setMix1UIOff();
+    }
+  });
+}
+
+// Reset PLAY / PITCH / MIX 1 button visuals — used on natural end-of-file and on ESC
 function setPlayUIOff() {
   playBtn.position.z = BTN_Z_UP;
   playIcon.position.z = BTN_Z_UP + 0.16;
@@ -295,26 +333,36 @@ function setPitchUIOff() {
   pitchBtn.cap.position.z = BTN_Z_UP;
   pitchBtn.cap.material.emissive.setHex(pitchBtn.ec.emissive);
 }
+function setMix1UIOff() {
+  const mix1Btn = mixerBtns[0];
+  mix1Btn.active = false;
+  mix1Btn.cap.position.z = BTN_Z_UP;
+  mix1Btn.cap.material.emissiveMap = mix1Btn.splitOff;
+}
 
 // When a file finishes (and loop is off), reset the play state visually
 function onAudioEnded(audio) {
   if (audio.loop) return;
   if (audio === thoughtAudio) setPlayUIOff();
-  else setPitchUIOff();
+  else if (audio === pitchAudio) setPitchUIOff();
+  else setMix1UIOff();
   isPlaying = false;
   screenGlow.intensity = 0;
   redrawScreen();
 }
 thoughtAudio.addEventListener('ended', () => onAudioEnded(thoughtAudio));
 pitchAudio.addEventListener('ended', () => onAudioEnded(pitchAudio));
+mix1Audio.addEventListener('ended', () => onAudioEnded(mix1Audio));
 
 // ESC stops whichever file is playing
 window.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   stopAudio(thoughtAudio);
   stopAudio(pitchAudio);
+  stopAudio(mix1Audio);
   setPlayUIOff();
   setPitchUIOff();
+  setMix1UIOff();
   isPlaying = false;
   screenGlow.intensity = 0;
   redrawScreen();
@@ -722,6 +770,7 @@ function setSliderY(newY) {
   const vol = Math.max(0.1, frac);
   thoughtAudio.volume = vol;
   pitchAudio.volume = vol;
+  mix1Audio.volume = vol;
 }
 setSliderY(SLIDER_MIDY); // initialise fill bar at 50 %
 
@@ -1077,11 +1126,8 @@ renderer.domElement.addEventListener('pointerdown', e => {
 
   // Play button — starts / pauses the main thought audio
   if (hit === playBtn) {
-    // Only one file plays at a time — stop pitch if it was the one running
-    if (!pitchAudio.paused) {
-      stopAudio(pitchAudio);
-      setPitchUIOff();
-    }
+    // Only one file plays at a time — stop any other file that was running
+    stopOtherAudio(thoughtAudio);
     currentAudio = thoughtAudio;
     isPlaying = !isPlaying;
     playBtn.position.z = isPlaying ? BTN_Z_DOWN : BTN_Z_UP;
@@ -1128,11 +1174,8 @@ renderer.domElement.addEventListener('pointerdown', e => {
 
     // PITCH plays its own audio file instead of just toggling a visual state
     if (eb.ec.label === 'PITCH') {
-      // Only one file plays at a time — stop the main thought audio if it was running
-      if (!thoughtAudio.paused) {
-        stopAudio(thoughtAudio);
-        setPlayUIOff();
-      }
+      // Only one file plays at a time — stop any other file that was running
+      stopOtherAudio(pitchAudio);
       currentAudio = pitchAudio;
       eb.active = !eb.active;
       isPlaying = eb.active;
@@ -1156,6 +1199,23 @@ renderer.domElement.addEventListener('pointerdown', e => {
   const mi = mixerCapMeshes.indexOf(hit);
   if (mi >= 0) {
     const mb = mixerBtns[mi];
+
+    // MIX 1 (pitch + robot) plays its own combined audio file
+    if (mi === 0) {
+      stopOtherAudio(mix1Audio);
+      currentAudio = mix1Audio;
+      mb.active = !mb.active;
+      isPlaying = mb.active;
+      mb.cap.position.z = mb.active ? BTN_Z_DOWN : BTN_Z_UP;
+      mb.cap.material.emissiveMap = mb.active ? mb.splitOn : mb.splitOff;
+      screenGlow.intensity = mb.active ? 1.2 : 0;
+      mix1Audio.loop = isLooping;
+      if (mb.active) mix1Audio.play().catch(() => {});
+      else mix1Audio.pause();
+      redrawScreen();
+      return;
+    }
+
     mb.active = !mb.active;
     mb.cap.position.z = mb.active ? BTN_Z_DOWN : BTN_Z_UP;
     if (mb.splitOff) {
