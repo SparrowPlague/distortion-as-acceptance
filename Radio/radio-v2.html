@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radio — I am not good enough</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #eceef0; overflow: hidden; }
   canvas { display: block; }
@@ -21,14 +22,23 @@
   }
   #experience-info {
     position: fixed;
-    top: 16%;
+    top: 3%;
     right: 5%;
     text-align: right;
     color: #000;
-    font: 500 clamp(9px, 1.9vh, 16px)/1.6 'Courier New', monospace;
-    letter-spacing: 0.18em;
+    font: 300 clamp(9px, 1.9vh, 16px)/1.7 'IBM Plex Mono', 'Courier New', monospace;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     pointer-events: none;
+  }
+  #experience-info strong { font-weight: 600; }
+  #experience-info .tagline {
+    text-transform: none;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    font-size: 1.15em;
+    line-height: 1.4;
+    margin-bottom: 0.9em;
   }
   #zoom-fade {
     position: fixed;
@@ -57,6 +67,118 @@
     background: rgba(255,255,255,0.9);
     border-color: rgba(0,0,0,0.6);
   }
+  .hover-tip {
+    position: fixed;
+    display: none;
+    max-width: 280px;
+    background: rgba(245,243,238,0.96);
+    border: 1px solid rgba(0,0,0,0.25);
+    border-radius: 6px;
+    padding: 14px 18px;
+    font: 500 12px/1.6 'IBM Plex Mono', 'Courier New', monospace;
+    color: #111;
+    z-index: 30;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+  #brain-tip {
+    text-align: center;
+    font-style: italic;
+    pointer-events: none;
+  }
+  #play-tip, #loop-tip, #mix1-tip {
+    pointer-events: none;
+  }
+  #radio-info-btn {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 20;
+    color: #000;
+    font: 400 clamp(8px, 1.5vh, 13px)/1 'IBM Plex Mono', 'Courier New', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid rgba(0,0,0,0.3);
+    padding: 9px 16px;
+    background: rgba(255,255,255,0.55);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    transform: translate(0, -100%);
+  }
+  #radio-info-btn:hover {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(0,0,0,0.6);
+  }
+  .popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 950;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    padding: 24px;
+  }
+  .popup-overlay.show { opacity: 1; pointer-events: all; }
+  .popup-box {
+    background: #f5f3ee;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 40px 48px;
+    position: relative;
+    font: 500 13px/1.75 'IBM Plex Mono', 'Courier New', monospace;
+    color: #111;
+  }
+  .popup-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 18px;
+  }
+  .popup-body p { margin-bottom: 16px; }
+  .popup-video-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    margin: 20px 0 10px;
+  }
+  .popup-video {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #000;
+  }
+  .popup-video iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .popup-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: none;
+    border: none;
+    color: rgba(0,0,0,0.5);
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .popup-close:hover { color: #000; }
 </style>
 </head>
 <body>
@@ -64,13 +186,42 @@
 <div id="hint">scroll to deep dive (layer 2) &nbsp;·&nbsp; click buttons &nbsp;·&nbsp; drag vol slider</div>
 <div id="zoom-fade"></div>
 <div id="experience-info">
+  <div class="tagline">Explore what happens when you change<br>how a thought sounds.</div>
   <strong>Experience (layer 1)</strong><br>
-  1: Select a thought<br>
-  2: Play the thought<br>
-  3: Listen to pitch, robot, reverb &amp; pan<br>
-  4: Listen to the combinations on the mixer<br>
+  <b>1:</b> Select a thought<br>
+  <b>2:</b> Press play to hear it<br>
+  <b>3:</b> Explore the buttons to hear<br>
+  &nbsp;&nbsp;&nbsp;examples of the thought transformed<br>
+  <b>4:</b> The mixer combines the most<br>
+  &nbsp;&nbsp;&nbsp;effective transformations<br>
+  &nbsp;&nbsp;&nbsp;from the experiment<br>
   <br>
-  Press ESC to stop the sound
+  Press ESC to stop the sound<br>
+  <br><b>Hover over the buttons for more info</b><br>
+  <br><b>
+  Zoom in the radio for a deep dive 
+  <br>into METHOD · RESULTS · FINDINGS &rarr;</b>
+</div>
+
+<div id="brain-tip" class="hover-tip">&ldquo;I think, therefore I suffer.&rdquo;</div>
+<div id="play-tip" class="hover-tip">In the experiment participants heard their own recorded negative thought played back to them.<br>The thoughts on this radio are pre-recorded examples.</div>
+<div id="loop-tip" class="hover-tip"><b>Looping </b>the thought is intentional — repeating a phrase until it loses its meaning is itself a form of defusion, known as <b>semantic satiation</b>.</div>
+<div id="mix1-tip" class="hover-tip"><strong>Pitch + Robot</strong><br>One of the combinations most frequently used &amp; most effective in the experiment.</div>
+<button id="radio-info-btn" type="button">About the radio metaphor</button>
+
+<div class="popup-overlay" id="radioDeepDiveOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="radioDeepDiveClose">&#x2715;</button>
+    <div class="popup-title">Radio Doom &amp; Gloom</div>
+    <div class="popup-body">
+      <p>The "Radio Doom &amp; Gloom" is a metaphor from Acceptance and Commitment Therapy. The mind, like a radio, is always broadcasting negative thoughts, worries, self-criticism.</p>
+      <p>This research took that metaphor as a starting point, but extended it. In the experiment, participants were able to interact with a recording of their own negative thought in real time — hearing it at a different pitch, distorted, echoed, slowed. The interface on this website gives you an impression of that experience through pre-recorded examples.</p>
+      <div class="popup-video-label">View the ACT Radio Doom &amp; Gloom metaphor</div>
+      <div class="popup-video">
+        <iframe src="https://www.youtube.com/embed/Bu2k0EGXAVo" title="ACT Radio metaphor" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="importmap">
@@ -331,6 +482,7 @@ function setPitchUIOff() {
   const pitchBtn = effectBtns.find(b => b.ec.label === 'PITCH');
   pitchBtn.active = false;
   pitchBtn.cap.position.z = BTN_Z_UP;
+  pitchBtn.icon.position.z = BTN_Z_UP + 0.16;
   pitchBtn.cap.material.emissive.setHex(pitchBtn.ec.emissive);
 }
 function setMix1UIOff() {
@@ -366,6 +518,7 @@ window.addEventListener('keydown', (e) => {
   isPlaying = false;
   screenGlow.intensity = 0;
   redrawScreen();
+  radioDeepDiveOverlay.classList.remove('show');
 });
 
 // Thoughts to cycle through with ◄ ► arrows
@@ -793,6 +946,18 @@ const playIcon = new THREE.Mesh(
 playIcon.position.set(-1.85, BTN_Y, BTN_Z_UP + 0.16);
 radio.add(playIcon);
 
+// Same play-triangle glyph on the 4 effect buttons (Pitch/Robot/Reverb/Pan) —
+// visual cue that each one plays a transformed example of the thought.
+effectBtns.forEach(eb => {
+  const icon = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.3, 0.3),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(playIconCvs), transparent: true })
+  );
+  icon.position.set(eb.ec.x, ROW_Y, BTN_Z_UP + 0.16);
+  radio.add(icon);
+  eb.icon = icon;
+});
+
 // Loop icon — rounded-rectangle repeat symbol (standard media-player loop icon)
 const loopIconCvs = document.createElement('canvas');
 loopIconCvs.width = 64; loopIconCvs.height = 64;
@@ -977,10 +1142,13 @@ mixer.add(mixerPlug);
 // ── Brain in a jar — replaces the figure, sits in the same spot, far back-left ─
 const FIGURE_SPOT = { x: -6.2, floorY: -1.79, z: -5.5, rotY: 0.55 - Math.PI / 2, targetHeight: 1.8 };
 
+let brainModel = null;   // set once loaded — used for hover raycasting below
+
 const brainLoader = new GLTFLoader();
 brainLoader.setMeshoptDecoder(MeshoptDecoder);
 brainLoader.load('brain_in_a_jar.glb', (gltf) => {
   const brain = gltf.scene;
+  brainModel = brain;
 
   // Model units are unknown ahead of time — normalize to a sensible tabletop
   // height, then sit it on the floor at the spot the figure used to stand.
@@ -1098,8 +1266,8 @@ const mixerCapMeshes  = mixerBtns.map(b => b.cap);
 const allHit = [sliderHandle, playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, ...effectCapMeshes, ...mixerCapMeshes];
 
 // Buttons that light up brighter on hover — play, loop, the 4 effect buttons
-// (pitch/robot/reverb/pan) and the thought-selection arrows.
-const hoverCapMeshes = [playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, ...effectCapMeshes];
+// (pitch/robot/reverb/pan), the thought-selection arrows, and the 4 mixer buttons.
+const hoverCapMeshes = [playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, ...effectCapMeshes, ...mixerCapMeshes];
 const HOVER_EMISSIVE_INTENSITY = 1.8;
 let hoveredCap = null;
 
@@ -1111,6 +1279,51 @@ function raycastHit(e) {
   const hits = raycaster.intersectObjects(allHit);
   return hits[0]?.object ?? null;
 }
+
+// ── Brain / Play / Loop / Mix 1 hover tooltips ──────────────────────────────
+const brainTip = document.getElementById('brain-tip');
+const playTip = document.getElementById('play-tip');
+const loopTip = document.getElementById('loop-tip');
+const mix1Tip = document.getElementById('mix1-tip');
+
+function positionHoverTip(tipEl, clientX, clientY) {
+  const pad = 16;
+  tipEl.style.display = 'block';
+  const r = tipEl.getBoundingClientRect();
+  let x = Math.min(clientX + pad, window.innerWidth - r.width - 8);
+  let y = Math.min(clientY + pad, window.innerHeight - r.height - 8);
+  tipEl.style.left = x + 'px';
+  tipEl.style.top = y + 'px';
+}
+
+// ── Radio metaphor info popup — plain click button (a hover tooltip here kept
+// re-triggering as the mouse moved, making the button inside unclickable) ──
+const radioInfoBtn = document.getElementById('radio-info-btn');
+const radioDeepDiveOverlay = document.getElementById('radioDeepDiveOverlay');
+const radioDeepDiveClose = document.getElementById('radioDeepDiveClose');
+
+radioInfoBtn.addEventListener('click', () => {
+  radioDeepDiveOverlay.classList.add('show');
+});
+
+// Anchor (in the radio's own local space) just above its top-left corner —
+// projected to screen space every frame so the button tracks the radio
+// through zoom/resize instead of sitting at a guessed fixed percentage.
+const radioInfoAnchor = new THREE.Vector3(-2.7, 2.6, 0.9);
+function updateRadioInfoBtnPosition() {
+  const world = radio.localToWorld(radioInfoAnchor.clone());
+  const screen = world.project(camera);
+  const x = (screen.x * 0.5 + 0.5) * window.innerWidth;
+  const y = (-screen.y * 0.5 + 0.5) * window.innerHeight;
+  radioInfoBtn.style.left = x + 'px';
+  radioInfoBtn.style.top = y + 'px';
+}
+radioDeepDiveClose.addEventListener('click', () => {
+  radioDeepDiveOverlay.classList.remove('show');
+});
+radioDeepDiveOverlay.addEventListener('click', (e) => {
+  if (e.target === radioDeepDiveOverlay) radioDeepDiveOverlay.classList.remove('show');
+});
 
 renderer.domElement.addEventListener('pointerdown', e => {
   const hit = raycastHit(e);
@@ -1183,6 +1396,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
       eb.active = !eb.active;
       isPlaying = eb.active;
       eb.cap.position.z = eb.active ? BTN_Z_DOWN : BTN_Z_UP;
+      eb.icon.position.z = eb.cap.position.z + 0.16;
       eb.cap.material.emissive.setHex(eb.active ? eb.ec.activeEm : eb.ec.emissive);
       screenGlow.intensity = eb.active ? 1.2 : 0;
       pitchAudio.loop = isLooping;
@@ -1194,6 +1408,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
 
     eb.active = !eb.active;
     eb.cap.position.z = eb.active ? BTN_Z_DOWN : BTN_Z_UP;
+    eb.icon.position.z = eb.cap.position.z + 0.16;
     eb.cap.material.emissive.setHex(eb.active ? eb.ec.activeEm : eb.ec.emissive);
     return;
   }
@@ -1246,6 +1461,35 @@ renderer.domElement.addEventListener('pointermove', e => {
     if (newHover) newHover.material.emissiveIntensity = HOVER_EMISSIVE_INTENSITY;
     hoveredCap = newHover;
   }
+
+  // Brain hover tooltip — only when not already hovering a control.
+  // Reuses the ray already set up by raycastHit() above.
+  if (!hit && brainModel && raycaster.intersectObject(brainModel, true).length > 0) {
+    positionHoverTip(brainTip, e.clientX, e.clientY);
+  } else {
+    brainTip.style.display = 'none';
+  }
+
+  // Play button — explains that the recordings are pre-made, not the visitor's own voice
+  if (hit === playBtn) {
+    positionHoverTip(playTip, e.clientX, e.clientY);
+  } else {
+    playTip.style.display = 'none';
+  }
+
+  // Loop button — explains why looping the thought is a deliberate design choice
+  if (hit === loopBtn) {
+    positionHoverTip(loopTip, e.clientX, e.clientY);
+  } else {
+    loopTip.style.display = 'none';
+  }
+
+  // Mixer's MIX 1 button — explains the pitch+robot combination
+  if (hit === mixerBtns[0].cap) {
+    positionHoverTip(mix1Tip, e.clientX, e.clientY);
+  } else {
+    mix1Tip.style.display = 'none';
+  }
 });
 
 renderer.domElement.addEventListener('pointerup', () => {
@@ -1262,6 +1506,10 @@ renderer.domElement.addEventListener('pointerleave', () => {
     hoveredCap = null;
   }
   renderer.domElement.style.cursor = 'default';
+  brainTip.style.display = 'none';
+  playTip.style.display = 'none';
+  loopTip.style.display = 'none';
+  mix1Tip.style.display = 'none';
 });
 
 // ── Resize ─────────────────────────────────────────────────────────────────
@@ -1311,6 +1559,7 @@ renderer.setAnimationLoop(time => {
     zoomFadeEl.style.opacity = t;
   }
 
+  updateRadioInfoBtnPosition();
   composer.render();
 });
 
