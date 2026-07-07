@@ -358,7 +358,7 @@ video {
   gap: 8px;
   font-family: var(--f-display);
   font-variation-settings: 'wdth' 92, 'wght' 420;
-  font-size: 0.7rem;
+  font-size: 0.86rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(255,255,255,0.6);
@@ -369,8 +369,8 @@ video {
 .anatomy-label:hover, .anatomy-label.active { color: #fff; }
 
 .anatomy-dot {
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #9fc8ff;
   flex-shrink: 0;
@@ -378,7 +378,7 @@ video {
 }
 @keyframes anatomy-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(159,200,255,0.5); }
-  50%      { box-shadow: 0 0 0 6px rgba(159,200,255,0); }
+  50%      { box-shadow: 0 0 0 8px rgba(159,200,255,0); }
 }
 
 .anatomy-negative { top: 0; right: 0; }
@@ -650,6 +650,79 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
 }
 .popup-readmore:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.6); }
 
+.radio-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -6px;
+  margin-bottom: 8px;
+  font-family: var(--f-display);
+  font-variation-settings: 'wdth' 92, 'wght' 560;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffb454;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,180,84,0.4);
+  padding-bottom: 2px;
+  transition: color 0.2s ease, border-color 0.2s ease, gap 0.2s ease;
+}
+.radio-link:hover {
+  color: #ffcb85;
+  border-color: rgba(255,203,133,0.85);
+  gap: 13px;
+}
+.radio-link .arrow { display: inline-block; transition: transform 0.2s ease; }
+.radio-link:hover .arrow { transform: translateX(3px); }
+
+.radio-link-hint {
+  font-family: var(--f-body);
+  font-style: italic;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.45);
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+/* ── "Power on" transition — plays before handing off to the radio page ──
+   A CRT coming to life: a single point blooms into a thin bright line, holds,
+   then that line unrolls to fill the screen — the reverse of the classic
+   "old TV switching off" flash. */
+#radio-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  overflow: hidden;
+}
+#radio-transition.show { opacity: 1; pointer-events: all; }
+
+.crt-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  box-shadow: 0 0 60px 14px rgba(255,255,255,0.9);
+  transform-origin: center;
+  transform: translate(-50%, -50%) scaleX(0) scaleY(0.004);
+  opacity: 0;
+}
+#radio-transition.show .crt-line {
+  animation: crtPowerOn 0.62s cubic-bezier(.3,0,.4,1) 90ms forwards;
+}
+@keyframes crtPowerOn {
+  0%   { transform: translate(-50%, -50%) scaleX(0) scaleY(0.004); opacity: 0; }
+  8%   { opacity: 1; }
+  46%  { transform: translate(-50%, -50%) scaleX(1) scaleY(0.004); opacity: 1; }
+  64%  { transform: translate(-50%, -50%) scaleX(1) scaleY(0.004); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleX(1) scaleY(1);     opacity: 1; }
+}
+
 .ref-popup-close {
   position: absolute;
   top: 16px;
@@ -836,7 +909,11 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
     <div class="inner-card" id="whatIsThisCard" data-overlay="thoughtOverlay"><strong>What is this?</strong>A negative self-referential thought<span class="inner-card-more">Read more</span></div>
     <div class="inner-card" id="feelsRealCard" data-overlay="feelsRealOverlay"><strong>Why does it feel real?</strong>Your mind treats it as literal truth<span class="inner-card-more">Read more</span></div>
     <div class="inner-card" id="whatCanChangeCard" data-overlay="changeOverlay"><strong>What can change?</strong>Create distance between yourself and the thought<span class="inner-card-more">Read more</span></div>
-    <div class="inner-card" id="conceptToInterfaceCard" data-overlay="conceptToInterfaceOverlay"><strong>From concept to interface</strong>Placeholder<span class="inner-card-more">Read more</span></div>
+    <div class="inner-card" id="conceptToInterfaceCard" data-overlay="conceptToInterfaceOverlay"><strong>From concept to interface</strong>How these principles became an interface<span class="inner-card-more">Read more</span></div>
+  </div>
+
+  <div class="anatomy-tooltip" id="cardHoverTip">
+    <div class="anatomy-tooltip-body">This section has two layers.<br>Click for an overview &rarr; click Deep Dive to explore the theory and research behind it.</div>
   </div>
 
   <div class="side-note" id="sideNote">This website is built in layers. You can engage as deeply as you choose ; experience it, understand it, or explore the research behind it. Every section invites you to go further, but never forces you to.</div>
@@ -955,7 +1032,11 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
     <div class="ref-popup-title">From concept to interface</div>
     <div class="ref-popup-body">
       <div class="ref-popup-original">
-        <p>[PLACEHOLDER — replace with your own text]</p>
+        <p>Defusion techniques have one thing in common: they all work by changing how a thought is experienced, rather than what it says. Repeating a word until it loses its meaning, hearing a thought in a different voice, slowing it down or singing it aloud, each of these approaches creates a small but significant shift in the relationship between the person and the thought.</p>
+        <p>This research brought those principles together in a tangible audio interface, allowing participants to hear and manipulate a recording of their own negative thought in real time. The interface on this website is an illustration of that experience, not a replication of the exact research conditions, but an invitation to explore the same principles yourself.</p>
+        <p>At the heart of it lies a simple question: <br><b>What if interacting with the sound of a thought could facilitate defusion?</b></p>
+        <a href="radio-v2.html" class="radio-link" id="radioLink">Try the radio <span class="arrow">&rarr;</span></a>
+        <div class="radio-link-hint">The page may take a moment to load</div>
       </div>
       <div class="ref-popup-extra">
         <p>[PLACEHOLDER — replace with your own text]</p>
@@ -973,6 +1054,10 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
 </div>
 
 <div class="progress-bar" id="progressBar"></div>
+
+<div id="radio-transition">
+  <div class="crt-line"></div>
+</div>
 
 <script>
 /* ── WAVE ── */
@@ -1166,6 +1251,25 @@ document.querySelectorAll('.anatomy-label').forEach(label => {
   label.addEventListener('mouseleave', () => { info.el.style.display = 'none'; });
 });
 
+/* ── INNER CARD HOVER TOOLTIP — explains the two-layer (overview / deep dive) structure ── */
+const cardHoverTip = document.getElementById('cardHoverTip');
+function showTipAbove(el, tip) {
+  const r = el.getBoundingClientRect();
+  const gap = 14;
+  tip.style.display = 'block';
+  const tipRect = tip.getBoundingClientRect();
+  let x = r.left + r.width / 2 - tipRect.width / 2;
+  let y = r.top - gap - tipRect.height;
+  x = Math.min(Math.max(x, 8), window.innerWidth - tipRect.width - 8);
+  y = Math.max(y, 8);
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+}
+document.querySelectorAll('.inner-card').forEach(card => {
+  card.addEventListener('mouseenter', () => showTipAbove(card, cardHoverTip));
+  card.addEventListener('mouseleave', () => { cardHoverTip.style.display = 'none'; });
+});
+
 /* ── THOUGHT WORD FADE ON LABEL HOVER ── */
 document.querySelectorAll('.anatomy-label').forEach(label => {
   const key = label.dataset.key;
@@ -1334,6 +1438,20 @@ function jumpToThoughts() {
 }
 if (location.hash === '#thoughts') {
   jumpToThoughts();
+}
+
+/* ── "POWER ON" TRANSITION — plays before jumping to the radio page ── */
+const radioLink = document.getElementById('radioLink');
+const radioTransition = document.getElementById('radio-transition');
+
+if (radioLink) {
+  radioLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    radioTransition.classList.add('show');
+    setTimeout(() => {
+      window.location.href = 'radio-v2.html';
+    }, 780);
+  });
 }
 </script>
 </body>
