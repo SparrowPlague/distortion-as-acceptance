@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inside</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #23252a; overflow: hidden; }
   canvas { display: block; }
@@ -35,6 +36,214 @@
     letter-spacing: 0.18em;
     text-transform: uppercase;
   }
+  .popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 950;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    left: -10000px;
+    transition: opacity 0.25s ease, left 0s 0.25s;
+    padding: 24px;
+  }
+  /* left/opacity/pointer-events alone can't be trusted to keep a hidden popup from
+     intercepting clicks: the Datawrapper chart embedded in #mixerOverlay sets its
+     own inline `style="all: initial"`, which resets pointer-events (and visibility)
+     back to their defaults on itself, overriding whatever this hidden ancestor
+     inherits down. Physically moving the whole overlay off-screen while hidden
+     sidesteps that — no override on the embed's part can make an off-screen element
+     receive clicks meant for the 3D canvas. The "left 0s 0.25s" delay keeps the
+     existing fade-out animation intact: position only snaps away once the fade
+     (same 0.25s) has finished, not the instant .show is removed. */
+  .popup-overlay.show { opacity: 1; pointer-events: all; left: 0; transition: opacity 0.25s ease; }
+  .popup-box {
+    background: #f5f3ee;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 88vh;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;   /* stops wheel-scroll momentum "chaining" past the
+                                          box's top/bottom edge — a known cause of scroll
+                                          seeming to randomly stop until you grab the
+                                          scrollbar directly */
+    padding: 40px 48px;
+    position: relative;
+    font: 400 0.95rem/1.7 'Spectral', serif;
+    color: #111;
+  }
+  .popup-title {
+    font-family: Georgia, serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    text-transform: none;
+    letter-spacing: normal;
+    margin-bottom: 18px;
+  }
+  .popup-body p { margin-bottom: 16px; }
+  .popup-body a { color: #7a4f9e; cursor: pointer; }
+  .popup-body a:hover { color: #5c3a78; }
+  .codebook-box { max-width: 960px; }
+  .codebook-frame {
+    width: 100%;
+    height: 70vh;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 4px;
+  }
+  /* Extra large — an interactive multi-tab data table needs real room to be readable. */
+  .interactive-table-box { max-width: 1400px; }
+  .interactive-table-frame {
+    width: 100%;
+    height: 85vh;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 4px;
+  }
+  #mixerOverlay .popup-box { max-width: 920px; }
+  /* Section heading inside a long popup — same serif family as .popup-title,
+     a step down in size so it reads as a subhead rather than a second title. */
+  .popup-subtitle {
+    font-family: Georgia, serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 26px 0 10px;
+  }
+  .popup-body .popup-subtitle:first-child { margin-top: 0; }
+  /* Illustrative participant quotes (original Dutch + English translation)
+     under a written analysis subsection — the coded excerpt within each
+     quote is bracketed in the source text and highlighted here. */
+  .quote-label {
+    font-family: Georgia, serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b6459;
+    margin: 20px 0 8px;
+  }
+  .quote-block {
+    background: #ece8de;
+    border-left: 3px solid #b7ac96;
+    border-radius: 0 4px 4px 0;
+    padding: 14px 20px;
+    margin-bottom: 6px;
+  }
+  .quote-block p { font-style: italic; margin-bottom: 8px; }
+  .quote-block p:last-child { margin-bottom: 0; }
+  .quote-block mark { background: #eecf7c; color: inherit; font-style: normal; font-weight: 700; padding: 0 1px; }
+  .popup-image {
+    display: block;
+    width: 100%;
+    border-radius: 4px;
+    margin: 20px 0 4px;
+  }
+  .popup-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: none;
+    border: none;
+    color: rgba(0,0,0,0.5);
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .popup-close:hover { color: #000; }
+  .ref {
+    color: #7a4f9e;
+    cursor: help;
+    font-size: 0.8em;
+    vertical-align: super;
+  }
+  .ref-tooltip {
+    position: fixed;
+    display: none;
+    max-width: 320px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.2);
+    color: #333;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    padding: 10px 14px;
+    border-radius: 6px;
+    z-index: 970;
+    pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+  /* Same look as radio-v2.html's .hover-tip (font/size/background), a step
+     up in size per request — used for the back-wall knob hover tips. */
+  .knob-tip {
+    position: fixed;
+    display: none;
+    max-width: 280px;
+    background: rgba(245,243,238,0.96);
+    border: 1px solid rgba(0,0,0,0.25);
+    border-radius: 6px;
+    padding: 14px 18px;
+    font: 700 14px/1.6 'IBM Plex Mono', 'Courier New', monospace;
+    color: #111;
+    z-index: 970;
+    pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+  /* Shown for the duration of the PLAY-button track, positioned above it in
+     screen space — same look as .knob-tip, just driven by playback state
+     instead of hover, and re-centered on resize (see updatePlayHintPosition). */
+  #playHint {
+    position: fixed;
+    display: none;
+    transform: translate(-50%, -100%);
+    white-space: nowrap;
+    background: rgba(245,243,238,0.96);
+    border: 1px solid rgba(0,0,0,0.25);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font: 700 13px/1.4 'IBM Plex Mono', 'Courier New', monospace;
+    color: #111;
+    z-index: 970;
+    pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
+  .popup-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0 4px;
+    font-size: 0.85rem;
+  }
+  .popup-table th, .popup-table td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+  }
+  .popup-table th {
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #555;
+  }
+  .plugin-row { cursor: pointer; transition: background 0.15s ease; }
+  .plugin-row:hover { background: rgba(122,79,158,0.08); }
+  .popup-table-hint {
+    font-size: 0.95rem;
+    font-style: italic;
+    color: rgba(0,0,0,0.5);
+    margin-top: 6px;
+  }
+  #cfqOverlay .popup-box { max-width: 920px; }   /* wider — fits the pre/post VAS table without it feeling cramped */
+  #cfqOverlay .popup-table-hint { font-size: 0.8rem; }   /* smaller here than the default hint size elsewhere */
+  #pitchOverlay .popup-table-hint, #robotOverlay .popup-table-hint, #reverbOverlay .popup-table-hint, #panningOverlay .popup-table-hint { font-size: 0.8rem; }
+  #pitchOverlay .popup-box, #robotOverlay .popup-box, #reverbOverlay .popup-box, #panningOverlay .popup-box { max-width: 920px; }   /* wider — fits the three side-by-side plots */
+  .popup-image-row { display: flex; gap: 12px; margin: 20px 0 4px; }
+  .zoomable-image { cursor: zoom-in; }
+  .popup-image-row img { width: 100%; border-radius: 4px; display: block; }
+  .plugin-image-box { max-width: 1100px; }   /* was 620px — barely bigger than most inline thumbnails, so "enlarge" didn't read as bigger */
+  .plugin-image-box .popup-title { margin-bottom: 14px; }
 </style>
 </head>
 <body>
@@ -44,11 +253,484 @@
   <span>Go back</span>
 </div>
 
+<!-- Shown automatically on load (the "show" class is already in the markup,
+     not added by JS) so it appears the moment you arrive from the radio
+     scene, before you can interact with anything else. Dismissing it uses
+     the same generic .popup-close/backdrop-click handling wired up for
+     every .popup-overlay further down the script — no extra JS needed. -->
+<div class="popup-overlay show" id="introOverlay">
+  <div class="popup-box" style="max-width:460px">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">You are now inside the radio.</div>
+    <div class="popup-body">
+      <p>On the left wall, you can view the method, setup &amp; materials.</p>
+      <p>The results are on the back wall.</p>
+      <p>On the right side of the floor you can click on discussion.</p>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="materialsOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="materialsClose">&#x2715;</button>
+    <div class="popup-title">Materials &amp; Setup</div>
+    <div class="popup-body">
+      <p>The materials consisted of a Shure microphone, a MOTU M6 audio interface, a Novation Circuit Rhythm sampler, headphones, and two screens. One screen displayed the session instructions, rendered through a custom Python script. The second screen, connected to the researcher's laptop, displayed the Ableton Live interface used to manage the audio manipulations.</p>
+      <p>Click on the Ableton logo for the technical specifications &amp; plugins that were used.</p>
+      <img class="popup-image" src="Set up experiment.jpg" alt="Photo of the experiment setup">
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="methodOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Method</div>
+    <div class="popup-body">
+      <div class="popup-subtitle">Participant and settings</div>
+      <p>The study was conducted at Leiden University. 18 Participants were recruited through social media, personal networks and university communications. No formal demographic data was collected. Given the sensitive nature of the experiment, the participants privacy was prioritised. As the study was exploratory, the focus was on whether the intervention produced any effect, rather than on demographic differences. Participants were asked to report any hearing impairment or tinnitus, those with severe hearing loss were excluded as the task required adequate audio perception. A warning regarding the potential impact of audio manipulations on tinnitus was included in the consent form.</p>
+      <p>A small sample size was anticipated, therefore, a within-subjects design was employed. Dividing participants into an experimental and control group was not feasible, and a pre-post comparison within the same group was considered the most appropriate approach. Participants were exposed to a single experimental condition, namely interaction with the audio interface. Believability, distress and acceptance were measured pre and post experiment. Additionally before the experiment, a CFQ13 was administered. Post experiment, participants had to complete a questionnaire consisting of Likert-scale items and open-ended questions.</p>
+
+      <div class="popup-subtitle">Privacy</div>
+      <p>To ensure the participants privacy, several measures were taken. The thought remained private throughout the experiment, participants did not need to share their thought (only if they choose to). Prior to recording, the headphone setup was demonstrated using a demo recording to confirm the thought would not be audible to anyone but the participant. During the recording and the interface interaction, the researcher left the room. After the experiment, the audio-file was deleted in front of the participant. As ACT aims to change the functional effects of a thought rather than its content, protecting the privacy was both ethically and theoretically motivated.</p>
+
+      <div class="popup-subtitle">Procedure</div>
+      <p>Each experiment session took approximately 40/50 minutes including consent & debriefing. No fixed time limit was imposed in order to prevent any feeling of performance pressure. There were no sessions that exceeded one hour.</p>
+
+      <div class="popup-subtitle">Thought selection</div>
+      <p>Participants were asked to identify one negative self-referential thought that they experienced repeatedly and found personally distressing and believable. To support this process, a worksheet was provided to help participants formulate and articulate their thought. At no point were participants required to share their negative self-referential thought with the researcher, it remained private throughout the experiment. The thought selection was conducted by the researcher, who guided participants through the thought selection process using a standardised set of instructions. A script was written in Dutch and English, so each session the same introduction and explanation was used.</p>
+
+      <div class="popup-subtitle">Pre Visual analog scale (VAS)</div>
+      <p>The negative self-referential thought was assessed on a degree of emotional discomfort, believability and acceptance using a visual analog scale before and after the experiment. Responses ranged from 0 &ndash; 100 with 0 (not uncomfortable at all) to 100 (very uncomfortable) for the emotional discomfort, 0 (not believable at all) to 100 (very believable) for the believability scale, and 0 (not accepted at all) to 100 (fully accepted) for the acceptance scale.</p>
+
+      <div class="popup-subtitle">Cognitive Fusion Questionnaire &ndash;13</div>
+      <p>Cognitive fusion was measured prior to the experiment using the Cognitive Fusion Questionnaire<span class="ref" data-tip="tip25">[25]</span>, A 13-item self-report measure with total scores ranging from 13 to 91, with each item rated on a 7-point scale from 1 (rarely/never) to 7 (always), where higher scores indicate greater cognitive fusion. The experiment aims to facilitate cognitive defusion, therefor, it was relevant to establish the degree to which participants were fused with their thought prior to the experiment. The CFQ-13 was administered once as a sample characteristic.</p>
+
+      <div class="popup-subtitle">Recording of the negative self-referential thought</div>
+      <p>After completion of the survey, participants were instructed how to record their thought. A Novation Circuit Rhythm sampler was used as the primary control device. Buttons were mapped to record, play and stop. When the participant was confident enough to record their own thought, the researcher left the room and came back as soon as the participant was done recording. Participants could record their thought up to three times and select the recording they preferred.</p>
+
+      <div class="popup-subtitle">Graphical user interface</div>
+      <p>Once participants had finished their recording, the researcher launched the custom graphical user interface (GUI). A screen showed the GUI displaying a slider for each audio manipulation (pitch, robot, reverb, panning and volume). The sliders moved in real time in response to the physical controls on the Novation sampler, providing participants with visual feedback of the active modulations. A legend showing instructions for recording and resetting the audio modulations was positioned in the upper left corner of the screen. Participants were instructed to listen to each audio modulation in isolation before combining them (this instruction was also displayed on screen), so that they could clearly identify what each modulation sounded like individually. Once familiar with each effect, participants then freely explored and combined the modulations as they choose.  This element of free exploration was deliberate as it reflects ACT emphasis on experiential learning. Instead of conversing or imagining, the participants experiences the transformed sound of their own voice in real time. The audio was played in a loop, but participants were able stop the recording if the experience was too uncomfortable or distressing. The researcher walked participants through the interface with the audio on mute, so that the sound of each modulation was encountered for the first time during the experiment.</p>
+
+      <div class="popup-subtitle">Post Visual analog scale (VAS) &amp; survey</div>
+      <p>Following the interaction phase, participants completed a second VAS assessment (same as the VAS prior to the experiment). They also evaluated each modulation separately, rating its effect on believability, emotional discomfort and acceptance as better, neutral or worse. This made it possible to compare the effects of each modulation against each other. The ratings were scaled from -50 to +50. For believability, a higher score indicated the thought felt more believable. For emotional discomfort, a higher score indicated more discomfort. For acceptance, a higher score indicated greater acceptance of the thought.</p>
+      <div class="popup-subtitle">Analysis of open-ended questions</div>
+      <p>Open-ended questions were analysed via a qualitative content analysis<span class="ref" data-tip="tip30">[30]</span> Categories for experiential shifts were derived from theoretical frameworks relevant to cognitive defusion<span class="ref" data-tip="tip11">[11]</span>.</p>
+      <p>The categorization matrix was refined iteratively during coding, conducted using Taguette<span class="ref" data-tip="tip31">[31]</span>, consistent with standard practice in qualitative content analysis<span class="ref" data-tip="tip32">[32]</span>. The full categorization matrix, including category definitions and illustrative examples, is available <a class="codebook-link">here</a>.</p>
+      <p>The following categories were used to code participant responses:</p>
+
+      <p><b>Experiential shifts:</b></p>
+      <ul style="margin: -6px 0 16px; padding-left: 22px;">
+        <li><b>Increased intensity:</b> words and phrases describing a stronger experience of the sentence</li>
+        <li><b>Decreased intensity:</b> words and phrases describing a weaker experience of the sentence</li>
+        <li><b>Outsider perspective:</b> viewing the sentence from an external position</li>
+        <li><b>Insider perspective:</b> experiencing the sentence from a first-person viewpoint</li>
+        <li><b>Deliteralization:</b> the sentence felt less meaningful or less real</li>
+        <li><b>No shift:</b> explicit indication of no change in experience</li>
+        <li><b>Descriptive:</b> change described without clear direction</li>
+      </ul>
+
+      <p>Responses were also analysed for modulation-specific metaphors, instances where particular metaphorical language was consistently associated with a specific audio modulation. For example, whether spatial metaphors occurred more frequently in descriptions of reverb than in descriptions of other modulations. Categories were developed inductively from the data, and where responses contained language corresponding to multiple categories simultaneously, all relevant codes were assigned.</p>
+      <ul style="margin: -6px 0 16px; padding-left: 22px;">
+        <li><b>Spatial:</b> metaphors of location or distance, describing where the thought was perceived to be</li>
+        <li><b>Personification:</b> attributing a separate character, voice or intention to the thought</li>
+        <li><b>Weight:</b> using weight or heaviness to describe the impact of the thought</li>
+        <li><b>Sound texture:</b> metaphors of tonal quality or texture, reflecting how the modulated audio was heard</li>
+        <li><b>Atmospheric:</b> metaphors of mood or atmosphere evoked by the modulation, reflecting how the experience felt</li>
+        <li><b>Repetition:</b> metaphors describing the experience of hearing the thought on repeat</li>
+      </ul>
+
+      <p>Affective responses were coded based on emotional states explicitly reported by participants, as well as affective states inferred by the researcher from the language used, following the principles of emotion coding as described by Saldaña<span class="ref" data-tip="tip32">[32]</span>.</p>
+      <p>The following categories were identified:</p>
+      <ul style="margin: -6px 0 16px; padding-left: 22px;">
+        <li><b>Discomfort</b></li>
+        <li><b>Humor</b></li>
+        <li><b>Hurt</b></li>
+        <li><b>Loneliness</b></li>
+        <li><b>Pleasantness</b></li>
+        <li><b>Sadness</b></li>
+        <li><b>Seriousness</b></li>
+        <li><b>Self-compassion</b></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="codebookOverlay">
+  <div class="popup-box codebook-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Content Analysis Codebook</div>
+    <div class="popup-body">
+      <iframe class="codebook-frame" src="content_analysis_codebook.html" title="Content analysis codebook"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="abletonOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Technical Specifications</div>
+    <div class="popup-body">
+      <p>In Ableton<span class="ref" data-tip="tip26">[26]</span> an audio effect rack was created, an audio rack is a chain of audio effects/devices that are used for the audio modulation. The chain starts with a compressor for volume control. After the compressor, the graillon 3 (a VST) [27] is used for shifting the pitch (from high to low). Swirl is used for the robot modulation. Swirl is an audio filter native in Ableton that uses a very fast LFO at 38Hz to move a resonant filter across a frequency spectrum set at 152Hz. In swirl you have a morph parameter, which blends different filter types giving the sound certain texture. Outer space is a preset in the reverb audio effect that simulates how sound reflects and decays in a large physical space. Utility is used to control the volume, the gain was adjusted to have a minimal db of -20 and a max of 35 db. Participants could not turn the volume down completely, ensuring continuous audio playback throughout the experiment. For the panning of the audio the E4L source panner <span class="ref" data-tip="tip28">[28]</span> was used. In this setup played through standard stereo headphones, the perceptible effect resembles conventional left-right panning, but the e4L source panner is designed for 3D (Ambisonic) spatial positioning so there was a subtle spatial depth for the attentive listener. This was chosen deliberately because the ambisonic architecture of the E4L plugin could be a foundation for future work involving more advanced spatial movement of sound. Limiter was used the close the audio chain preventing digital clipping and distortion. </p>
+      <p>Graillon, Swirl, Outer Space, Utility and the E4L Source panner were mapped via Ableton's MIDI Map Mode to specific knobs on the Novation Circuit Rhythm for real-time manipulation of the modulation parameters during the experiment.</p>
+      <table class="popup-table">
+        <thead>
+          <tr><th>Macro</th><th>Device &amp; parameter</th></tr>
+        </thead>
+        <tbody>
+          <tr class="plugin-row" data-img="Graillon 3.png" data-title="Graillon 3 &mdash; Pitch Shift"><td>Pitch Shift</td><td>Graillon 3 &ndash; Pitch shift</td></tr>
+          <tr class="plugin-row" data-img="Outer Space.png" data-title="Outer Space &mdash; Reverb"><td>Reverb</td><td>Outer Space &ndash; Dry/Wet</td></tr>
+          <tr class="plugin-row" data-img="Swirl.png" data-title="Swirl &mdash; Robot"><td>Robot</td><td>Swirl &ndash; Dry/Wet</td></tr>
+          <tr class="plugin-row" data-img="Utility.png" data-title="Utility &mdash; Volume"><td>Volume</td><td>Utility &ndash; Gain</td></tr>
+          <tr class="plugin-row" data-img="E4L PAN.png" data-title="E4L Source Panner &mdash; Panning"><td>Panning</td><td>E4L Source Panner &ndash; Azim</td></tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Click a row to see the image of the audio effect rack.</div>
+    </div>
+  </div>
+</div>
+<div class="ref-tooltip" id="tip25">[25] Gillanders DT, Bolderston H, Bond FW, Dempster M, Flaxman PE, Campbell L, Kerr S, Tansey L, Noel P, Ferenbach C, Masley S, Roach L, Lloyd J, May L, Clarke S, Remington B. The development and initial validation of the cognitive fusion questionnaire. Behav Ther. 2014 Jan;45(1):83-101. doi: 10.1016/j.beth.2013.09.001. Epub 2013 Sep 18. PMID: 24411117.</div>
+<div class="ref-tooltip" id="tip26">[26] Ableton AG, &ldquo;Ableton Live 12 Suite,&rdquo; version 12.3.2, 2025. [Computer software]. Available: https://www.ableton.com</div>
+<div class="ref-tooltip" id="tip27">[27] Auburn Sounds, &ldquo;Graillon,&rdquo; version 3.1.0, 2026. [Computer software]. Available: https://www.auburnsounds.com/products/Graillon.html</div>
+<div class="ref-tooltip" id="tip28">[28] Envelop. (2025). Envelop for Live (Version 12.2.6) [Computer software]. GitHub. https://github.com/EnvelopSound/EnvelopForLive</div>
+<div class="ref-tooltip" id="tip29">[29] Masuda, A., Hayes, S. C., Twohig, M. P., Drossel, C., Lillis, J., &amp; Washio, Y. (2009). A Parametric Study of Cognitive Defusion and the Believability and Discomfort of Negative Self-Relevant Thoughts. Behavior Modification, 33(2), 250&ndash;262. https://doi.org/10.1177/0145445508326259</div>
+<div class="ref-tooltip" id="tip30">[30] Elo, S., &amp; Kyng&auml;s, H. (2008). The qualitative content analysis process. Journal of Advanced Nursing, 62(1), 107&ndash;115. https://doi.org/10.1111/j.1365-2648.2007.04569.x</div>
+<div class="ref-tooltip" id="tip31">[31] Rampin et al., (2021). Taguette: open-source qualitative data analysis. Journal of Open Source Software, 6(68), 3522. https://doi.org/10.21105/joss.03522</div>
+<div class="ref-tooltip" id="tip32">[32] Salda&ntilde;a, J. (2009). The coding manual for qualitative researchers. Sage.</div>
+<div class="ref-tooltip" id="tip11">[11] Blackledge JT (2015) Cognitive Defusion in Practice: A Clinician's Guide to Assessing, Observing, and Supporting Change in Your Client. Context Press.</div>
+
+<!-- Hover tips for the back-wall PITCH/ROBOT/REVERB/PANNING/MIXER knobs -->
+<div class="knob-tip" id="pitchHoverTip">View the results for the pitch modulation</div>
+<div class="knob-tip" id="robotHoverTip">View the results for the robot modulation</div>
+<div class="knob-tip" id="reverbHoverTip">View the results for the reverb modulation</div>
+<div class="knob-tip" id="panningHoverTip">View the results for the panning modulation</div>
+<div class="knob-tip" id="mixerHoverTip">Which combinations were used most, and how participants described their experience.</div>
+<div class="knob-tip" id="cfqHoverTip">View the results for CFQ13 and pre &amp; post VAS (Believability, Discomfort &amp; Acceptance)</div>
+<div class="knob-tip" id="playHoverTip">Wanna hear some music?<br>A radio should be able to play some tunes right?</div>
+
+<div id="playHint">Press 1 to lower the volume<br>Press 2 to increase the volume<br>Press ESC to stop the music</div>
+<audio id="bgMusic" src="Arnaud%20Rebotini%20-%20Echoes.mp3" preload="auto"></audio>
+
+<div class="popup-overlay" id="discussionOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Discussion</div>
+    <div class="popup-body"></div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="cfqOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">CFQ13 &amp; VAS</div>
+    <div class="popup-body">
+      <p>The CF13 pre measurement showed elevated levels of cognitive fusion (M = 52.11, SD = 11.46), which is above the non-clinical normative range of approximately 36&ndash;40<span class="ref" data-tip="tip25">[25]</span> and more consistent with scores observed in clinical populations.</p>
+      <p><b>VAS Pre & Post</b></p>
+      <p>Prior to analysis, the assumption of normality was assessed using the Shapiro-Wilk test. Results indicated that the data did not significantly violate normality for the paired samples analyses (all ps > .05). However, given the small sample size (N = 18), which limits the power of normality tests to detect violations, non-parametric analyses were used as a conservative approach. Wilcoxon signed-rank tests were conducted to examine pre- to post-intervention changes across three VAS measures (N = 18). No Bonferroni correction was applied. Results are reported at α = .05 and should be interpreted as <b><u>indicative</u></b> rather than confirmatory.  </p>
+      <p><b>Believability</b> decreased significantly from pre- (M = 82.28, SD = 11.07) to post-intervention (M = 67.11, SD = 24.70), p = .005, r = 0.809, indicating a large effect.</p>
+      <p><b>Discomfort</b> decreased significantly from pre- (M = 59.00, SD = 25.08) to post-intervention (M = 49.78, SD = 26.94), p = .017, r = 0.708, indicating a large effect. </p>
+      <p>No significant change was found for <b>acceptance</b> from pre- (M = 71.78, SD = 21.09) to post-intervention (M = 77.39, SD = 20.74), p = .221, r = −0.367, though the effect size was medium. A negative r value here reflects that post-intervention scores were higher than pre-intervention scores, consistent with the hypothesised increase in acceptance.</p>
+      <table class="popup-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th style="text-align:center; font-weight:700" colspan="2">Believability</th>
+            <th style="text-align:center; font-weight:700" colspan="2">Emotional discomfort</th>
+            <th style="text-align:center; font-weight:700" colspan="2">Acceptance</th>
+          </tr>
+          <tr>
+            <th></th>
+            <th style="text-align:center">Pre</th>
+            <th style="text-align:center">Post</th>
+            <th style="text-align:center">Pre</th>
+            <th style="text-align:center">Post</th>
+            <th style="text-align:center">Pre</th>
+            <th style="text-align:center">Post</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>M (SD)</td>
+            <td style="text-align:center">82.28 (11.07)</td>
+            <td style="text-align:center">67.11 (24.70)</td>
+            <td style="text-align:center">59.00 (25.08)</td>
+            <td style="text-align:center">49.78 (26.94)</td>
+            <td style="text-align:center">71.78 (21.09)</td>
+            <td style="text-align:center">77.39 (20.74)</td>
+          </tr>
+          <tr>
+            <td>N</td>
+            <td style="text-align:center" colspan="2">18</td>
+            <td style="text-align:center" colspan="2">18</td>
+            <td style="text-align:center" colspan="2">18</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Note. Scores on a 0&ndash;100 VAS scale. For believability and emotional discomfort, lower post scores indicate a positive outcome. For acceptance, higher post scores indicate a positive outcome.</div>
+      <p><br><b>Spearman correlations </b></p>
+      <p>Spearman correlations were conducted to asses whether cognitive fusion scores (CFQ-13) correlated with change scores on the three VAS measures. No significant correlations were found, suggesting that pre-intervention levels of cognitive fusion did not predict the degree of change in believability, discomfort or acceptance. A significant positive correlation was found between changes in believability and discomfort (rho = 0.491, p = .039), indicating that participants who reported greater reductions in believability also tended to report greater reductions in discomfort. This is consistent with Masuda et al.<span class="ref" data-tip="tip29">[29]</span>, who identified emotional discomfort and believability as related aspects of the psychological reaction to negative self-referential thoughts.</p>
+      <img class="popup-image" src="Correlation_B_D.png" alt="Correlation between changes in believability and discomfort" style="width: 50%;">
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="pitchOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Pitch</div>
+    <div class="popup-body">
+      <p>To examine whether each audio modulation produced a significant deviation from zero, one-sample Wilcoxon signed-rank tests were conducted. As participants rated each modulation on a scale ranging from &minus;50 to +50, scores were converted to absolute values prior to analysis in order to assess whether a perceivable effect occurred, regardless of its direction.</p>
+      <p>The pitch modulation showed significant effects across all three outcomes (all ps &lt; .001).</p>
+      <table class="popup-table">
+        <thead>
+          <tr><th style="font-weight:700; text-transform:none; font-size:1rem; letter-spacing:normal;">Pitch <span style="font-weight:400; font-style:italic; font-size:0.8rem; color:#777; text-transform:none; letter-spacing:normal;">(absolute scores)</span></th><th style="text-align:center">V</th><th style="text-align:center">p</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Believability</td><td style="text-align:center">171.0</td><td style="text-align:center">&lt; .001</td></tr>
+          <tr><td>Discomfort</td><td style="text-align:center">136.0</td><td style="text-align:center">&lt; .001</td></tr>
+          <tr><td>Acceptance</td><td style="text-align:center">120.0</td><td style="text-align:center">&lt; .001</td></tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Note. Wilcoxon signed-rank tests against a test value of zero using absolute change scores.</div>
+      <p><br>Analysis of raw change scores revealed no significant effects for pitch across any of the three outcome measures (believability: V = 87, p = .965, r = 0.018; discomfort: V = 60.5, p = .717, r = −0.110; acceptance: V = 71.5, p = .531, r = 0.192), reflecting considerable individual variability in the direction of effects. The raincloud plots illustrate this variability. Click on the images to enlarge them. </p>
+      <table class="popup-table">
+        <thead>
+          <tr><th style="font-weight:700; text-transform:none; font-size:1rem; letter-spacing:normal;">Pitch <span style="font-weight:400; font-style:italic; font-size:0.8rem; color:#777; text-transform:none; letter-spacing:normal;">(raw scores)</span></th><th style="text-align:center">V</th><th style="text-align:center">p</th><th style="text-align:center">r</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Believability</td><td style="text-align:center">87.0</td><td style="text-align:center">.965</td><td style="text-align:center">0.018</td></tr>
+          <tr><td>Discomfort</td><td style="text-align:center">60.5</td><td style="text-align:center">.717</td><td style="text-align:center">&minus;0.110</td></tr>
+          <tr><td>Acceptance</td><td style="text-align:center">71.5</td><td style="text-align:center">.531</td><td style="text-align:center">0.192</td></tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Note. Wilcoxon signed-rank tests against a test value of zero using raw change scores. r = rank-biserial correlation. For believability and discomfort, negative r indicates effect in the expected direction. For acceptance, positive r indicates effect in the expected direction.</div>
+      <div class="popup-image-row">
+        <img class="zoomable-image" src="Pitch_B.png" alt="Pitch — believability change scores">
+        <img class="zoomable-image" src="Pitch_D.png" alt="Pitch — discomfort change scores">
+        <img class="zoomable-image" src="Pitch_A.png" alt="Pitch — acceptance change scores">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="robotOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Robot</div>
+    <div class="popup-body">
+      <p>To examine whether each audio modulation produced a significant deviation from zero, one-sample Wilcoxon signed-rank tests were conducted. As participants rated each modulation on a scale ranging from &minus;50 to +50, scores were converted to absolute values prior to analysis in order to assess whether a perceivable effect occurred, regardless of its direction.</p>
+      <p>The robot modulation showed significant effects across all three outcomes (ps &lt; .002, ps &lt; .001).</p>
+      <table class="popup-table">
+        <thead>
+          <tr><th style="font-weight:700; text-transform:none; font-size:1rem; letter-spacing:normal;">Robot <span style="font-weight:400; font-style:italic; font-size:0.8rem; color:#777; text-transform:none; letter-spacing:normal;">(absolute scores)</span></th><th style="text-align:center">V</th><th style="text-align:center">p</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Believability</td><td style="text-align:center">136.0</td><td style="text-align:center">&lt; .001</td></tr>
+          <tr><td>Discomfort</td><td style="text-align:center">91.0</td><td style="text-align:center">.002</td></tr>
+          <tr><td>Acceptance</td><td style="text-align:center">91.0</td><td style="text-align:center">.002</td></tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Note. Wilcoxon signed-rank tests against a test value of zero using absolute change scores.</div>
+      <p><br>Analysis of raw change scores revealed significant effects for believability (V = 27, p = .036, r = −0.603) and acceptance (V = 74, p = .049, r = 0.626), indicating that the majority of participants rated the thought as less believable and more acceptable following the robot manipulation. Discomfort did not reach significance on raw scores (V = 24, p = .078, r = −0.543), reflecting greater individual variability in the direction of this effect. The raincloud plots illustrate this variability. Click on the images to enlarge them.</p>
+      <table class="popup-table">
+        <thead>
+          <tr><th style="font-weight:700; text-transform:none; font-size:1rem; letter-spacing:normal;">Robot <span style="font-weight:400; font-style:italic; font-size:0.8rem; color:#777; text-transform:none; letter-spacing:normal;">(raw scores)</span></th><th style="text-align:center">V</th><th style="text-align:center">p</th><th style="text-align:center">r</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Believability</td><td style="text-align:center">27.0</td><td style="text-align:center">.036</td><td style="text-align:center">&minus;0.603</td></tr>
+          <tr><td>Discomfort</td><td style="text-align:center">24.0</td><td style="text-align:center">.078</td><td style="text-align:center">&minus;0.543</td></tr>
+          <tr><td>Acceptance</td><td style="text-align:center">74.0</td><td style="text-align:center">.049</td><td style="text-align:center">0.626</td></tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Note. Wilcoxon signed-rank tests against a test value of zero using raw change scores. r = rank-biserial correlation. For believability and discomfort, negative r indicates effect in the expected direction. For acceptance, positive r indicates effect in the expected direction.</div>
+      <div class="popup-image-row">
+        <img class="zoomable-image" src="Robot_B.png" alt="Robot — believability change scores">
+        <img class="zoomable-image" src="Robot_D.png" alt="Robot — discomfort change scores">
+        <img class="zoomable-image" src="Robot_A.png" alt="Robot — acceptance change scores">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="reverbOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Reverb</div>
+    <div class="popup-body">
+      <p>To examine whether each audio modulation produced a significant deviation from zero, one-sample Wilcoxon signed-rank tests were conducted. As participants rated each modulation on a scale ranging from &minus;50 to +50, scores were converted to absolute values prior to analysis in order to assess whether a perceivable effect occurred, regardless of its direction.</p>
+      <p>The reverb modulation showed significant effects across all three outcomes (all ps < .001).</p>
+      <table class="popup-table">
+        <thead>
+          <tr><th style="font-weight:700; text-transform:none; font-size:1rem; letter-spacing:normal;">Reverb <span style="font-weight:400; font-style:italic; font-size:0.8rem; color:#777; text-transform:none; letter-spacing:normal;">(absolute scores)</span></th><th style="text-align:center">V</th><th style="text-align:center">p</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Believability</td><td style="text-align:center">171.0</td><td style="text-align:center">&lt; .001</td></tr>
+          <tr><td>Discomfort</td><td style="text-align:center">136.0</td><td style="text-align:center">&lt; .001</td></tr>
+          <tr><td>Acceptance</td><td style="text-align:center">153.0</td><td style="text-align:center">&lt; .001</td></tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Note. Wilcoxon signed-rank tests against a test value of zero using absolute change scores.</div>
+      <p><br>Analysis of raw change scores revealed a significant effect for discomfort (V = 108, p = .041, r = 0.588), indicating that the majority of participants rated the thought as more distressing following the reverb manipulation. Effects for believability (V = 123.5, p = .102, r = 0.444) and acceptance (V = 77.5, p = .981, r = 0.013) did not reach significance on raw scores, reflecting greater individual variability in the direction of these effects. The raincloud plots illustrate this variability. Click on the images to enlarge them.</p>
+      <table class="popup-table">
+        <thead>
+          <tr><th style="font-weight:700; text-transform:none; font-size:1rem; letter-spacing:normal;">Reverb <span style="font-weight:400; font-style:italic; font-size:0.8rem; color:#777; text-transform:none; letter-spacing:normal;">(raw scores)</span></th><th style="text-align:center">V</th><th style="text-align:center">p</th><th style="text-align:center">r</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Believability</td><td style="text-align:center">123.5</td><td style="text-align:center">.102</td><td style="text-align:center">0.444</td></tr>
+          <tr><td>Discomfort</td><td style="text-align:center">108.0</td><td style="text-align:center">.041</td><td style="text-align:center">0.588</td></tr>
+          <tr><td>Acceptance</td><td style="text-align:center">77.5</td><td style="text-align:center">.981</td><td style="text-align:center">0.013</td></tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Note. Wilcoxon signed-rank tests against a test value of zero using raw change scores. r = rank-biserial correlation. For believability and discomfort, negative r indicates effect in the expected direction. For acceptance, positive r indicates effect in the expected direction.</div>
+      <div class="popup-image-row">
+        <img class="zoomable-image" src="Reverb_B.png" alt="Reverb — believability change scores">
+        <img class="zoomable-image" src="Reverb_D.png" alt="Reverb — discomfort change scores">
+        <img class="zoomable-image" src="Reverb_A.png" alt="Reverb — acceptance change scores">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="panningOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Panning</div>
+    <div class="popup-body">
+      <p>To examine whether each audio modulation produced a significant deviation from zero, one-sample Wilcoxon signed-rank tests were conducted. As participants rated each modulation on a scale ranging from &minus;50 to +50, scores were converted to absolute values prior to analysis in order to assess whether a perceivable effect occurred, regardless of its direction.</p>
+      <p>Panning shows a significant effect for believability (p = .022), discomfort (p = .014) and acceptance (p = .022). Statistical significance of the absolute change scores does not necessarily indicate a practically meaningful effect. The small effect sizes and near-zero raw scores suggest that panning had minimal impact for most participants.</p>
+      <table class="popup-table">
+        <thead>
+          <tr><th style="font-weight:700; text-transform:none; font-size:1rem; letter-spacing:normal;">Panning <span style="font-weight:400; font-style:italic; font-size:0.8rem; color:#777; text-transform:none; letter-spacing:normal;">(absolute scores)</span></th><th style="text-align:center">V</th><th style="text-align:center">p</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Believability</td><td style="text-align:center">28.0</td><td style="text-align:center">.022</td></tr>
+          <tr><td>Discomfort</td><td style="text-align:center">36.0</td><td style="text-align:center">.014</td></tr>
+          <tr><td>Acceptance</td><td style="text-align:center">28.0</td><td style="text-align:center">.022</td></tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Note. Wilcoxon signed-rank tests against a test value of zero using absolute change scores.</div>
+      <p><br>Analysis of raw change scores revealed no significant effects for panning across any of the three outcome measures (believability: V = 14.5, p = 1.000, r = 0.036; discomfort: V = 27, p = .234, r = 0.500; acceptance: V = 17, p = .673, r = 0.214). The raincloud plots show that scores for believability and acceptance clustered around zero, suggesting that panning had little to no effect on these outcomes for most participants. Click on the images to enlarge them.</p>
+      <table class="popup-table">
+        <thead>
+          <tr><th style="font-weight:700; text-transform:none; font-size:1rem; letter-spacing:normal;">Panning <span style="font-weight:400; font-style:italic; font-size:0.8rem; color:#777; text-transform:none; letter-spacing:normal;">(raw scores)</span></th><th style="text-align:center">V</th><th style="text-align:center">p</th><th style="text-align:center">r</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Believability</td><td style="text-align:center">14.5</td><td style="text-align:center">1.000</td><td style="text-align:center">0.036</td></tr>
+          <tr><td>Discomfort</td><td style="text-align:center">27.0</td><td style="text-align:center">.234</td><td style="text-align:center">0.500</td></tr>
+          <tr><td>Acceptance</td><td style="text-align:center">17.0</td><td style="text-align:center">.673</td><td style="text-align:center">0.214</td></tr>
+        </tbody>
+      </table>
+      <div class="popup-table-hint">Note. Wilcoxon signed-rank tests against a test value of zero using raw change scores. r = rank-biserial correlation. For believability and discomfort, negative r indicates effect in the expected direction. For acceptance, positive r indicates effect in the expected direction.</div>
+      <div class="popup-image-row">
+        <img class="zoomable-image" src="Panning_B.png" alt="Panning — believability change scores">
+        <img class="zoomable-image" src="Panning_D.png" alt="Panning — discomfort change scores">
+        <img class="zoomable-image" src="Panning_A.png" alt="Panning — acceptance change scores">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="mixerOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Mixer & Content Analysis</div>
+    <div class="popup-body">
+      <p>After using each audio modulation individually, participants then entered a free exploration phase, during which they could combine the audio modulations in any chosen way. Pitch combined with reverb was the most frequently reported combination (n=6), followed by pitch combined with robot and reverb (n=3) and pitch combined with robot (n=3). In every reported combination, either pitch or robot was present. See figure 1.10.</p>
+      <p></p>
+      <div style="min-height:253px" id="datawrapper-vis-xrpcH"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/xrpcH/embed.js" charset="utf-8" data-target="#datawrapper-vis-xrpcH"></script><noscript><img src="https://datawrapper.dwcdn.net/xrpcH/full.png" alt="What audio modulations did participants combine the most? (Bar Chart)" /></noscript></div>
+
+      <div class="popup-subtitle">Content analysis</div>
+      <p>The results of the qualitative content analysis for experiential shifts, metaphors and affective state indicators are presented in a interactive data table (click on the <a class="interactive-table-link">table link</a> to start it). The table is divided three tabs (modulations + experiential shifts, modulation + metaphors and modulations + affective states). You can isolate a modulation or a categorie by clicking on it. Select question 1 or 2 if you want to see the coded categories for each question. It is also possible to click on the participants number to see all the coded categories across all three analyses. For all the definitions of the categories and general coding rules, click on the link to see the <a class="codebook-link">codebook</a>.</p>
+
+      <div class="popup-subtitle">Experiential shifts</div>
+      <p>All the reported experiential shifts across the two analysed questions are shown in the interactive table. Increased intensity was the most frequently coded shift (n=5), followed by decreased intensity and outsider perspective (both n=4). Insider perspective and no shift were each coded for two participants, and one participant response was coded as descriptive. Pitch, reverb and robot were all three coded across all experiential shifts (Increased &amp; decreased perspective, out &amp; insider perspective and deliteralization).</p>
+      <p>Several participant responses were both coded with an increase and decrease of intensity. One participant&rsquo;s response was both coded with outsider and insider perspective. This suggests that the experience and the perspective of the sentence was dynamic rather than unidirectional.</p>
+
+      <div class="quote-label">Quote &mdash; Increased intensity</div>
+      <div class="quote-block">
+        <p>&ldquo;De modulatie van reverb zorgde bij mij voor het meeste ongemak in mijn beleving <mark>[omdat het mijn zin versterkte.]</mark>&rdquo;</p>
+        <p>&ldquo;The reverb modulation caused me the most discomfort in my experience <mark>[because it strengthened my sentence.]</mark>&rdquo;</p>
+      </div>
+
+      <div class="quote-label">Quote &mdash; Outsider perspective</div>
+      <div class="quote-block">
+        <p>&ldquo;De zin werd meer vervaagt, dit zorgde ervoor dat het leek <mark>[alsof ik naar andere personen aan het luisteren was.]</mark> Dit kwam voornamelijk voor bij de combinatie pitch &amp; robot.&rdquo;</p>
+        <p>&ldquo;The sentence became more blurred, which caused it to feel <mark>[as if I was listening to other people.]</mark> This occurred mainly with the combination of pitch and robot.&rdquo;</p>
+      </div>
+
+      <div class="quote-label">Quote &mdash; Deliteralization</div>
+      <div class="quote-block">
+        <p>&ldquo;Pitch, robot en reverb combineren maakte de zin <mark>[veel minder een overtuiging die "echt" kan zijn. Het werd meer een "geluid" dan een zin, waardoor het bijna geen betekenis meer had.]</mark>&rdquo;</p>
+        <p>&ldquo;Combining pitch, robot and reverb made the sentence <mark>[much less of a conviction that can be 'real'. It became more of a 'sound' than a sentence, causing it to lose almost all meaning.]</mark>&rdquo;</p>
+      </div>
+
+      <div class="popup-subtitle">Metaphor</div>
+      <p>Spatial metaphors were most frequently coded (n=6), followed by personification (n=4) and atmospheric metaphors (n=3). Weight, sound texture and repetition were each coded for two participants. Across the two questions, reverb was most frequently mentioned in the context of spatial metaphors (n=5). The combination of pitch and reverb was mentioned three times in context of personification.</p>
+
+      <div class="quote-label">Quote &mdash; Spatial</div>
+      <div class="quote-block">
+        <p>&ldquo;Ja, het vervormen van de stem hoger/lager zorgde er voor dat het niet meer mezelf was die ik hoorde, dit gecombineerd met reverb op hoge stand zorgde ervoor dat klonk alsof iemand in <mark>[een andere ruimte]</mark> dit aan het zeggen was tegen iemand anders.&rdquo;</p>
+        <p>&ldquo;Yes, distorting the voice higher/lower caused it to no longer sound like myself that I heard, this combined with reverb on a high setting caused it to sound as if someone in <mark>[another room]</mark> was saying this to someone else.&rdquo;</p>
+      </div>
+
+      <div class="quote-label">Quote &mdash; Personification</div>
+      <div class="quote-block">
+        <p>&ldquo;Nog meer merkte ik dat mijn eigen stem met reverb het meeste deed, omdat het als een negatief mantra ging voelen <mark>[wat een nare priester]</mark> tegen mij aan het opdreunen was, alleen was ik het zelf.&rdquo;</p>
+        <p>&ldquo;What I noticed even more was that my own voice with reverb had the most effect, because it started to feel like a negative mantra <mark>[like a sinister priest]</mark> reciting at me, only it was me myself.&rdquo;</p>
+      </div>
+
+      <div class="quote-label">Quote &mdash; Sound texture</div>
+      <div class="quote-block">
+        <p>&ldquo;<mark>[De zin voelde op dat moment meer als geluid (een deksel ofzo) in plaats van een gevoel.]</mark> Gek genoeg hielp dat.&rdquo;</p>
+        <p>&ldquo;<mark>[At that moment the sentence felt more like a sound (like a lid) rather than a feeling.]</mark> Strangely enough, that helped.&rdquo;</p>
+      </div>
+
+      <div class="popup-subtitle">Affective states</div>
+      <p>Discomfort and humour were most frequently reported (n=4). Pleasantness and seriousness were both reported two times. Followed by hurt, sadness, loneliness and self-compassion (n=1). Across the two questions, pitch was mentioned in the context of humour four times.</p>
+
+      <div class="quote-label">Quote &mdash; Discomfort &amp; Sadness</div>
+      <div class="quote-block">
+        <p>&ldquo;De modulatie van reverb zorgde bij mij voor <mark>[het meeste ongemak]</mark> in mijn beleving omdat het mijn zin versterkte. <mark>[Het gaf een heel eenzaam gevoel.]</mark>&rdquo;</p>
+        <p>&ldquo;The reverb modulation caused me <mark>[the most discomfort]</mark> in my experience because it intensified my sentence. <mark>[It gave a very lonely feeling.]</mark>&rdquo;</p>
+      </div>
+
+      <div class="quote-label">Quote &mdash; Humour</div>
+      <div class="quote-block">
+        <p>&ldquo;Begonnen met de pitch aan te passen als eerste van de vijf opties, <mark>[dit vond ik vrij humoristisch]</mark> wat bij mezelf direct al een stuk luchtigheid creëerde in het geheel.&rdquo;</p>
+        <p>&ldquo;Starting with adjusting the pitch as the first of the five options, <mark>[I found this quite humorous]</mark> which immediately created a sense of lightness overall.&rdquo;</p>
+      </div>
+      <div class="popup-subtitle">No shift</div>
+      <p>When asked which modulation produced no shift in their experience of the sentence, panning was most frequently reported (n=9). This is consistent with the one-sample Wilcoxon signed-rank test, which showed no reduction in believability and discomfort, and no increase of acceptance. Robot was  reported  two times, volume (n=1) and reverb (n=1). Four participants reported that all modulations produced some form of shift. One participant reported that their experience was largely similar across modulations.</p>
+
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="interactiveTableOverlay">
+  <div class="popup-box interactive-table-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Content analysis — interactive table</div>
+    <div class="popup-body">
+      <iframe class="interactive-table-frame" src="interactive_table.html" title="Participant data explorer"></iframe>
+    </div>
+
+
+  </div>
+</div>
+
+<div class="popup-overlay" id="pluginImageOverlay">
+  <div class="popup-box plugin-image-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title" id="pluginImageTitle"></div>
+    <img class="popup-image" id="pluginImageImg" src="" alt="">
+  </div>
+</div>
+
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"
+    "three": "./vendor/three/build/three.module.js",
+    "three/addons/": "./vendor/three/examples/jsm/"
   }
 }
 </script>
@@ -79,6 +761,25 @@ const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerH
 camera.position.set(2, 5.0, 8);
 camera.lookAt(-2, 2.5, -3);
 
+// A fixed vertical FOV means the *horizontal* FOV shrinks as the window gets
+// narrower than the widescreen aspect this scene was framed for — at some
+// point that pushes the back-wall knobs (spread out ~8 units, edge to edge)
+// past the camera's view entirely, with no way to scroll to them. Below the
+// design aspect, widen the vertical FOV just enough to keep the same
+// horizontal coverage; at/above it, use the original tuned 45°.
+const BASE_ASPECT = 16 / 9;
+const BASE_VFOV_DEG = 45;
+const BASE_HFOV_RAD = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(BASE_VFOV_DEG) / 2) * BASE_ASPECT);
+function updateCameraFov() {
+  const aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = aspect;
+  camera.fov = aspect < BASE_ASPECT
+    ? Math.min(100, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(BASE_HFOV_RAD / 2) / aspect)))
+    : BASE_VFOV_DEG;
+  camera.updateProjectionMatrix();
+}
+updateCameraFov();
+
 // Environment map — reuses the same HDR as the radio scene, for PBR reflections
 // on the metal-ish room surfaces. Linear HDR data — no colorSpace set.
 new HDRLoader().load('monochrome.hdr', (hdrTexture) => {
@@ -89,7 +790,10 @@ new HDRLoader().load('monochrome.hdr', (hdrTexture) => {
 });
 
 // ── Lights — ambient + three-point ──────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xcfd6dd, 0.5));
+// Ambient/fill/rim don't cast shadows, so they're what "fills in" shadowed
+// areas — kept lower than before so the key light's shadows read as darker
+// and more visible on the walls.
+scene.add(new THREE.AmbientLight(0xcfd6dd, 0.3));
 
 // Key — the main shadow-casting light
 const keyLight = new THREE.DirectionalLight(0xfff3e6, 1.3);
@@ -106,12 +810,12 @@ keyLight.shadow.bias = -0.0006;
 scene.add(keyLight);
 
 // Fill — cooler, lower intensity, opposite side, no shadow
-const fillLight = new THREE.DirectionalLight(0xbfd9ff, 0.5);
+const fillLight = new THREE.DirectionalLight(0xbfd9ff, 0.32);
 fillLight.position.set(-6, 5, 5);
 scene.add(fillLight);
 
 // Rim — separates the walls/floor edges from the background
-const rimLight = new THREE.DirectionalLight(0xcfe6ff, 0.6);
+const rimLight = new THREE.DirectionalLight(0xcfe6ff, 0.4);
 rimLight.position.set(-4, 6, -8);
 scene.add(rimLight);
 
@@ -157,6 +861,71 @@ scene.add(leftWall);
 // Set once the REC button's material loads (inside the Ableton logo callback
 // below) — the animation loop pulses its emissiveIntensity to read as "recording".
 let recMaterial = null;
+let recHoverBoost = 0;   // added on top of the pulse while REC is hovered
+
+// Populated as pieces load in (some load asynchronously, e.g. the REC button
+// and the title inside the Ableton logo texture callback below) — declared
+// here, up front, so both the async callback and the hover/click wiring
+// further down the file share the same array references.
+const hoverTargets = [];
+const clickTargets = [];
+
+// Loads a small prop model, scales it to `targetSize` (its largest dimension),
+// and centers it at world (x, y, z) — used to hang the microphone and
+// headphones on the wall next to the REC light (see the Ableton logo
+// callback below, where those wall coordinates are in scope).
+function loadWallProp(file, targetSize, x, y, z, rotX = 0, rotY = 0, rotZ = 0, axisAngle = null, extraTiltX = 0) {
+  const loader = new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder);
+  loader.load(file, (gltf) => {
+    const obj = gltf.scene;
+    const size = new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
+    obj.scale.setScalar(targetSize / Math.max(size.x, size.y, size.z));
+    if (axisAngle) {
+      // Exact rotation computed from the model's real (post-export-transform)
+      // long axis via PCA, rather than a guessed Euler angle — some Sketchfab/
+      // FBX exports bake an arbitrary rotation into parent nodes, so the
+      // model's "up" in its own local mesh space doesn't match its actual
+      // orientation once loaded into the scene.
+      obj.quaternion.setFromAxisAngle(new THREE.Vector3(axisAngle.x, axisAngle.y, axisAngle.z), axisAngle.angle);
+    } else {
+      obj.rotation.set(rotX, rotY, rotZ);
+    }
+    if (extraTiltX) {
+      // Same world-space roll trick as the METHOD/MATERIALS wall titles
+      // (see titleTilt below) — applied on top of the base orientation above,
+      // in world space, so it reads as a subtle tilt rather than re-aiming
+      // the whole object.
+      const tiltQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), extraTiltX);
+      obj.quaternion.premultiply(tiltQ);
+    }
+
+    const box = new THREE.Box3().setFromObject(obj);
+    const center = box.getCenter(new THREE.Vector3());
+    obj.position.x += x - center.x;
+    obj.position.y += y - center.y;
+    obj.position.z += z - center.z;
+
+    // Some exports (e.g. this Babylon.js one) bake their own KHR_lights_punctual
+    // light into the file — GLTFLoader adds that as a real THREE.Light, which
+    // then blows out this room's own carefully-tuned lighting (washed the
+    // floor light grey). Strip any lights the prop brought with it; only mesh
+    // geometry from these prop files should affect the scene.
+    const lights = [];
+    obj.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      } else if (child.isLight) {
+        lights.push(child);
+      }
+    });
+    lights.forEach(light => light.parent.remove(light));
+    scene.add(obj);
+  }, undefined, (err) => {
+    console.error(file + ' failed to load', err);
+  });
+}
 
 // ── Ableton logo — mounted on the left wall, with an L/R channel indicator
 // underneath (same dot + label styling as the speaker's L/R indicator below).
@@ -243,8 +1012,10 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   logo.position.set(ABLETON_X, ABLETON_LR_Y + ABLETON_LOGO_GAP + logoH / 2, ABLETON_LOGO_Z);
   logo.userData.emissiveMapGlow = true;
   logo.userData.baseOpacity = 1;
+  logo.userData.popupTarget = 'abletonOverlay';
   scene.add(logo);
   hoverTargets.push(logo);
+  clickTargets.push(logo);
 
   const abletonLRY = ABLETON_LR_Y;
   const abletonDotGeo = new THREE.CircleGeometry(ABLETON_LR_RADIUS, 16);
@@ -314,6 +1085,10 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   recButton.castShadow = true;
   scene.add(recButton);
   recMaterial = recMat;   // picked up by the pulse animation below
+  recButton.userData.recPulse = true;   // hover adds a boost on top of the pulse, see setHoverState
+  recButton.userData.popupTarget = 'materialsOverlay';
+  hoverTargets.push(recButton);
+  clickTargets.push(recButton);
 
   const recLabelCanvas = document.createElement('canvas');
   recLabelCanvas.width = 256; recLabelCanvas.height = 256;
@@ -330,6 +1105,118 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   recLabel.rotation.y = Math.PI / 2;
   recLabel.position.set(recCylX + REC_THICKNESS / 2 + 0.01, recCenterY, recCenterZ);
   scene.add(recLabel);
+
+  // ── Microphone & headphones — hung on the wall, upright, to the left of
+  // the REC light (+Z is the viewer's left on this wall) with clear space
+  // between them, headphones directly below the mic.
+  const WALL_PROP_X    = ROOM_LEFT_X + 0.05 + 0.3;   // a bit further off the wall for a visible contact shadow
+  // Mic scales down from a wider raw bounding box (capsule included) than the
+  // headphones do — kept proportionally further off the wall than the headphones.
+  const MIC_WALL_X = ROOM_LEFT_X + 0.05 + 0.55;
+  const HEADPHONES_Z = recCenterZ + 1.1;             // clear gap to the left of REC
+  const MIC_Z       = HEADPHONES_Z + 0.15;           // nudged further left, centered over the headphones
+  const MIC_Y       = recCenterY;                   // hangs at the same height as REC
+  // Mic: this GLB has export-baked rotations on its parent nodes, so the
+  // mesh's own "local Z" is not its real long axis once loaded — computed via
+  // PCA on the actual world-space vertices (capsule end vs. prong/base end),
+  // this axis-angle rotation is the exact (not guessed) turn that brings the
+  // capsule straight up and the body hanging below it.
+  loadWallProp('microphone.glb', 0.85, MIC_WALL_X, MIC_Y, MIC_Z, 0, 0, 0,
+    { x: -0.7164858561887668, y: 0, z: 0.697601618319116, angle: 1.4449268754124767 });
+  // Headphones: the Z rotation put the top/bottom face toward the room
+  // (profile → Z rotation cycles X/Y-facing views) — the untouched local Z
+  // axis is the front-facing one, so a Y rotation is what brings that to
+  // face the room instead.
+  loadWallProp('headphones.glb', 0.8, WALL_PROP_X, MIC_Y - 1.0, HEADPHONES_Z, 0, Math.PI / 2, 0);
+
+  // MOTU audio interface — mounted flat on the wall (same treatment as
+  // headphones, not sitting free-standing on the floor), roughly beneath the
+  // headphones but nudged right (-Z is "right" on this wall).
+  loadWallProp('motu_m2_audio_interface.glb', 0.9, WALL_PROP_X, MIC_Y - 1.9, HEADPHONES_Z - 0.2, 0, Math.PI / 2, 0);
+
+  // ── Monitor — flat screen hung on the wall above the mic/REC cluster; the
+  // METHOD/MATERIALS & SETUP text below is positioned to sit on its face, as
+  // if displayed on the screen rather than engraved into the bare wall.
+  const MONITOR_X = ROOM_LEFT_X + 0.05 + 0.12;
+  const MONITOR_Y = recCenterY + 1.6;
+  const MONITOR_Z = recCenterZ + 0.35 - 0.7;   // -0.7: +Z is "left" on this wall, so this moves it right — text (TITLE_Z) stays put
+  // rotY flipped an extra 180° — was showing its back to the room. extraTiltX
+  // rolls it slightly left/right in world space (same trick as titleTilt
+  // below) — negative here so the bottom-left corner lifts a touch instead
+  // of dipping.
+  loadWallProp('monitor.glb', 3.0, MONITOR_X, MONITOR_Y, MONITOR_Z, 0, Math.PI / 2 + Math.PI, 0, null, -0.02);
+  const MONITOR_SCREEN_X = ROOM_LEFT_X + 0.05 + 0.25;   // just proud of the screen's front face, avoids z-fighting
+
+  // ── Wall titles — "METHOD" stacked above "MATERIALS & SETUP", both in the
+  // same font/weight as the REC label, sitting on the monitor's screen above
+  // the REC light + mic/headphones cluster. Same rotation.y trick as the REC
+  // label/Ableton logo (see the comment above the logo load) so the text
+  // reads un-mirrored, not backwards.
+  const TITLE_Z = recCenterZ + 0.35 - 0.7 + 0.2;   // shifted right (matches the monitor), then nudged back left a touch to sit better on-screen
+  const TITLE_Y = recCenterY + 1.15;
+  const TITLE_FONT = '900 118px "Arial Black", Arial, sans-serif';
+  const TITLE_PAD = 60;
+  const TITLE_CANVAS_H = 180;
+  const TITLE_W = 2.6;   // world width of "MATERIALS & SETUP", padding included — also sets METHOD's size (shared scale)
+
+  // Wall-align first (same as the REC label/Ableton logo), then add a small
+  // extra roll around the world X axis (the wall's own normal) — negative, to
+  // match the monitor's own tilt (its left/"M" side lifts, doesn't dip), so
+  // the text reads aligned with the screen it's sitting on.
+  const titleWallAlign = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
+  const titleTilt = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.03);
+
+  // Both titles share one world-units-per-canvas-pixel scale, fixed by the
+  // first (longest) one — a shorter title gets a narrower plane rather than
+  // being stretched across a fixed width, so the glyphs come out the same size.
+  let titlePxToWorld = null;
+  function makeWallTitle(text, popupTarget) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    // Measure first, then size the canvas to fit — a fixed canvas width was
+    // narrower than the actual rendered text, silently clipping "M" and "UP"
+    // off both edges since fillText draws past the canvas bounds unclipped.
+    ctx.font = TITLE_FONT;
+    canvas.width = Math.ceil(ctx.measureText(text).width) + TITLE_PAD * 2;
+    canvas.height = TITLE_CANVAS_H;
+    ctx.font = TITLE_FONT;   // resizing the canvas resets all context state, so re-apply it
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Drawn white, then tinted dark via the material's own colour below — that
+    // way "hover lightens it" is just a colour swap, not a second texture.
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 4);
+    if (titlePxToWorld === null) titlePxToWorld = TITLE_W / canvas.width;
+    const mesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(canvas.width * titlePxToWorld, canvas.height * titlePxToWorld),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, color: 0x1a1a1a })
+    );
+    mesh.userData.basicColorGlow = true;
+    mesh.userData.baseColorHex = 0x1a1a1a;
+    mesh.userData.hoverColorHex = 0xffffff;
+    mesh.userData.popupTarget = popupTarget;
+    hoverTargets.push(mesh);
+    clickTargets.push(mesh);
+    mesh.quaternion.copy(titleTilt).multiply(titleWallAlign);
+    scene.add(mesh);
+    return mesh;
+  }
+
+  const titleLabel = makeWallTitle('MATERIALS & SETUP', 'materialsOverlay');
+  titleLabel.position.set(MONITOR_SCREEN_X, TITLE_Y, TITLE_Z);
+
+  // "METHOD" — one line up, its "M" over the "M" of "MATERIALS". Both canvases
+  // carry the same padding at the same scale, so lining the planes' +Z edges up
+  // (+Z is the viewer's left on this wall) lines the glyphs up too. The offset
+  // is rotated by the shared tilt so the two lines stay parallel rather than
+  // drifting apart toward the left.
+  const methodLabel = makeWallTitle('METHOD', 'methodOverlay');
+  const methodOffset = new THREE.Vector3(
+    0,
+    titleLabel.geometry.parameters.height * 0.75,                              // leading between the two lines
+    (TITLE_W - methodLabel.geometry.parameters.width) / 2                      // flush left edges
+  ).applyQuaternion(titleTilt);
+  methodLabel.position.set(MONITOR_SCREEN_X, TITLE_Y, TITLE_Z).add(methodOffset);
 
   // ── Cables — white from L, red from R, running from the left wall across
   // the floor to the circuit board, tucking their ends in near its centre so
@@ -468,24 +1355,42 @@ const BACKWALL_SHIFT_X = ROOM_WIDTH * 0.05;
 
 const MARKER_X = 8 - 0.25 * 16 + BACKWALL_SHIFT_X;    // kept anchored to the original 16-wide back wall, not the extended floor
 const MARKER_Y = 0.2 * ROOM_HEIGHT;
-const MARKER_SPACING = 3.2;
+// Sizing shared by all six back-wall marker buttons (PITCH/ROBOT/REVERB/
+// PANNING here, and PLAY/LOOP further below) — one knob applied to every
+// frame/circle/label/icon so they all shrink together and stay proportional.
+const KNOB_SCALE = 0.8;
 
 function makeButtonMarker(x, y, color, label) {
   // Frame — a real torus instead of a flat ring, so it has actual depth/mass
   const frame = new THREE.Mesh(
-    new THREE.TorusGeometry(0.55, 0.046, 16, 48),
+    new THREE.TorusGeometry(0.55 * KNOB_SCALE, 0.046 * KNOB_SCALE, 16, 48),
     new THREE.MeshStandardMaterial({ color: 0x4a4a4e, roughness: 0.28, metalness: 0.8, envMapIntensity: 0.55 })
   );
   frame.position.set(x, y, -7.95);
   scene.add(frame);
 
   const circle = new THREE.Mesh(
-    new THREE.CircleGeometry(0.50, 32),
+    new THREE.CircleGeometry(0.50 * KNOB_SCALE, 32),
     new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.35, envMapIntensity: 0.35 })
   );
   circle.position.set(x, y, -7.94);
   circle.userData.glowHex = color;   // hover target — lights up to its own hue
   scene.add(circle);
+
+  // Invisible companion disc, matching the torus frame's own outer edge
+  // (0.55 + tube 0.046) rather than just the coloured disc's smaller radius
+  // — this is what actually gets raycast (hoverTargets/clickTargets use this,
+  // not `circle`), so the whole visible ring is clickable, not just the
+  // slightly-smaller coloured centre with a thin dead zone at the rim.
+  // Hover/click state still targets the real `circle` via glowMesh.
+  const hitArea = new THREE.Mesh(
+    new THREE.CircleGeometry((0.55 + 0.046) * KNOB_SCALE, 32),
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
+  hitArea.position.set(x, y, -7.94);
+  hitArea.userData.glowMesh = circle;
+  hitArea.userData.glowHex = color;
+  scene.add(hitArea);
 
   // Branded label underneath — mirrored, engraved look (no glow, just grey/black)
   const brandTex = (() => {
@@ -504,18 +1409,77 @@ function makeButtonMarker(x, y, color, label) {
     return new THREE.CanvasTexture(c);
   })();
   const brand = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.3, 0.41),
+    new THREE.PlaneGeometry(1.3 * KNOB_SCALE, 0.41 * KNOB_SCALE),
     new THREE.MeshBasicMaterial({ map: brandTex, transparent: true })
   );
-  brand.position.set(x, y - 0.95, -7.95);
+  brand.position.set(x, y - 0.95 * KNOB_SCALE, -7.95);
   brand.scale.x = -1;   // mirrored
   scene.add(brand);
 
-  return { frame, circle, x, y };
+  return { frame, circle, hitArea, x, y };
+}
+
+// MIXER marker — same frame/label as the others, but the face is split into
+// four coloured quadrants (one per effect it mixes) instead of a flat colour.
+function makeQuadrantButtonMarker(x, y, colors, label) {
+  const frame = new THREE.Mesh(
+    new THREE.TorusGeometry(0.55 * KNOB_SCALE, 0.046 * KNOB_SCALE, 16, 48),
+    new THREE.MeshStandardMaterial({ color: 0x4a4a4e, roughness: 0.28, metalness: 0.8, envMapIntensity: 0.55 })
+  );
+  frame.position.set(x, y, -7.95);
+  scene.add(frame);
+
+  // Pastel tint — lightened toward white, not toward the frame's grey (grey
+  // would just dull/darken them, not read as "pastel"). One shared amount so
+  // all four quadrants get an equal, easy-to-retune lift.
+  const QUADRANT_PASTEL = 0.2;
+  function pastelHex(hex, amt) {
+    return new THREE.Color(hex).lerp(new THREE.Color(0xffffff), amt).getHex();
+  }
+
+  // Four pie-slice CircleGeometries (thetaStart/thetaLength), each its own
+  // colour/material and its own hover target, tiled edge-to-edge into a whole circle.
+  const quadrants = colors.map((color, i) => {
+    const finalColor = pastelHex(color, QUADRANT_PASTEL);
+    const wedge = new THREE.Mesh(
+      new THREE.CircleGeometry(0.50 * KNOB_SCALE, 16, i * Math.PI / 2, Math.PI / 2),
+      new THREE.MeshStandardMaterial({ color: finalColor, roughness: 0.35, metalness: 0.35, envMapIntensity: 0.35 })
+    );
+    wedge.position.set(x, y, -7.94);
+    wedge.userData.glowHex = finalColor;   // hover target — lights up to its own hue
+    scene.add(wedge);
+    return wedge;
+  });
+
+  // Branded label underneath — identical styling to the single-colour markers
+  const brandTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 160;
+    const g = c.getContext('2d');
+    g.font = 'bold 92px "Courier New", monospace';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillStyle = 'rgba(255,255,255,0.3)';
+    g.fillText(label, c.width / 2, c.height / 2 + 3);
+    g.fillStyle = 'rgba(0,0,0,1.0)';
+    g.fillText(label, c.width / 2, c.height / 2);
+    return new THREE.CanvasTexture(c);
+  })();
+  const brand = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.3 * KNOB_SCALE, 0.41 * KNOB_SCALE),
+    new THREE.MeshBasicMaterial({ map: brandTex, transparent: true })
+  );
+  brand.position.set(x, y - 0.95 * KNOB_SCALE, -7.95);
+  brand.scale.x = -1;   // mirrored
+  scene.add(brand);
+
+  return { frame, quadrants, x, y };
 }
 
 // ── Wires — one per button, from the centre of its circle down to the board ─
-const BOARD_X = -3 + BACKWALL_SHIFT_X, BOARD_Z = -3;
+// BOARD_Z nudged toward the camera (less negative, away from the back wall) so
+// the board's left edge clears the PANNING knob mounted on the wall behind it.
+const BOARD_X = -3 + BACKWALL_SHIFT_X, BOARD_Z = -1.5;
 
 function makeWire(startX, startY, midX, midY, midZ, endX, endY, endZ) {
   const curve = new THREE.CatmullRomCurve3([
@@ -542,17 +1506,49 @@ function makeWire(startX, startY, midX, midY, midZ, endX, endY, endZ) {
   scene.add(connector);
 }
 
-const pitchMarker   = makeButtonMarker(MARKER_X, MARKER_Y, 0xb23030, 'PITCH');
-const robotMarker   = makeButtonMarker(MARKER_X - MARKER_SPACING,     MARKER_Y, 0x2f5fb0, 'ROBOT');
-const reverbMarker  = makeButtonMarker(MARKER_X - MARKER_SPACING * 2, MARKER_Y, 0x7c3aa0, 'REVERB');
-const panningMarker = makeButtonMarker(MARKER_X - MARKER_SPACING * 3, MARKER_Y, 0xcfa227, 'PANNING');
+// PANNING keeps its original position as a fixed anchor; REVERB/ROBOT/PITCH
+// are pulled in toward it (spacing tightened from the original 3.2) rather
+// than the whole row shifting right.
+const MARKER_SPACING_ORIGINAL = 3.2;
+const PANNING_X = MARKER_X - MARKER_SPACING_ORIGINAL * 3;
+const MARKER_SPACING = 2.0;
+
+const panningMarker = makeButtonMarker(PANNING_X, MARKER_Y, 0xcfa227, 'PANNING');
+panningMarker.hitArea.userData.popupTarget = 'panningOverlay';
+panningMarker.hitArea.userData.hoverTipId = 'panningHoverTip';
+clickTargets.push(panningMarker.hitArea);
+const reverbMarker  = makeButtonMarker(PANNING_X + MARKER_SPACING,     MARKER_Y, 0x7c3aa0, 'REVERB');
+reverbMarker.hitArea.userData.popupTarget = 'reverbOverlay';
+reverbMarker.hitArea.userData.hoverTipId = 'reverbHoverTip';
+clickTargets.push(reverbMarker.hitArea);
+const robotMarker   = makeButtonMarker(PANNING_X + MARKER_SPACING * 2, MARKER_Y, 0x2f5fb0, 'ROBOT');
+robotMarker.hitArea.userData.popupTarget = 'robotOverlay';
+robotMarker.hitArea.userData.hoverTipId = 'robotHoverTip';
+clickTargets.push(robotMarker.hitArea);
+const pitchMarker   = makeButtonMarker(PANNING_X + MARKER_SPACING * 3, MARKER_Y, 0xb23030, 'PITCH');
+pitchMarker.hitArea.userData.popupTarget = 'pitchOverlay';
+pitchMarker.hitArea.userData.hoverTipId = 'pitchHoverTip';
+clickTargets.push(pitchMarker.hitArea);
+// MIXER — one spacing step to the right of PITCH, quadrants in the same four
+// hues already used above (yellow/purple/blue/red = PANNING/REVERB/ROBOT/PITCH).
+const mixerMarker = makeQuadrantButtonMarker(
+  PANNING_X + MARKER_SPACING * 4, MARKER_Y,
+  [0xcfa227, 0x7c3aa0, 0x2f5fb0, 0xb23030], 'MIXER'
+);
+// Any quadrant opens the same popup/tooltip, regardless of which colour was clicked/hovered.
+mixerMarker.quadrants.forEach(quadrant => {
+  quadrant.userData.hoverTipId = 'mixerHoverTip';
+  quadrant.userData.popupTarget = 'mixerOverlay';
+  clickTargets.push(quadrant);
+});
 
 // Each wire takes its own route and ends at a different spot around the board,
-// so they read as four separate connections rather than overlapping paths
+// so they read as separate connections rather than overlapping paths
 makeWire(pitchMarker.x,   pitchMarker.y,  -1.8 + BACKWALL_SHIFT_X, 0.35, -4.4,  BOARD_X - 0.8, 0.65, BOARD_Z + 0.3);
 makeWire(robotMarker.x,   robotMarker.y,  -3.0 + BACKWALL_SHIFT_X, 0.2,  -5.2,  BOARD_X - 0.3, 0.55, BOARD_Z - 0.6);
 makeWire(reverbMarker.x,  reverbMarker.y, -2.6 + BACKWALL_SHIFT_X, 1.0,  -5.6,  BOARD_X + 0.5, 0.5,  BOARD_Z + 0.5);
 makeWire(panningMarker.x, panningMarker.y, -4.4 + BACKWALL_SHIFT_X, 0.04, -3.4, BOARD_X + 0.2, 0.6,  BOARD_Z - 0.3);
+makeWire(mixerMarker.x,   mixerMarker.y,  0.6 + BACKWALL_SHIFT_X,  0.3,  -4.8,  BOARD_X + 1.3, 0.7,  BOARD_Z - 0.8);
 
 // ── Thought-selection nav buttons — small, grey, translucent echo of the pair
 // on the outside panel. Seen from the inside, so both the arrows and the
@@ -574,18 +1570,20 @@ function makeMirroredArrowIcon(dir) {  // dir: -1 = ◄  +1 = ►
   return new THREE.CanvasTexture(c);
 }
 
+const THOUGHT_NAV_SCALE = 0.85;   // a bit smaller than the original frame/circle/icon
+
 function makeThoughtNavButton(x, dir) {
   // Frame is solid, dark and reflective — same material as the marker frames
   // above, giving it real mass — while the face stays translucent/ghosted.
   const frame = new THREE.Mesh(
-    new THREE.TorusGeometry(0.46, 0.06, 16, 40),
+    new THREE.TorusGeometry(0.46 * THOUGHT_NAV_SCALE, 0.06 * THOUGHT_NAV_SCALE, 16, 40),
     new THREE.MeshStandardMaterial({ color: 0x4a4a4e, roughness: 0.28, metalness: 0.8, envMapIntensity: 0.55 })
   );
   frame.position.set(x, THOUGHT_NAV_Y, -7.95);
   scene.add(frame);
 
   const circle = new THREE.Mesh(
-    new THREE.CircleGeometry(0.41, 32),
+    new THREE.CircleGeometry(0.41 * THOUGHT_NAV_SCALE, 32),
     new THREE.MeshStandardMaterial({ color: 0x55555e, roughness: 0.45, metalness: 0.2, transparent: true, opacity: 0.3 })
   );
   circle.position.set(x, THOUGHT_NAV_Y, -7.94);
@@ -593,7 +1591,7 @@ function makeThoughtNavButton(x, dir) {
   scene.add(circle);
 
   const icon = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.36, 0.36),
+    new THREE.PlaneGeometry(0.36 * THOUGHT_NAV_SCALE, 0.36 * THOUGHT_NAV_SCALE),
     new THREE.MeshBasicMaterial({ map: makeMirroredArrowIcon(dir), transparent: true })
   );
   icon.position.set(x, THOUGHT_NAV_Y, -7.93);
@@ -631,7 +1629,7 @@ const thoughtNavLabel = new THREE.Mesh(
 // thought-nav button — they line up in the same vertical column. After
 // mirroring (scale.x = -1), world = position.x - localX, so solve position.x
 // from the *measured* pixel width of the text rather than guessing.
-const THOUGHT_NAV_BTN_OUTER_R = 0.52;   // torus radius 0.46 + tube 0.06
+const THOUGHT_NAV_BTN_OUTER_R = (0.46 + 0.06) * THOUGHT_NAV_SCALE;   // torus radius 0.46 + tube 0.06
 const thoughtTextEndPx = THOUGHT_LABEL_MARGIN + tlCtx.measureText('Thought selection').width;
 const thoughtTextEndLocalX = THOUGHT_LABEL_W * (thoughtTextEndPx / THOUGHT_LABEL_CANVAS_W - 0.5);
 const thoughtTextEndTargetX = THOUGHT_NAV_LEFT_X - THOUGHT_NAV_BTN_OUTER_R;
@@ -643,19 +1641,20 @@ scene.add(thoughtNavLabel);
 // the left there, blue LOOP on the right). Same size/frame as the PITCH etc.
 // markers. Sits below the thought-selection buttons, above PITCH/ROBOT, shifted left.
 const PLAYLOOP_Y      = MARKER_Y + 2.4;
-const PLAYLOOP_BLUE_X  = 0.6 + BACKWALL_SHIFT_X;    // LOOP, mirrored to the left
-const PLAYLOOP_GREEN_X = 2.6 + BACKWALL_SHIFT_X;    // PLAY, mirrored to the right
+const PLAYLOOP_SHIFT_X = -1.0;   // nudges both buttons further left
+const PLAYLOOP_BLUE_X  = 0.6 + BACKWALL_SHIFT_X + PLAYLOOP_SHIFT_X;    // LOOP, mirrored to the left
+const PLAYLOOP_GREEN_X = 2.3 + BACKWALL_SHIFT_X + PLAYLOOP_SHIFT_X;    // PLAY, mirrored to the right — pulled closer to LOOP (was 2.6)
 
 function makeMarkerButton(x, y, color) {
   const frame = new THREE.Mesh(
-    new THREE.TorusGeometry(0.55, 0.046, 16, 48),
+    new THREE.TorusGeometry(0.55 * KNOB_SCALE, 0.046 * KNOB_SCALE, 16, 48),
     new THREE.MeshStandardMaterial({ color: 0x4a4a4e, roughness: 0.28, metalness: 0.8, envMapIntensity: 0.55 })
   );
   frame.position.set(x, y, -7.95);
   scene.add(frame);
 
   const circle = new THREE.Mesh(
-    new THREE.CircleGeometry(0.50, 32),
+    new THREE.CircleGeometry(0.50 * KNOB_SCALE, 32),
     new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.35, envMapIntensity: 0.35 })
   );
   circle.position.set(x, y, -7.94);
@@ -667,6 +1666,9 @@ function makeMarkerButton(x, y, color) {
 
 const loopMarkerCircle = makeMarkerButton(PLAYLOOP_BLUE_X,  PLAYLOOP_Y, 0x2f7fd0);   // LOOP, mirrored
 const playMarkerCircle = makeMarkerButton(PLAYLOOP_GREEN_X, PLAYLOOP_Y, 0x2f9e52);   // PLAY, mirrored
+playMarkerCircle.userData.isPlayButton = true;   // clicking it triggers the background track — see the click handler below
+playMarkerCircle.userData.hoverTipId = 'playHoverTip';
+clickTargets.push(playMarkerCircle);
 
 // Brand labels — identical style/font to the PITCH/ROBOT/etc. labels, mirrored the same way
 function makeMirroredBrandLabel(x, y, label) {
@@ -681,10 +1683,10 @@ function makeMirroredBrandLabel(x, y, label) {
   g.fillStyle = 'rgba(0,0,0,0.6)';
   g.fillText(label, c.width / 2, c.height / 2);
   const brand = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.3, 0.41),
+    new THREE.PlaneGeometry(1.3 * KNOB_SCALE, 0.41 * KNOB_SCALE),
     new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true })
   );
-  brand.position.set(x, y - 0.95, -7.95);
+  brand.position.set(x, y - 0.95 * KNOB_SCALE, -7.95);
   brand.scale.x = -1;   // mirrored
   scene.add(brand);
 }
@@ -702,7 +1704,7 @@ const playIconLeftTex = (() => {
   return new THREE.CanvasTexture(c);
 })();
 const playIconLeft = new THREE.Mesh(
-  new THREE.PlaneGeometry(0.5, 0.5),
+  new THREE.PlaneGeometry(0.5 * KNOB_SCALE, 0.5 * KNOB_SCALE),
   new THREE.MeshBasicMaterial({ map: playIconLeftTex, transparent: true })
 );
 playIconLeft.position.set(PLAYLOOP_GREEN_X, PLAYLOOP_Y, -7.93);
@@ -753,7 +1755,7 @@ const loopIconMirroredTex = (() => {
   return new THREE.CanvasTexture(c);
 })();
 const loopIconMirrored = new THREE.Mesh(
-  new THREE.PlaneGeometry(0.5, 0.5),
+  new THREE.PlaneGeometry(0.5 * KNOB_SCALE, 0.5 * KNOB_SCALE),
   new THREE.MeshBasicMaterial({ map: loopIconMirroredTex, transparent: true })
 );
 loopIconMirrored.position.set(PLAYLOOP_BLUE_X, PLAYLOOP_Y, -7.93);
@@ -766,7 +1768,7 @@ scene.add(loopIconMirrored);
 // horizontal relationship as the outside screen sitting above its arrow row
 // and PLAY/LOOP row. No live text/glow logic — this page can't sync with the
 // outside screen state, so it's a static visual anchor rather than a working display.
-const PLAYLOOP_BTN_OUTER_R = 0.55 + 0.046;   // marker frame radius + tube
+const PLAYLOOP_BTN_OUTER_R = (0.55 + 0.046) * KNOB_SCALE;   // marker frame radius + tube
 const SCREEN_BOTTOM_LEFT_X  = THOUGHT_NAV_LEFT_X - THOUGHT_NAV_BTN_OUTER_R;
 const SCREEN_BOTTOM_RIGHT_X = PLAYLOOP_GREEN_X + PLAYLOOP_BTN_OUTER_R;
 const SCREEN_BOTTOM_W = SCREEN_BOTTOM_RIGHT_X - SCREEN_BOTTOM_LEFT_X;
@@ -886,7 +1888,7 @@ makeCable(0x4a70c0, relaxCable([[3.2, 6.4], [-2.4, 0.9], [-11.4, 5.6]], 0.040, 2
 // ── PCB model — sits flat on the floor, centered in the room ────────────────
 const pcbLoader = new GLTFLoader();
 pcbLoader.setMeshoptDecoder(MeshoptDecoder);
-pcbLoader.load('Circuitboard.glb', (gltf) => {
+pcbLoader.load('pcb_amp_audio.optimized.glb', (gltf) => {
   const pcb = gltf.scene;
 
   // Auto-detect the thinnest axis (the board's thickness) and rotate it to vertical,
@@ -910,6 +1912,11 @@ pcbLoader.load('Circuitboard.glb', (gltf) => {
   pcb.position.z += BOARD_Z - center.z;
   pcb.position.y -= box.min.y;   // sit flush on the floor (y=0)
 
+  // Re-measure now that the board sits at its final position — `box` above
+  // was taken before the position offset just applied, so it described where
+  // the model *used to* sit (near the origin), not where it actually ended up.
+  const finalBox = new THREE.Box3().setFromObject(pcb);
+
   pcb.traverse(child => {
     if (child.isMesh) {
       child.castShadow = true;
@@ -919,27 +1926,19 @@ pcbLoader.load('Circuitboard.glb', (gltf) => {
 
   scene.add(pcb);
 
-  // ── Cables — from two of the Buzzer's own mounting holes (its 6 "indents",
-  // decoded straight from the GLB mesh — see BUZZER_HOLES_LOCAL below) up to
-  // the L/R indicator dots below the speaker grille.
+  // ── Cables — from two exit points tucked under the board's back-left (top-left
+  // on screen) corner, up to the L/R indicator dots below the speaker grille.
   //
-  // These 6 positions are the actual hole centers read out of the raw
-  // "Circle.019" mesh (the Buzzer's geometry), in the mesh's own local space
-  // — i.e. the same space `pcb` is in *before* the rotation/scale/position
-  // this loader applies above. Applying pcb.scale + pcb.position to them
-  // (exactly the transform this callback already computed) lands them
-  // exactly on the real holes, not an approximated corner of the bounding box.
-  const BUZZER_HOLES_LOCAL = [
-    [-0.01505, 0.01981,  0.00837],
-    [-0.01505, 0.01981, -0.00591],
-    [-0.03993, 0.01981, -0.00591],   // back-left hole (further back)
-    [-0.03993, 0.01981,  0.00837],   // back-left hole (further front)
-    [-0.02777, 0.01981,  0.01482],
-    [-0.02777, 0.01981, -0.01313],
-  ];
-  function buzzerHoleWorldPos(idx) {
-    const [x, y, z] = BUZZER_HOLES_LOCAL[idx];
-    return new THREE.Vector3(x, y, z).multiplyScalar(pcb.scale.x).add(pcb.position);
+  // This model (unlike the old Circuitboard.glb) has no named component to
+  // hook the exit points to — it's a raw, unnamed mesh dump — so instead of
+  // reading real mounting-hole coordinates, the two exits sit low (near floor
+  // height) right at that corner, so the ends read as tucked away under the
+  // board rather than needing to land on a precise real connector.
+  const exitY = finalBox.min.y + 0.03;                    // low, hidden under the board's edge
+  const exitBaseX = finalBox.min.x + finalBox.getSize(new THREE.Vector3()).x * 0.08;   // just in from the left edge
+  const exitZ      = finalBox.min.z + finalBox.getSize(new THREE.Vector3()).z * 0.08;  // just in from the back edge
+  function boardExitPos(offsetX) {
+    return new THREE.Vector3(exitBaseX + offsetX, exitY, exitZ);
   }
 
   function makeSpeakerCable(exitPos, midPoints, destX, color) {
@@ -957,8 +1956,8 @@ pcbLoader.load('Circuitboard.glb', (gltf) => {
     scene.add(wire);
   }
 
-  const whiteExit = buzzerHoleWorldPos(2);
-  const redExit    = buzzerHoleWorldPos(3);
+  const whiteExit = boardExitPos(0);
+  const redExit    = boardExitPos(0.2);   // a small fixed nudge — the two leads sit close together
 
   // White — to L
   makeSpeakerCable(whiteExit, [
@@ -974,19 +1973,186 @@ pcbLoader.load('Circuitboard.glb', (gltf) => {
     [rightDotX - 0.35, 3.7,              -7.2],
   ], rightDotX, 0xb03030);
 }, undefined, (err) => {
-  console.error('Circuitboard.glb failed to load', err);
+  console.error('pcb_amp_audio.optimized.glb failed to load', err);
 });
+
+// ── Mouse-arrow prop — stands on the floor to the right of the PCB, at the
+// same depth as the board (not back near the wall — x=10/z=-7 previously put
+// it well outside the camera's frustum, off to the right of frame, hence
+// invisible), roughly midway between the board and the room's right side.
+const mouseArrowLoader = new GLTFLoader();
+mouseArrowLoader.setMeshoptDecoder(MeshoptDecoder);
+mouseArrowLoader.load('mouse_arrow.glb', (gltf) => {
+  const cursor = gltf.scene;
+
+  const size = new THREE.Box3().setFromObject(cursor).getSize(new THREE.Vector3());
+  const targetHeight = 1.1;   // a bit smaller than before
+  cursor.scale.setScalar(targetHeight / size.y);
+
+  // It was standing straight up with the point in the air — tipped 80°
+  // clockwise, then another 45° clockwise (was lying on its side with the
+  // point aimed right instead of down), so the point now aims at the floor.
+  cursor.rotation.z = -125 * Math.PI / 180;
+
+  const box = new THREE.Box3().setFromObject(cursor);
+  const center = box.getCenter(new THREE.Vector3());
+  const CURSOR_X = BOARD_X + 4.8 + 0.3, CURSOR_Z = BOARD_Z - 0.8;   // +0.3 right, -0.8 further back
+  cursor.position.x += CURSOR_X - center.x;
+  cursor.position.z += CURSOR_Z - center.z;
+  cursor.position.y -= box.min.y;   // sit flush on the floor — whichever point that now is, post-rotation
+  cursor.position.y += 0.06;   // lifted just a touch off the floor
+
+  cursor.traverse(child => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  scene.add(cursor);
+}, undefined, (err) => {
+  console.error('mouse_arrow.glb failed to load', err);
+});
+
+// ── "DISCUSSION" floor text — lies flat on the floor to the right of the
+// mouse-arrow prop. Same font/weight as the METHOD wall title, but white and
+// lying down (rotation.x, same trick as the floor plane itself) instead of
+// standing upright against a wall.
+const DISCUSSION_TEXT = 'DISCUSSION';
+const DISCUSSION_FONT = '900 118px "Arial Black", Arial, sans-serif';
+const discussionCanvas = document.createElement('canvas');
+const dctx = discussionCanvas.getContext('2d');
+dctx.font = DISCUSSION_FONT;
+const discussionPad = 60;
+discussionCanvas.width = Math.ceil(dctx.measureText(DISCUSSION_TEXT).width) + discussionPad * 2;
+discussionCanvas.height = 180;
+dctx.font = DISCUSSION_FONT;   // resizing the canvas resets all context state, so re-apply it
+dctx.textAlign = 'center';
+dctx.textBaseline = 'middle';
+dctx.fillStyle = '#ffffff';
+dctx.fillText(DISCUSSION_TEXT, discussionCanvas.width / 2, discussionCanvas.height / 2 + 4);
+const DISCUSSION_W = 2.0;
+const discussionLabel = new THREE.Mesh(
+  new THREE.PlaneGeometry(DISCUSSION_W, DISCUSSION_W * discussionCanvas.height / discussionCanvas.width),
+  // Drawn white on the canvas; the material's own colour dims it at rest and
+  // hover brings it back to full white — same basicColorGlow trick as the
+  // METHOD/MATERIALS wall titles, so it visibly "lights up" on hover.
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(discussionCanvas), transparent: true, color: 0x999999 })
+);
+discussionLabel.userData.basicColorGlow = true;
+discussionLabel.userData.baseColorHex = 0x999999;
+discussionLabel.userData.hoverColorHex = 0xffffff;
+discussionLabel.userData.popupTarget = 'discussionOverlay';
+hoverTargets.push(discussionLabel);
+clickTargets.push(discussionLabel);
+// Not the font — it's laid perfectly flat, and the camera only looks down
+// about 12° below horizontal, so a fully flat decal is viewed almost edge-on
+// and reads heavily skewed (looks "italic") purely from that grazing angle.
+// Tilted up partway toward the camera instead of fully flat (-90°) fixes the
+// skew while still reading as sitting low, near the floor.
+discussionLabel.rotation.x = -Math.PI / 2 + (35 * Math.PI / 180);
+// Same anchor the mouse-arrow prop uses (BOARD_X + 4.8 + 0.3, BOARD_Z - 0.8),
+// pulled toward the camera (+z) so it sits below the arrow. The text is drawn
+// centred on this mesh, so it's shifted right by half its own width — that
+// puts the mesh's (and so the word's) *left* edge, where the "D" starts,
+// under the arrow's x instead of the middle of the word landing there.
+discussionLabel.position.set(BOARD_X + 4.8 + 0.3 + DISCUSSION_W / 2, 0.25, BOARD_Z - 0.8 + 1.0 - 0.25 + 0.2);
+scene.add(discussionLabel);
+
+// ── Pulldown-chart prop — mounted flat on the back wall, up and to the right
+// of the PLAY button. The back wall's outward normal is already +Z (same as
+// a model's default front-facing direction), unlike the left wall, so no
+// wall-alignment rotation is needed here — loadWallProp's default rotX/Y/Z=0
+// is the correct "in perspective" (facing into the room) orientation.
+const PULLDOWN_X = 5.2, PULLDOWN_Y = 5.3, PULLDOWN_Z = -7.9;
+// rotY=Math.PI — was showing its back to the room, flipped to face the camera.
+loadWallProp('Pulldown Chart 01.glb', 1.8, PULLDOWN_X, PULLDOWN_Y, PULLDOWN_Z, 0, Math.PI, 0);
+
+// ── "CFQ13 & VAS" wall text — mounted on the back wall below the pulldown
+// chart. Same font as before, but now using the back-wall brand-label
+// convention (mirrored via scale.x=-1, no rotation — same trick as the
+// PITCH/ROBOT/etc. engraved labels) instead of the floor-decal tilt trick,
+// since a flat wall plane facing the camera doesn't suffer the grazing-angle
+// skew that a flat floor decal does.
+const CFQ_TEXT = 'CFQ13 & VAS';
+const CFQ_FONT = '900 118px "Arial Black", Arial, sans-serif';
+const cfqCanvas = document.createElement('canvas');
+const cctx = cfqCanvas.getContext('2d');
+cctx.font = CFQ_FONT;
+const cfqPad = 60;
+cfqCanvas.width = Math.ceil(cctx.measureText(CFQ_TEXT).width) + cfqPad * 2;
+cfqCanvas.height = 180;
+cctx.font = CFQ_FONT;   // resizing the canvas resets all context state, so re-apply it
+cctx.textAlign = 'center';
+cctx.textBaseline = 'middle';
+cctx.fillStyle = '#ffffff';
+cctx.fillText(CFQ_TEXT, cfqCanvas.width / 2, cfqCanvas.height / 2 + 4);
+// Same pixels-per-world-unit scale as DISCUSSION (not an independently chosen
+// plane width) — otherwise two different-length words at the same font size
+// end up rendered at two different physical letter sizes.
+const discussionPxToWorld = DISCUSSION_W / discussionCanvas.width;
+const CFQ_PLANE_W = cfqCanvas.width * discussionPxToWorld;
+const cfqLabel = new THREE.Mesh(
+  new THREE.PlaneGeometry(CFQ_PLANE_W, cfqCanvas.height * discussionPxToWorld),
+  // Same basicColorGlow trick as DISCUSSION, but inverted: drawn white on the
+  // canvas, tinted grey at rest (reads dark against the mid-grey wall) and
+  // lightened to white on hover.
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cfqCanvas), transparent: true, color: 0x707070 })
+);
+cfqLabel.userData.basicColorGlow = true;
+cfqLabel.userData.baseColorHex = 0x707070;
+cfqLabel.userData.hoverColorHex = 0xffffff;
+cfqLabel.userData.popupTarget = 'cfqOverlay';
+cfqLabel.userData.hoverTipId = 'cfqHoverTip';
+hoverTargets.push(cfqLabel);
+clickTargets.push(cfqLabel);
+// No mirroring — the PITCH/ROBOT/etc. labels are deliberately mirrored for a
+// stylised "engraved into the metal" look, not because back-wall text needs
+// it to read correctly. This one should just read normally.
+cfqLabel.position.set(PULLDOWN_X, PULLDOWN_Y - 1.1, PULLDOWN_Z + 0.05);
+scene.add(cfqLabel);
+
+// ── "CONTENT ANALYSIS" — same engraved brand-label look as "MIXER" itself
+// (Courier New, mirrored, non-interactive), sitting one line below it. "MIXER"
+// fits its short text on a fixed 512px-wide canvas at 1.3*KNOB_SCALE world
+// units wide; this phrase is much longer, so the canvas is measured/sized to
+// fit first (same trick as the wall titles) and the plane scaled using the
+// same px-to-world ratio MIXER's own label uses, so the letters come out the
+// same physical size instead of being squeezed to fit a fixed-width plane.
+const CA_FONT = 'bold 92px "Courier New", monospace';
+const caCanvas = document.createElement('canvas');
+const cactx = caCanvas.getContext('2d');
+cactx.font = CA_FONT;
+const caPad = 40;
+caCanvas.width = Math.ceil(cactx.measureText('CONTENT ANALYSIS').width) + caPad * 2;
+caCanvas.height = 160;
+cactx.font = CA_FONT;   // resizing the canvas resets all context state, so re-apply it
+cactx.textAlign = 'center';
+cactx.textBaseline = 'middle';
+cactx.fillStyle = 'rgba(255,255,255,0.3)';
+cactx.fillText('CONTENT ANALYSIS', caCanvas.width / 2, caCanvas.height / 2 + 3);
+cactx.fillStyle = 'rgba(0,0,0,1.0)';
+cactx.fillText('CONTENT ANALYSIS', caCanvas.width / 2, caCanvas.height / 2);
+const mixerLabelPxToWorld = (1.3 * KNOB_SCALE) / 512;   // MIXER's own label: 512px canvas → 1.3*KNOB_SCALE world units
+const caLabel = new THREE.Mesh(
+  new THREE.PlaneGeometry(caCanvas.width * mixerLabelPxToWorld, caCanvas.height * mixerLabelPxToWorld),
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(caCanvas), transparent: true })
+);
+caLabel.position.set(mixerMarker.x, mixerMarker.y - 0.95 * KNOB_SCALE - 0.22, -7.95);
+caLabel.scale.x = -1;   // mirrored
+scene.add(caLabel);
 
 // ── Hover glow — PITCH/ROBOT/REVERB/PANNING, PLAY/LOOP and the thought-nav
 // arrows light up under the mouse. Camera is static here, so a plain
 // screen-space raycast against the back-wall circles is enough — no drag/click
 // behaviour, this page is a static visual echo of the outside panel.
-const hoverTargets = [
-  pitchMarker.circle, robotMarker.circle, reverbMarker.circle, panningMarker.circle,
+hoverTargets.push(
+  pitchMarker.hitArea, robotMarker.hitArea, reverbMarker.hitArea, panningMarker.hitArea,
+  ...mixerMarker.quadrants,
   loopMarkerCircle, playMarkerCircle,
   thoughtNavLeftBtn, thoughtNavRightBtn,
-];
-hoverTargets.forEach(mesh => { mesh.userData.baseOpacity = mesh.material.opacity; });
+);
+hoverTargets.forEach(mesh => { mesh.userData.baseOpacity = (mesh.userData.glowMesh || mesh).material.opacity; });
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -1000,14 +2166,33 @@ function lightenHex(hex, amt) {
 }
 
 function setHoverState(mesh, isHover) {
-  if (mesh.userData.emissiveMapGlow) {
-    mesh.material.emissiveIntensity = isHover ? 1.1 : 0;
-  } else {
-    mesh.material.emissive.setHex(isHover ? lightenHex(mesh.userData.glowHex, 0.35) : 0x000000);
-    mesh.material.emissiveIntensity = isHover ? 2.4 : 1;
+  // "MATERIALS & SETUP" title — plain MeshBasicMaterial (unlit text on a
+  // transparent canvas), so there's no emissive channel to drive; instead the
+  // text is drawn white and tinted dark at rest, and hover just swaps the
+  // material's own colour back toward white to "light up".
+  if (mesh.userData.basicColorGlow) {
+    mesh.material.color.setHex(isHover ? mesh.userData.hoverColorHex : mesh.userData.baseColorHex);
+    return;
   }
-  if (mesh.material.transparent) {
-    mesh.material.opacity = isHover
+  // REC button — already has its own per-frame pulse (see the animation
+  // loop), so hover just adds an extra boost on top rather than fighting it.
+  if (mesh.userData.recPulse) {
+    recHoverBoost = isHover ? 0.9 : 0;
+    return;
+  }
+  // PITCH/ROBOT/REVERB/PANNING: the raycast target is an invisible, slightly
+  // larger hit-area disc (covers the full metal ring, not just the smaller
+  // coloured centre — see makeButtonMarker), so the glow has to be applied to
+  // the real, visible circle it points at instead of to `mesh` itself.
+  const target = mesh.userData.glowMesh || mesh;
+  if (target.userData.emissiveMapGlow) {
+    target.material.emissiveIntensity = isHover ? 1.1 : 0;
+  } else {
+    target.material.emissive.setHex(isHover ? lightenHex(mesh.userData.glowHex, 0.35) : 0x000000);
+    target.material.emissiveIntensity = isHover ? 2.4 : 1;
+  }
+  if (target.material.transparent) {
+    target.material.opacity = isHover
       ? Math.min(1, mesh.userData.baseOpacity + 0.45)
       : mesh.userData.baseOpacity;
   }
@@ -1023,6 +2208,11 @@ renderer.domElement.addEventListener('pointermove', e => {
   if (hit !== hoveredMesh) {
     if (hoveredMesh) setHoverState(hoveredMesh, false);
     if (hit) setHoverState(hit, true);
+    // Back-wall PITCH/ROBOT/REVERB/PANNING/MIXER knobs carry a hoverTipId —
+    // same showTip/hideTip DOM tooltip used for the citation superscripts,
+    // just triggered from the 3D raycast hit instead of a mouseenter/leave.
+    if (hoveredMesh?.userData.hoverTipId) hideTip(hoveredMesh.userData.hoverTipId);
+    if (hit?.userData.hoverTipId) showTip(e, hit.userData.hoverTipId);
     hoveredMesh = hit;
   }
 });
@@ -1030,23 +2220,201 @@ renderer.domElement.addEventListener('pointermove', e => {
 renderer.domElement.addEventListener('pointerleave', () => {
   if (hoveredMesh) {
     setHoverState(hoveredMesh, false);
+    if (hoveredMesh.userData.hoverTipId) hideTip(hoveredMesh.userData.hoverTipId);
     hoveredMesh = null;
   }
   renderer.domElement.style.cursor = 'default';
 });
 
+// ── Popups — opened by clicking REC/title (materials & setup) or the
+// Ableton logo (technical specs). Each clickable mesh names its own overlay
+// via userData.popupTarget, so this stays a single generic handler.
+// Closing a popup normally just hides it — except codebookOverlay and
+// interactiveTableOverlay, which can carry a data-return-to (set by the
+// codebook-link/interactive-table-link handlers below) naming the popup they
+// were opened from. Closing those returns you to that popup instead of
+// dropping you back at the bare 3D scene, so "open the codebook from Mixer &
+// Content Analysis" and "close it again" is a round trip, not a dead end.
+function closePopup(overlay) {
+  overlay.classList.remove('show');
+  const returnToId = overlay.dataset.returnTo;
+  if (returnToId) {
+    delete overlay.dataset.returnTo;
+    const returnToOverlay = document.getElementById(returnToId);
+    if (returnToOverlay) returnToOverlay.classList.add('show');
+  }
+}
+
+document.querySelectorAll('.popup-overlay').forEach(overlay => {
+  overlay.querySelector('.popup-close').addEventListener('click', () => {
+    closePopup(overlay);
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closePopup(overlay);
+  });
+});
+
+// "here"/"codebook" links open the codebook in a popup (an iframe onto
+// content_analysis_codebook.html) instead of a new tab. Shared class, not an
+// id, since there's more than one such link on the page — see the
+// interactive-table-link fix above for why that matters.
+// Both this and the interactive-table link close their own parent popup
+// first: every .popup-overlay shares the same z-index, so with two open at
+// once it's DOM order — not click order — that decides which one paints on
+// top. codebookOverlay happens to sit earlier in the document than e.g.
+// mixerOverlay, so opening it from inside mixerOverlay without closing that
+// parent first left it rendering underneath, invisible behind the popup you
+// clicked it from.
+document.querySelectorAll('.codebook-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const parentOverlay = link.closest('.popup-overlay');
+    const codebookOverlay = document.getElementById('codebookOverlay');
+    if (parentOverlay) {
+      parentOverlay.classList.remove('show');
+      codebookOverlay.dataset.returnTo = parentOverlay.id;
+    }
+    codebookOverlay.classList.add('show');
+  });
+});
+
+document.querySelectorAll('.interactive-table-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const parentOverlay = link.closest('.popup-overlay');
+    const tableOverlay = document.getElementById('interactiveTableOverlay');
+    if (parentOverlay) {
+      parentOverlay.classList.remove('show');
+      tableOverlay.dataset.returnTo = parentOverlay.id;
+    }
+    tableOverlay.classList.add('show');
+  });
+});
+
+renderer.domElement.addEventListener('click', e => {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+  mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hit = raycaster.intersectObjects(clickTargets)[0]?.object ?? null;
+  if (hit?.userData.popupTarget) {
+    document.getElementById(hit.userData.popupTarget).classList.add('show');
+  } else if (hit?.userData.isPlayButton) {
+    playBgMusic();
+  }
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  // A hard exit, unlike the close button/backdrop click — Escape drops you
+  // straight back to the 3D scene rather than stepping back through any
+  // codebook/interactive-table "return to" chain, so any pending one is
+  // cleared here too.
+  document.querySelectorAll('.popup-overlay.show').forEach(overlay => {
+    overlay.classList.remove('show');
+    delete overlay.dataset.returnTo;
+  });
+  stopBgMusic();
+});
+
+// ── PLAY button — triggers a short background track (kept quiet on purpose;
+// this is ambient, not the point of the demo) with an on-screen reminder
+// that ESC stops it. Clicking PLAY always restarts from the beginning,
+// matching the "trigger pad" feel of the sampler this page is modelled on.
+const bgMusic = document.getElementById('bgMusic');
+const playHint = document.getElementById('playHint');
+bgMusic.volume = 0.35;
+
+function positionPlayHint() {
+  const rect = renderer.domElement.getBoundingClientRect();
+  const v = new THREE.Vector3();
+  playMarkerCircle.getWorldPosition(v);
+  v.project(camera);
+  const x = (v.x * 0.5 + 0.5) * rect.width;
+  const y = (-v.y * 0.5 + 0.5) * rect.height;
+  playHint.style.left = x + 'px';
+  playHint.style.top = (y - 40) + 'px';   // just above the button's own frame
+}
+
+function playBgMusic() {
+  bgMusic.currentTime = 0;
+  bgMusic.play().catch(() => {});   // ignore — e.g. a second rapid click racing the previous play() promise
+  positionPlayHint();
+  playHint.style.display = 'block';
+}
+
+function stopBgMusic() {
+  if (bgMusic.paused) return;
+  bgMusic.pause();
+  bgMusic.currentTime = 0;
+  playHint.style.display = 'none';
+}
+
+bgMusic.addEventListener('ended', () => { playHint.style.display = 'none'; });
+
+// Volume control — plain number keys rather than the browser's own (hidden,
+// inconsistent-looking) native <audio> volume so it behaves the same for
+// every visitor regardless of browser.
+const VOLUME_STEP = 0.1;
+window.addEventListener('keydown', (e) => {
+  if (e.key === '1') bgMusic.volume = Math.max(0, bgMusic.volume - VOLUME_STEP);
+  else if (e.key === '2') bgMusic.volume = Math.min(1, bgMusic.volume + VOLUME_STEP);
+});
+
+// ── Citation tooltips — same showTip/hideTip pattern as the other pages ────
+function showTip(e, id) {
+  const tip = document.getElementById(id);
+  let x = e.clientX + 12;
+  let y = e.clientY - 10;
+  if (x + 340 > window.innerWidth) x = e.clientX - 344;
+  if (y + 80 > window.innerHeight) y = e.clientY - 90;
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+  tip.style.display = 'block';
+}
+function hideTip(id) {
+  document.getElementById(id).style.display = 'none';
+}
+document.querySelectorAll('.ref[data-tip]').forEach(el => {
+  el.addEventListener('mouseenter', (e) => showTip(e, el.dataset.tip));
+  el.addEventListener('mouseleave', () => hideTip(el.dataset.tip));
+});
+
+// ── Plugin screenshots — click a row in the specs table to see that plugin ─
+const pluginImageOverlay = document.getElementById('pluginImageOverlay');
+const pluginImageImg = document.getElementById('pluginImageImg');
+const pluginImageTitle = document.getElementById('pluginImageTitle');
+document.querySelectorAll('.plugin-row').forEach(row => {
+  row.addEventListener('click', () => {
+    pluginImageImg.src = row.dataset.img;
+    pluginImageImg.alt = row.dataset.title;
+    pluginImageTitle.textContent = row.dataset.title;
+    pluginImageOverlay.classList.add('show');
+  });
+});
+
+// Same lightbox, reused for any inline popup image (e.g. the Pitch plots) —
+// clicking one opens it full-size in the same overlay/close/backdrop machinery.
+document.querySelectorAll('.zoomable-image').forEach(img => {
+  img.addEventListener('click', () => {
+    pluginImageImg.src = img.src;
+    pluginImageImg.alt = img.alt;
+    pluginImageTitle.textContent = img.alt;
+    pluginImageOverlay.classList.add('show');
+  });
+});
+
 // ── Resize ─────────────────────────────────────────────────────────────────
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  updateCameraFov();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  if (playHint.style.display === 'block') positionPlayHint();
 });
 
 // ── Animation loop ──────────────────────────────────────────────────────────
 renderer.setAnimationLoop((time) => {
-  // REC button breathes like an active recording light
+  // REC button breathes like an active recording light, plus a hover boost
   if (recMaterial) {
-    recMaterial.emissiveIntensity = 1.4 + Math.sin(time * 0.004) * 0.7;
+    recMaterial.emissiveIntensity = 1.4 + Math.sin(time * 0.004) * 0.7 + recHoverBoost;
   }
   renderer.render(scene, camera);
 });

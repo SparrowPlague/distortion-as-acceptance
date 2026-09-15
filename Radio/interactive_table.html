@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Participant Data Explorer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f8f8f6; color: #1a1a1a; padding: 32px 24px; }
+
+  h1 { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 24px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 1.5px solid #ddd; }
+  .tab { padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: none; color: #888; border-bottom: 2px solid transparent; margin-bottom: -1.5px; transition: all 0.15s; }
+  .tab:hover { color: #333; }
+  .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
+
+  /* Question-mode toggle — switches between the aggregated ("all questions")
+     tables and a per-question breakdown built from questionData. */
+  .qmode-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .qmode { padding: 5px 12px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #888; border-radius: 4px; transition: all 0.15s; }
+  .qmode:hover { color: #333; border-color: #bbb; }
+  .qmode.active { color: #fff; background: #1a1a1a; border-color: #1a1a1a; }
+  .question-caption { font-size: 16px; color: #444; font-style: italic; margin: -2px 0 16px; max-width: 900px; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 11px; width: 100%; }
+  th { padding: 7px 9px; text-align: center; font-weight: 600; font-size: 10px; border-bottom: 1.5px solid #1a1a1a; white-space: nowrap; }
+  th.row-header { text-align: left; }
+  th.mod { background: #fde8e8; cursor: pointer; user-select: none; transition: opacity 0.15s, filter 0.15s, outline 0.15s; }
+  th.mod:hover { background: #fbd4d4; }
+  th.mod.mod-selected { outline: 2px solid #1a1a1a; outline-offset: -2px; background: #f4a0a0; }
+  th.mod.mod-dimmed { opacity: 0.35; filter: grayscale(1); }
+  th.cat { background: #f0f0ee; cursor: pointer; user-select: none; transition: opacity 0.15s, filter 0.15s, outline 0.15s; }
+  th.cat:hover { background: #e4e4e0; }
+  th.cat.cat-selected { outline: 2px solid #1a1a1a; outline-offset: -2px; background: #dcdcd6; }
+  th.cat.cat-dimmed { opacity: 0.35; filter: grayscale(1); }
+  td.cat-col-dimmed { opacity: 0.3; filter: grayscale(1); }
+  td { padding: 6px 9px; text-align: center; border-bottom: 0.5px solid #e8e8e8; }
+  td.p-label { text-align: left; font-weight: 500; color: #555; font-size: 11px; cursor: pointer; }
+  td.p-label:hover { color: #000; text-decoration: underline; }
+  td.mod-dark { background: #e06666; color: white; border-radius: 2px; font-size: 10px; }
+  td.mod-light { background: #f4a0a0; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift { background: #52b788; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-inc { background: #1a5c2a; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-dec { background: #90EE90; color: #333; border-radius: 2px; font-size: 10px; }
+  td.shift-out { background: #52b788; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-in  { background: #a8d5a2; color: #333; border-radius: 2px; font-size: 10px; }
+  td.shift-del { background: #2d6a4f; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-noshift { background: #7d8471; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-desc { background: #1f9e89; color: white; border-radius: 2px; font-size: 10px; }
+  /* Metaphors — amber/orange shades, deliberately shuffled (not a dark→light
+     gradient) so neighbouring columns contrast rather than blend together. */
+  td.met { background: #e07b00; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-spatial { background: #7a3e00; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-personification { background: #e07b00; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-weight { background: #a35300; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-atmospheric { background: #f4a83d; color: #3a2400; border-radius: 2px; font-size: 10px; }
+  td.met-soundtexture { background: #cc6a00; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-repetition { background: #ffd8a8; color: #5a3a00; border-radius: 2px; font-size: 10px; }
+  /* Affective states — blue shades, likewise shuffled for neighbour contrast. */
+  td.aff { background: #4a90d9; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-discomfort { background: #1c3f66; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-humor { background: #6fa8e0; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-hurt { background: #2e5e94; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-loneliness { background: #94c2ea; color: #1a1a1a; border-radius: 2px; font-size: 10px; }
+  td.aff-pleasantness { background: #3f7ab8; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-sadness { background: #bcdaf2; color: #1a1a1a; border-radius: 2px; font-size: 10px; }
+  td.aff-seriousness { background: #4a90d9; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-selfcompassion { background: #e0eefb; color: #1a1a1a; border-radius: 2px; font-size: 10px; }
+  td.empty { background: #f5f5f5; color: #ccc; font-size: 10px; }
+  tr:hover td { background-color: #f0efe9; }
+  tr:hover td.empty { background-color: #ebebeb; }
+  tr:hover td.mod-dark, tr:hover td.mod-light, tr:hover td.shift, tr:hover td.shift-inc, tr:hover td.shift-dec, tr:hover td.shift-out, tr:hover td.shift-in, tr:hover td.shift-del, tr:hover td.shift-noshift, tr:hover td.shift-desc,
+  tr:hover td.met, tr:hover td.met-spatial, tr:hover td.met-personification, tr:hover td.met-weight, tr:hover td.met-atmospheric, tr:hover td.met-soundtexture, tr:hover td.met-repetition,
+  tr:hover td.aff, tr:hover td.aff-discomfort, tr:hover td.aff-humor, tr:hover td.aff-hurt, tr:hover td.aff-loneliness, tr:hover td.aff-pleasantness, tr:hover td.aff-sadness, tr:hover td.aff-seriousness, tr:hover td.aff-selfcompassion
+  { filter: brightness(1.1); }
+  tr.total-row td { font-weight: 600; border-top: 1.5px solid #1a1a1a; background: #f8f8f6 !important; }
+
+  /* Modulation filter — click a modulation header (Pitch/Robot/Reverb/Panning/Volume)
+     to focus on it: the other modulation columns dim, and any participant row that
+     didn't report the selected modulation dims entirely (including their shift/
+     metaphor/affective cells), across all three tabs at once. */
+  td.mod-col-dimmed { opacity: 0.3; filter: grayscale(1); }
+  tr.row-dimmed td { opacity: 0.22; filter: grayscale(1); }
+  tr.row-dimmed:hover td { background-color: transparent; }
+
+  .divider { border-left: 1.5px solid #bbb; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 6px; padding: 28px; max-width: 520px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.18); position: relative; }
+  .modal h2 { font-size: 14px; font-weight: 600; margin-bottom: 18px; }
+  .modal-close { position: absolute; top: 14px; right: 16px; font-size: 18px; cursor: pointer; color: #888; background: none; border: none; }
+  .modal-section { margin-bottom: 14px; }
+  .modal-section-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 6px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag { font-size: 10px; padding: 3px 8px; border-radius: 3px; font-weight: 500; }
+  .tag.mod-dark { background: #e06666; color: white; }
+  .tag.mod-light { background: #f4a0a0; color: white; }
+  .tag.shift-inc { background: #1a5c2a; color: white; }
+  .tag.shift-dec { background: #90EE90; color: #333; }
+  .tag.shift-out { background: #52b788; color: white; }
+  .tag.shift-in  { background: #a8d5a2; color: #333; }
+  .tag.shift-del { background: #2d6a4f; color: white; }
+  .tag.shift-noshift { background: #7d8471; color: white; }
+  .tag.shift-desc { background: #1f9e89; color: white; }
+  .tag.met { background: #e07b00; color: white; }
+  .tag.met-spatial { background: #7a3e00; color: white; }
+  .tag.met-personification { background: #e07b00; color: white; }
+  .tag.met-weight { background: #a35300; color: white; }
+  .tag.met-atmospheric { background: #f4a83d; color: #3a2400; }
+  .tag.met-soundtexture { background: #cc6a00; color: white; }
+  .tag.met-repetition { background: #ffd8a8; color: #5a3a00; }
+  .tag.aff { background: #4a90d9; color: white; }
+  .tag.aff-discomfort { background: #1c3f66; color: white; }
+  .tag.aff-humor { background: #6fa8e0; color: white; }
+  .tag.aff-hurt { background: #2e5e94; color: white; }
+  .tag.aff-loneliness { background: #94c2ea; color: #1a1a1a; }
+  .tag.aff-pleasantness { background: #3f7ab8; color: white; }
+  .tag.aff-sadness { background: #bcdaf2; color: #1a1a1a; }
+  .tag.aff-seriousness { background: #4a90d9; color: white; }
+  .tag.aff-selfcompassion { background: #e0eefb; color: #1a1a1a; }
+  .tag.none { background: #eee; color: #888; }
+
+  .note { font-size: 13px; font-weight: 700; color: #aaa; margin-top: 16px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; font-size: 10px; color: #666; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<h1>Participant Data Explorer</h1>
+<p class="subtitle">Use the tabs to switch between the three analyses. Click a modulation column (Pitch/Robot/Reverb/Panning/Volume) to focus on it across all tabs, or click a participant row to see their full profile.</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('shifts', this)">Modulations + Experiential Shifts</button>
+  <button class="tab" onclick="switchTab('metaphors', this)">Modulations + Metaphors</button>
+  <button class="tab" onclick="switchTab('affective', this)">Modulations + Affective States</button>
+</div>
+
+<div class="qmode-tabs">
+  <button class="qmode active" onclick="selectQuestionMode('all', this)">All questions</button>
+  <button class="qmode" onclick="selectQuestionMode('q1', this)">Question 1</button>
+  <button class="qmode" onclick="selectQuestionMode('q2', this)">Question 2</button>
+</div>
+<p class="question-caption" id="question-caption" style="display:none"></p>
+
+<div class="table-wrap" id="table-wrap-static">
+
+<!-- SHIFTS TABLE -->
+<table id="table-shifts">
+  <thead>
+    <tr>
+      <th class="row-header">P</th>
+      <th class="mod" onclick="selectMod('Pitch')">Pitch</th><th class="mod" onclick="selectMod('Robot')">Robot</th><th class="mod" onclick="selectMod('Reverb')">Reverb</th><th class="mod" onclick="selectMod('Panning')">Panning</th><th class="mod" onclick="selectMod('Volume')">Volume</th>
+      <th class="cat divider" data-cat="Increased intensity" onclick="selectCat(this.dataset.cat)">Increased intensity</th><th class="cat" data-cat="Decreased intensity" onclick="selectCat(this.dataset.cat)">Decreased intensity</th><th class="cat" data-cat="Outsider perspective" onclick="selectCat(this.dataset.cat)">Outsider</th><th class="cat" data-cat="Insider perspective" onclick="selectCat(this.dataset.cat)">Insider</th><th class="cat" data-cat="Deliteralization" onclick="selectCat(this.dataset.cat)">Deliteralization</th><th class="cat" data-cat="No shift" onclick="selectCat(this.dataset.cat)">No shift</th><th class="cat" data-cat="Descriptive" onclick="selectCat(this.dataset.cat)">Descriptive</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr onclick="showModal('P1')"><td class="p-label">P1</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty divider">—</td><td class="shift-dec">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P2')"><td class="p-label">P2</td><td class="empty">—</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="shift-inc divider">✓</td><td class="shift-dec">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P3')"><td class="p-label">P3</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="shift-inc divider">✓</td><td class="shift-dec">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P4')"><td class="p-label">P4</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="shift-inc divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="shift-desc">✓</td></tr>
+    <tr onclick="showModal('P5')"><td class="p-label">P5</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="shift-noshift">✓</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P6')"><td class="p-label">P6</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="shift-del">✓</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P7')"><td class="p-label">P7</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="shift-inc divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P8')"><td class="p-label">P8</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="shift-out">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P9')"><td class="p-label">P9</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P10')"><td class="p-label">P10</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P11')"><td class="p-label">P11</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="shift-out">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P12')"><td class="p-label">P12</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="shift-out">✓</td><td class="shift-in">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P13')"><td class="p-label">P13</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P14')"><td class="p-label">P14</td><td class="empty">—</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="shift-dec">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P15')"><td class="p-label">P15</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="shift-in">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P16')"><td class="p-label">P16</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="shift-out">✓</td><td class="empty">—</td><td class="empty">—</td><td class="shift-noshift">✓</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P17')"><td class="p-label">P17</td><td class="empty">—</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="shift-del">✓</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P18')"><td class="p-label">P18</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="shift-inc divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr class="total-row"><td class="p-label">Total</td><td>15</td><td>8</td><td>15</td><td>2</td><td>2</td><td>5</td><td>4</td><td>4</td><td>2</td><td>2</td><td>2</td><td>1</td></tr>
+  </tbody>
+</table>
+
+<!-- METAPHORS TABLE -->
+<table id="table-metaphors" style="display:none">
+  <thead>
+    <tr>
+      <th class="row-header">P</th>
+      <th class="mod" onclick="selectMod('Pitch')">Pitch</th><th class="mod" onclick="selectMod('Robot')">Robot</th><th class="mod" onclick="selectMod('Reverb')">Reverb</th><th class="mod" onclick="selectMod('Panning')">Panning</th><th class="mod" onclick="selectMod('Volume')">Volume</th>
+      <th class="cat divider" data-cat="Spatial" onclick="selectCat(this.dataset.cat)">Spatial</th><th class="cat" data-cat="Personification" onclick="selectCat(this.dataset.cat)">Personification</th><th class="cat" data-cat="Weight" onclick="selectCat(this.dataset.cat)">Weight</th><th class="cat" data-cat="Atmospheric" onclick="selectCat(this.dataset.cat)">Atmospheric</th><th class="cat" data-cat="Sound texture" onclick="selectCat(this.dataset.cat)">Sound texture</th><th class="cat" data-cat="Repetition" onclick="selectCat(this.dataset.cat)">Repetition</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr onclick="showModal('P1')"><td class="p-label">P1</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="met-spatial divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P2')"><td class="p-label">P2</td><td class="empty">—</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P3')"><td class="p-label">P3</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P4')"><td class="p-label">P4</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty divider">—</td><td class="met-personification">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P5')"><td class="p-label">P5</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P6')"><td class="p-label">P6</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="empty">—</td><td class="met-spatial divider">✓</td><td class="met-personification">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P7')"><td class="p-label">P7</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P8')"><td class="p-label">P8</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="met-spatial divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="met-soundtexture">✓</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P9')"><td class="p-label">P9</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P10')"><td class="p-label">P10</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="met-soundtexture">✓</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P11')"><td class="p-label">P11</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="met-spatial divider">✓</td><td class="met-personification">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P12')"><td class="p-label">P12</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="met-personification">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="met-repetition">✓</td></tr>
+    <tr onclick="showModal('P13')"><td class="p-label">P13</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="met-weight">✓</td><td class="met-atmospheric">✓</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P14')"><td class="p-label">P14</td><td class="empty">—</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="met-spatial divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="met-atmospheric">✓</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P15')"><td class="p-label">P15</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="met-weight">✓</td><td class="met-atmospheric">✓</td><td class="empty">—</td><td class="met-repetition">✓</td></tr>
+    <tr onclick="showModal('P16')"><td class="p-label">P16</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P17')"><td class="p-label">P17</td><td class="empty">—</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="met-spatial divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P18')"><td class="p-label">P18</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr class="total-row"><td class="p-label">Total</td><td>15</td><td>8</td><td>15</td><td>2</td><td>2</td><td>6</td><td>4</td><td>2</td><td>3</td><td>2</td><td>2</td></tr>
+  </tbody>
+</table>
+
+<!-- AFFECTIVE TABLE -->
+<table id="table-affective" style="display:none">
+  <thead>
+    <tr>
+      <th class="row-header">P</th>
+      <th class="mod" onclick="selectMod('Pitch')">Pitch</th><th class="mod" onclick="selectMod('Robot')">Robot</th><th class="mod" onclick="selectMod('Reverb')">Reverb</th><th class="mod" onclick="selectMod('Panning')">Panning</th><th class="mod" onclick="selectMod('Volume')">Volume</th>
+      <th class="cat divider" data-cat="Discomfort" onclick="selectCat(this.dataset.cat)">Discomfort</th><th class="cat" data-cat="Humor" onclick="selectCat(this.dataset.cat)">Humor</th><th class="cat" data-cat="Hurt" onclick="selectCat(this.dataset.cat)">Hurt</th><th class="cat" data-cat="Loneliness" onclick="selectCat(this.dataset.cat)">Loneliness</th><th class="cat" data-cat="Pleasantness" onclick="selectCat(this.dataset.cat)">Pleasantness</th><th class="cat" data-cat="Sadness" onclick="selectCat(this.dataset.cat)">Sadness</th><th class="cat" data-cat="Seriousness" onclick="selectCat(this.dataset.cat)">Seriousness</th><th class="cat" data-cat="Self-compassion" onclick="selectCat(this.dataset.cat)">Self-compassion</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr onclick="showModal('P1')"><td class="p-label">P1</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="aff-pleasantness">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P2')"><td class="p-label">P2</td><td class="empty">—</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="aff-discomfort divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="aff-loneliness">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P3')"><td class="p-label">P3</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P4')"><td class="p-label">P4</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P5')"><td class="p-label">P5</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="aff-humor">✓</td><td class="empty">—</td><td class="empty">—</td><td class="aff-pleasantness">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P6')"><td class="p-label">P6</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="empty">—</td><td class="aff-discomfort divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P7')"><td class="p-label">P7</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P8')"><td class="p-label">P8</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P9')"><td class="p-label">P9</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="aff-humor">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P10')"><td class="p-label">P10</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="aff-humor">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P11')"><td class="p-label">P11</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="aff-humor">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P12')"><td class="p-label">P12</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="aff-discomfort divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="aff-selfcompassion">✓</td></tr>
+    <tr onclick="showModal('P13')"><td class="p-label">P13</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="aff-discomfort divider">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P14')"><td class="p-label">P14</td><td class="empty">—</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P15')"><td class="p-label">P15</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="aff-sadness">✓</td><td class="aff-seriousness">✓</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P16')"><td class="p-label">P16</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P17')"><td class="p-label">P17</td><td class="empty">—</td><td class="mod-light">✓</td><td class="mod-dark">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+    <tr onclick="showModal('P18')"><td class="p-label">P18</td><td class="mod-dark">✓</td><td class="mod-light">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty divider">—</td><td class="empty">—</td><td class="aff-hurt">✓</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="aff-seriousness">✓</td><td class="empty">—</td></tr>
+    <tr class="total-row"><td class="p-label">Total</td><td>15</td><td>8</td><td>15</td><td>2</td><td>2</td><td>4</td><td>4</td><td>1</td><td>1</td><td>2</td><td>1</td><td>2</td><td>1</td></tr>
+  </tbody>
+</table>
+
+</div>
+
+<div class="table-wrap" id="dynamic-table-wrap" style="display:none"></div>
+
+<div class="legend">
+  <span class="legend-item"><span class="legend-dot" style="background:#e06666"></span> Pitch / Reverb / Volume</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#f4a0a0"></span> Robot / Panning</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#52b788"></span> Experiential shifts</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#e07b00"></span> Metaphors</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#4a90d9"></span> Affective states</span>
+</div>
+<p class="note">Click any participant row to see their full profile across all three analyses.</p>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">×</button>
+    <h2 id="modal-title">Participant</h2>
+    <div class="modal-section">
+      <div class="modal-section-title">Modulations reported</div>
+      <div class="tags" id="modal-mods"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Experiential shifts</div>
+      <div class="tags" id="modal-shifts"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Metaphors</div>
+      <div class="tags" id="modal-mets"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Affective states</div>
+      <div class="tags" id="modal-affs"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const data = {
+  P1:  { mods: ['Pitch:dark','Reverb:dark','Panning:light','Volume:dark'], shifts: ['Decreased intensity'], mets: ['Spatial'], affs: ['Pleasantness'] },
+  P2:  { mods: ['Reverb:dark'], shifts: ['Increased intensity','Decreased intensity'], mets: [], affs: ['Discomfort','Loneliness'] },
+  P3:  { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Increased intensity','Decreased intensity'], mets: [], affs: [] },
+  P4:  { mods: ['Pitch:dark','Reverb:dark','Volume:dark'], shifts: ['Increased intensity','Descriptive'], mets: ['Personification'], affs: [] },
+  P5:  { mods: ['Pitch:dark'], shifts: ['No shift'], mets: [], affs: ['Humor','Pleasantness'] },
+  P6:  { mods: ['Pitch:dark','Robot:light','Reverb:dark','Panning:light'], shifts: ['Deliteralization'], mets: ['Spatial','Personification'], affs: ['Discomfort'] },
+  P7:  { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Increased intensity'], mets: [], affs: [] },
+  P8:  { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Sound texture'], affs: [] },
+  P9:  { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: [], affs: ['Humor'] },
+  P10: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: [], mets: ['Sound texture'], affs: ['Humor'] },
+  P11: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Personification'], affs: ['Humor'] },
+  P12: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective','Insider perspective'], mets: ['Personification','Repetition'], affs: ['Discomfort','Self-compassion'] },
+  P13: { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: ['Weight','Atmospheric'], affs: ['Discomfort'] },
+  P14: { mods: ['Robot:light','Reverb:dark'], shifts: ['Decreased intensity'], mets: ['Spatial','Atmospheric'], affs: [] },
+  P15: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Insider perspective'], mets: ['Weight','Atmospheric','Repetition'], affs: ['Sadness','Seriousness'] },
+  P16: { mods: ['Pitch:dark'], shifts: ['Outsider perspective','No shift'], mets: [], affs: [] },
+  P17: { mods: ['Robot:light','Reverb:dark'], shifts: ['Deliteralization'], mets: ['Spatial'], affs: [] },
+  P18: { mods: ['Pitch:dark','Robot:light'], shifts: ['Increased intensity'], mets: [], affs: ['Hurt','Seriousness'] },
+};
+
+const shiftClass = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralization':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
+const metClass = { 'Spatial':'met-spatial','Personification':'met-personification','Weight':'met-weight','Atmospheric':'met-atmospheric','Sound texture':'met-soundtexture','Repetition':'met-repetition' };
+const affClass = { 'Discomfort':'aff-discomfort','Humor':'aff-humor','Hurt':'aff-hurt','Loneliness':'aff-loneliness','Pleasantness':'aff-pleasantness','Sadness':'aff-sadness','Seriousness':'aff-seriousness','Self-compassion':'aff-selfcompassion' };
+
+// ── Per-question data ───────────────────────────────────────────────────────
+// A separate breakdown of what each participant reported specifically at
+// Question 1 vs Question 2 (as opposed to `data` above, which is the
+// aggregate across the whole interview). Not everything in `data` necessarily
+// reappears here — anything a participant mentioned that couldn't clearly be
+// tied to one of these two questions is simply left out, per instruction.
+// A modulation entry is either a plain name ('Pitch') or, when a participant
+// specified a sub-detail, { name, detail } (e.g. Pitch: high/low, Panning: left).
+const QUESTION_TEXT = {
+  q1: 'Did combining two or more modulations shift your experience of the sentence? Name one such combination and briefly describe what change (or did not).',
+  q2: 'Name one specific moment or action during the modulation when something shifted in how you experienced the sentence. What exactly did you do (which control/movement), and what did you notice?',
+};
+
+const questionData = {
+  P1:  { q1: { mods: ['Pitch','Reverb','Volume'], shifts: ['Decreased intensity'], mets: ['Spatial'], affs: ['Pleasantness'] },
+         q2: { mods: [{ name:'Panning', detail:'left' }], shifts: [], mets: [], affs: ['Pleasantness'] } },
+  P2:  { q1: { mods: [], shifts: ['Decreased intensity'], mets: [], affs: [] },
+         q2: { mods: ['Reverb'], shifts: ['Increased intensity'], mets: [], affs: ['Discomfort','Loneliness'] } },
+  P3:  { q1: { mods: ['Robot','Pitch'], shifts: ['Decreased intensity'], mets: [], affs: [] },
+         q2: { mods: ['Reverb'], shifts: ['Increased intensity'], mets: [], affs: [] } },
+  P4:  { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Volume'], shifts: ['Increased intensity'], mets: [], affs: [] },
+         q2: { mods: ['Pitch','Volume','Reverb'], shifts: ['Descriptive'], mets: ['Personification'], affs: [] } },
+  P5:  { q1: { mods: [], shifts: ['No shift'], mets: [], affs: [] },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humor','Pleasantness'] } },
+  P6:  { q1: { mods: ['Pitch','Robot','Reverb'], shifts: ['Deliteralization'], mets: [], affs: [] },
+         q2: { mods: ['Panning'], shifts: [], mets: ['Personification','Spatial'], affs: ['Discomfort'] } },
+  P7:  { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Reverb'], shifts: ['Increased intensity'], mets: [], affs: [] },
+         q2: { mods: [], shifts: [], mets: [], affs: [] } },
+  P8:  { q1: { mods: ['Pitch','Robot'], shifts: ['Outsider perspective'], mets: ['Sound texture'], affs: [] },
+         q2: { mods: ['Reverb'], shifts: [], mets: ['Spatial'], affs: [] } },
+  P9:  { q1: { mods: ['Pitch','Reverb'], shifts: [], mets: [], affs: ['Humor'] },
+         q2: { mods: ['Pitch'], shifts: [], mets: [], affs: [] } },
+  P10: { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Robot','Reverb'], shifts: [], mets: ['Sound texture'], affs: [] },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humor'] } },
+  P11: { q1: { mods: ['Pitch','Reverb'], shifts: ['Outsider perspective'], mets: ['Personification','Spatial'], affs: [] },
+         q2: { mods: ['Pitch'], shifts: [], mets: [], affs: ['Humor'] } },
+  P12: { q1: { mods: ['Pitch','Reverb'], shifts: ['Insider perspective'], mets: ['Repetition','Personification'], affs: ['Discomfort','Self-compassion'] },
+         q2: { mods: ['Pitch','Reverb'], shifts: ['Outsider perspective'], mets: [], affs: [] } },
+  P13: { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Reverb'], shifts: [], mets: ['Weight','Atmospheric'], affs: ['Discomfort'] },
+         q2: { mods: ['Reverb'], shifts: [], mets: ['Weight'], affs: [] } },
+  P14: { q1: { mods: ['Robot','Reverb'], shifts: [], mets: ['Atmospheric','Spatial'], affs: [] },
+         q2: { mods: ['Robot'], shifts: ['Decreased intensity'], mets: ['Spatial'], affs: [] } },
+  P15: { q1: { mods: ['Pitch','Robot','Reverb'], shifts: [], mets: ['Repetition','Atmospheric'], affs: [] },
+         q2: { mods: [{ name:'Pitch', detail:'low' }], shifts: ['Insider perspective'], mets: ['Weight'], affs: ['Sadness'] } },
+  P16: { q1: { mods: [], shifts: ['No shift'], mets: [], affs: [] },
+         q2: { mods: ['Pitch'], shifts: ['Outsider perspective'], mets: [], affs: [] } },
+  P17: { q1: { mods: ['Robot'], shifts: ['Deliteralization'], mets: [], affs: [] },
+         q2: { mods: ['Reverb'], shifts: [], mets: ['Spatial'], affs: [] } },
+  P18: { q1: { mods: ['Pitch','Robot'], shifts: ['Increased intensity'], mets: [], affs: ['Hurt'] },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Seriousness'] } },
+};
+
+const MOD_DARK_MODS = { Pitch:true, Reverb:true, Volume:true, Robot:false, Panning:false };
+const SHIFT_CATS_Q = ['Increased intensity','Decreased intensity','Outsider perspective','Insider perspective','Deliteralization','No shift','Descriptive'];
+const MET_CATS = ['Spatial','Personification','Weight','Atmospheric','Sound texture','Repetition'];
+const AFF_CATS = ['Discomfort','Humor','Hurt','Loneliness','Pleasantness','Sadness','Seriousness','Self-compassion'];
+const SHIFT_CLASS_Q = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralization':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
+
+function showModal(p) {
+  const d = data[p];
+  document.getElementById('modal-title').textContent = 'Participant ' + p.replace('P','');
+  
+  document.getElementById('modal-mods').innerHTML = d.mods.length
+    ? d.mods.map(m => { const [name,type]=m.split(':'); return `<span class="tag mod-${type}">${name}</span>`; }).join('')
+    : '<span class="tag none">—</span>';
+
+  document.getElementById('modal-shifts').innerHTML = d.shifts.length
+    ? d.shifts.map(s => `<span class="tag ${shiftClass[s]||'shift'}">${s}</span>`).join('')
+    : '<span class="tag none">—</span>';
+
+  document.getElementById('modal-mets').innerHTML = d.mets.length
+    ? d.mets.map(m => `<span class="tag ${metClass[m]||'met'}">${m}</span>`).join('')
+    : '<span class="tag none">—</span>';
+
+  document.getElementById('modal-affs').innerHTML = d.affs.length
+    ? d.affs.map(a => `<span class="tag ${affClass[a]||'aff'}">${a}</span>`).join('')
+    : '<span class="tag none">—</span>';
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+let currentTab = 'shifts';
+let questionMode = 'all'; // 'all' | 'q1' | 'q2'
+
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (questionMode === 'all') {
+    document.getElementById('table-shifts').style.display = tab === 'shifts' ? '' : 'none';
+    document.getElementById('table-metaphors').style.display = tab === 'metaphors' ? '' : 'none';
+    document.getElementById('table-affective').style.display = tab === 'affective' ? '' : 'none';
+  } else {
+    renderQuestionTable();
+  }
+}
+
+// ── Question-mode toggle ────────────────────────────────────────────────────
+// "All questions" shows the original three static tables (aggregated across
+// the whole interview) untouched. "Question 1" / "Question 2" swap in a
+// table built on the fly from questionData for whichever analysis tab
+// (shifts/metaphors/affective) is currently active.
+function selectQuestionMode(mode, btn) {
+  questionMode = mode;
+  document.querySelectorAll('.qmode').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const staticWrap = document.getElementById('table-wrap-static');
+  const dynWrap = document.getElementById('dynamic-table-wrap');
+  const caption = document.getElementById('question-caption');
+
+  if (mode === 'all') {
+    staticWrap.style.display = '';
+    dynWrap.style.display = 'none';
+    caption.style.display = 'none';
+  } else {
+    staticWrap.style.display = 'none';
+    dynWrap.style.display = '';
+    caption.style.display = '';
+    caption.textContent = (mode === 'q1' ? 'Question 1: ' : 'Question 2: ') + QUESTION_TEXT[mode];
+    renderQuestionTable();
+  }
+}
+
+function renderQuestionTable() {
+  const cats = currentTab === 'shifts' ? SHIFT_CATS_Q : (currentTab === 'metaphors' ? MET_CATS : AFF_CATS);
+  const listKey = currentTab === 'shifts' ? 'shifts' : (currentTab === 'metaphors' ? 'mets' : 'affs');
+
+  let html = '<table><thead><tr><th class="row-header">P</th>';
+  MOD_NAMES.forEach(m => { html += `<th class="mod" onclick="selectMod('${m}')">${m}</th>`; });
+  cats.forEach((c, i) => { html += `<th class="cat${i === 0 ? ' divider' : ''}" data-cat="${c}" onclick="selectCat(this.dataset.cat)">${c}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  const modTotals = MOD_NAMES.map(() => 0);
+  const catTotals = cats.map(() => 0);
+
+  for (let p = 1; p <= 18; p++) {
+    const pid = 'P' + p;
+    const qd = (questionData[pid] && questionData[pid][questionMode]) || { mods: [], shifts: [], mets: [], affs: [] };
+    html += `<tr onclick="showModal('${pid}')"><td class="p-label">${pid}</td>`;
+
+    MOD_NAMES.forEach((m, i) => {
+      const entry = qd.mods.find(x => (typeof x === 'string' ? x : x.name) === m);
+      if (!entry) {
+        html += '<td class="empty">—</td>';
+      } else {
+        modTotals[i]++;
+        const detail = (typeof entry === 'object') ? entry.detail : null;
+        const cls = MOD_DARK_MODS[m] ? 'mod-dark' : 'mod-light';
+        const label = detail ? (detail.charAt(0).toUpperCase() + detail.slice(1)) : '✓';
+        html += `<td class="${cls}">${label}</td>`;
+      }
+    });
+
+    const list = qd[listKey];
+    cats.forEach((c, i) => {
+      const has = list.some(x => x.toLowerCase() === c.toLowerCase());
+      const dividerCls = i === 0 ? ' divider' : '';
+      if (!has) {
+        html += `<td class="empty${dividerCls}">—</td>`;
+      } else {
+        catTotals[i]++;
+        const cls = currentTab === 'shifts' ? (SHIFT_CLASS_Q[c] || 'shift') : (currentTab === 'metaphors' ? (metClass[c] || 'met') : (affClass[c] || 'aff'));
+        html += `<td class="${cls}${dividerCls}">✓</td>`;
+      }
+    });
+
+    html += '</tr>';
+  }
+
+  html += '<tr class="total-row"><td class="p-label">Total</td>';
+  modTotals.forEach(n => { html += `<td>${n}</td>`; });
+  catTotals.forEach(n => { html += `<td>${n}</td>`; });
+  html += '</tr>';
+  html += '</tbody></table>';
+
+  document.getElementById('dynamic-table-wrap').innerHTML = html;
+  applyModFilter();
+  applyCatFilter();
+}
+
+// ── Modulation filter ───────────────────────────────────────────────────────
+// Clicking a modulation header focuses the view on that modulation: the other
+// four modulation columns dim (across all three tables), and any participant
+// row that didn't report the selected modulation dims entirely — including
+// their shift/metaphor/affective cells — since those aren't relevant to the
+// selected modulation. Clicking the same modulation again clears the filter.
+// The selection lives on the DOM (classes set on all three tables at once), so
+// it survives switching tabs without needing to be reapplied.
+const MOD_NAMES = ['Pitch', 'Robot', 'Reverb', 'Panning', 'Volume'];
+let selectedMod = null;
+
+function selectMod(name) {
+  selectedMod = (selectedMod === name) ? null : name;
+  applyModFilter();
+}
+
+function applyModFilter() {
+  const selIdx = selectedMod ? MOD_NAMES.indexOf(selectedMod) : -1;
+
+  document.querySelectorAll('table').forEach(table => {
+    table.querySelectorAll('thead th.mod').forEach((th, i) => {
+      th.classList.toggle('mod-selected', i === selIdx);
+      th.classList.toggle('mod-dimmed', selectedMod !== null && i !== selIdx);
+    });
+
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      if (tr.classList.contains('total-row')) return;
+      for (let i = 0; i < MOD_NAMES.length; i++) {
+        const cell = tr.children[i + 1];
+        if (cell) cell.classList.toggle('mod-col-dimmed', selectedMod !== null && i !== selIdx);
+      }
+      if (selectedMod === null) {
+        tr.classList.remove('row-dimmed');
+      } else {
+        const selCell = tr.children[selIdx + 1];
+        // Not just "textContent === ✓" — the per-question view shows a detail
+        // label (e.g. "High", "Left") in this cell instead of a checkmark when
+        // one was reported, so "has this modulation" just means "not empty".
+        const hasMod = !!selCell && !selCell.classList.contains('empty');
+        tr.classList.toggle('row-dimmed', !hasMod);
+      }
+    });
+  });
+}
+
+// ── Category filter ─────────────────────────────────────────────────────────
+// Clicking a category header (e.g. "Increased intensity") focuses the view on
+// it: the OTHER category columns in that same tab dim. Unlike the modulation
+// filter, this only ever dims columns — it never touches the modulation
+// columns and never dims whole rows, since lacking one category shouldn't
+// hide a participant's modulations or their other reported categories.
+// Matching is done via each header's data-cat attribute rather than its
+// visible text, since the shifts table shows short labels ("Outsider") for
+// categories whose canonical name is longer ("Outsider perspective") —
+// data-cat keeps that in sync with the dynamic per-question tables, which
+// always render the full name.
+let selectedCat = null;
+
+function selectCat(name) {
+  selectedCat = (selectedCat === name) ? null : name;
+  applyCatFilter();
+}
+
+function applyCatFilter() {
+  document.querySelectorAll('table').forEach(table => {
+    const catHeaders = [...table.querySelectorAll('thead th.cat')];
+    const idx = selectedCat ? catHeaders.findIndex(th => th.dataset.cat === selectedCat) : -1;
+
+    catHeaders.forEach((th, i) => {
+      th.classList.toggle('cat-selected', idx !== -1 && i === idx);
+      th.classList.toggle('cat-dimmed', idx !== -1 && i !== idx);
+    });
+
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      if (tr.classList.contains('total-row')) return;
+      catHeaders.forEach((th, i) => {
+        const cell = tr.children[1 + MOD_NAMES.length + i];
+        if (cell) cell.classList.toggle('cat-col-dimmed', idx !== -1 && i !== idx);
+      });
+    });
+  });
+}
+</script>
+</body>
+</html>

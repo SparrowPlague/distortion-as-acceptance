@@ -11,14 +11,25 @@
   canvas { display: block; }
   #hint {
     position: fixed;
-    bottom: 28px;
+    bottom: 46px;
     width: 100%;
     text-align: center;
     color: #000;
-    font: 500 clamp(8px, 1.6vh, 14px)/1 'Courier New', monospace;
+    font: 700 clamp(10px, 2vh, 17px)/1 'Courier New', monospace;
     letter-spacing: 0.18em;
     pointer-events: none;
     text-transform: uppercase;
+  }
+  #hint-subtext {
+    position: fixed;
+    bottom: 18px;
+    width: 100%;
+    text-align: center;
+    font: 500 clamp(8px, 1.5vh, 13px)/1 'Courier New', monospace;
+    font-style: italic;
+    color: rgba(0,0,0,0.55);
+    letter-spacing: 0.05em;
+    pointer-events: none;
   }
   #experience-info {
     position: fixed;
@@ -36,9 +47,60 @@
     text-transform: none;
     font-weight: 600;
     letter-spacing: 0.01em;
-    font-size: 1.15em;
+    font-size: 1.4em;
     line-height: 1.4;
     margin-bottom: 0.9em;
+  }
+  #howItWorksArrow {
+    font-size: 1.9em;
+    line-height: 1;
+    margin-top: 0.9em;
+    margin-bottom: 10px;
+    animation: howItWorksBounce 1.6s ease-in-out infinite;
+  }
+  @keyframes howItWorksBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+  .info-btn {
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    pointer-events: auto;
+    cursor: pointer;
+    font: 700 clamp(9px, 1.7vh, 14px)/1 'IBM Plex Mono', 'Courier New', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #000;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(0,0,0,0.45);
+    padding: 9px 18px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .info-btn:hover {
+    background: rgba(255,255,255,0.95);
+    border-color: rgba(0,0,0,0.75);
+  }
+  #methodBtn {
+    margin-top: 0.9em;
+  }
+  #methodSubtext {
+    text-transform: none;
+    font-size: 0.75em;
+    font-style: italic;
+    font-weight: 500;
+    color: rgba(0,0,0,0.55);
+    letter-spacing: 0.01em;
+    margin-top: 8px;
+  }
+  .info-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.25);
+    margin: 14px 0;
+  }
+  .headphones-icon {
+    vertical-align: -2px;
+    margin-right: 2px;
   }
   #zoom-fade {
     position: fixed;
@@ -85,7 +147,16 @@
     font-style: italic;
     pointer-events: none;
   }
-  #play-tip, #loop-tip, #mix1-tip {
+  #play-tip, #loop-tip, #mix1-tip, #mix2-tip, #mix3-tip, #effect-tip, #volume-tip, #thought-select-tip {
+    pointer-events: none;
+  }
+  #mixerTitleFrame {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 15;
+    box-sizing: border-box;
+    border: 2px solid rgba(0,0,0,0.85);
     pointer-events: none;
   }
   #radio-info-btn {
@@ -144,6 +215,8 @@
     margin-bottom: 18px;
   }
   .popup-body p { margin-bottom: 16px; }
+  .popup-body a { color: inherit; text-decoration: underline; cursor: pointer; font-weight: 700; }
+  .popup-body a:hover { opacity: 0.7; }
   .popup-video-label {
     font-weight: 700;
     text-transform: uppercase;
@@ -183,30 +256,39 @@
 </head>
 <body>
 <a id="back-link" href="thesis-experience.html#thoughts">&larr; Back to "I am not good enough"</a>
-<div id="hint">scroll to deep dive (layer 2) &nbsp;·&nbsp; click buttons &nbsp;·&nbsp; drag vol slider</div>
+<div id="hint">Scroll to zoom into the radio for a deep dive of the method, results &amp; discussion</div>
+<div id="hint-subtext">Page may take a while to load</div>
 <div id="zoom-fade"></div>
 <div id="experience-info">
   <div class="tagline">Explore what happens when you change<br>how a thought sounds.</div>
-  <strong>Experience (layer 1)</strong><br>
-  <b>1:</b> Select a thought<br>
-  <b>2:</b> Press play to hear it<br>
-  <b>3:</b> Explore the buttons to hear<br>
-  &nbsp;&nbsp;&nbsp;examples of the thought transformed<br>
-  <b>4:</b> The mixer combines the most<br>
-  &nbsp;&nbsp;&nbsp;effective transformations<br>
-  &nbsp;&nbsp;&nbsp;from the experiment<br>
-  <br>
-  Press ESC to stop the sound<br>
-  <br><b>Hover over the buttons for more info</b><br>
-  <br><b>
-  Zoom in the radio for a deep dive 
-  <br>into METHOD · RESULTS · FINDINGS &rarr;</b>
+  <div id="howItWorksArrow" aria-hidden="true">&darr;</div>
+  <button id="howItWorksBtn" class="info-btn" type="button">How it works</button>
+  <button id="methodBtn" class="info-btn" type="button">Real-life setup</button>
+  <div id="methodSubtext">How the real-life experiment was set up</div>
+  <div class="info-divider"></div>
+  <div class="always-info">
+    <b><svg class="headphones-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/></svg> Use headphones for an optimal listening experience</b><br>
+    <br><b>Hover over buttons &amp; words for more info</b><br>
+  </div>
 </div>
 
-<div id="brain-tip" class="hover-tip">&ldquo;I think, therefore I suffer.&rdquo;</div>
+<div id="brain-tip" class="hover-tip">&ldquo;I think, therefore I suffer.&rdquo;<br><br>Forgot the research question? Click on me.</div>
+
+<!-- Hover tips for the RADIO itself (play/loop/thought-arrows/volume/the
+     single PITCH·ROBOT·REVERB·PAN row) -->
 <div id="play-tip" class="hover-tip">In the experiment participants heard their own recorded negative thought played back to them.<br>The thoughts on this radio are pre-recorded examples.</div>
-<div id="loop-tip" class="hover-tip"><b>Looping </b>the thought is intentional — repeating a phrase until it loses its meaning is itself a form of defusion, known as <b>semantic satiation</b>.</div>
-<div id="mix1-tip" class="hover-tip"><strong>Pitch + Robot</strong><br>One of the combinations most frequently used &amp; most effective in the experiment.</div>
+<div id="loop-tip" class="hover-tip"><b>Looping </b>the thought is intentional — repeating a phrase until it loses its meaning is itself a form of defusion, known as <b>semantic satiation</b>.<br><br>The thought keeps repeating. Press to stop the loop.</div>
+<div id="effect-tip" class="hover-tip"></div>
+<div id="volume-tip" class="hover-tip">You can turn it down. But never off.</div>
+<div id="thought-select-tip" class="hover-tip">In the experiment, participants constructed their own thought. Here, you can choose from a selection.</div>
+
+<!-- Hover tips for the separate MIXER box (its "MIXER" title + its 3 combo
+     buttons: Pitch+Robot, Pitch+Reverb, Robot+Reverb) — edit the text here -->
+<div id="mix1-tip" class="hover-tip"><strong>Pitch + Robot</strong><br>Combines a pitch shift with a robotic voice effect.</div>
+<div id="mix2-tip" class="hover-tip"><strong>Pitch + Reverb</strong><br>Combines a pitch shift with spatial reverberation.</div>
+<div id="mix3-tip" class="hover-tip"><strong>Robot + Reverb</strong><br>Combines a robotic voice effect with spatial reverberation.</div>
+<div id="mixer-title-tip" class="hover-tip">Each button combines two transformations. These combinations were among the most frequently used in the experiment and were described by participants as impactful.<br><br>Zoom into the radio to see how participants responded to these combinations.</div>
+<div id="mixerTitleFrame" aria-hidden="true"></div>
 <button id="radio-info-btn" type="button">About the radio metaphor</button>
 
 <div class="popup-overlay" id="radioDeepDiveOverlay">
@@ -224,11 +306,49 @@
   </div>
 </div>
 
+<div class="popup-overlay" id="methodOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="methodClose">&#x2715;</button>
+    <div class="popup-title">Real-life setup</div>
+    <div class="popup-body">
+      <p>In the original experiment, participants recorded their own negative self-referential thought. They then listened to it played back through the interface and explored various audio modulations themselves. Before and after, they rated how much they believed the thought, how much emotional discomfort it caused, and how willing they were to accept it.</p>
+      <p>For the full method, results and discussion, zoom into the radio.</p>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="researchQuestionOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="researchQuestionClose">&#x2715;</button>
+    <div class="popup-title">Research question</div>
+    <div class="popup-body">
+      <p>To what extent does interacting with a metaphor-based tangible audio interface facilitate cognitive defusion and reduce the impact of negative self-referential thoughts in participants?</p>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="howItWorksOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="howItWorksClose">&#x2715;</button>
+    <div class="popup-title">How it works</div>
+    <div class="popup-title">Experience the experiment</div>
+    <div class="popup-body">
+      <p><b>1: Select a thought</b><br>
+      <b>2: Press play to hear it on repeat</b><br>
+      <b>3: Click on the buttons to hear examples of the modulated thoughts</b><br>
+      <b>4: The mixer combines the most impactful modulations from the experiment. Press the buttons on the mixer to hear them.</b><br>
+      <div class="popup-title">Want to learn more about the experiment?</div>
+      <p><b>Hover over buttons & words to explore concepts. <br> For more scientific context (such as method & results), zoom into the radio.</b></p>
+      <p><i>Press ESC if you want to stop the sound<br><br>This website shows a way to experience the experiment, if you want learn how the real-life experiment was set up, click <a id="realLifeSetupLink">here</a></i></p>
+    </div>
+  </div>
+</div>
+
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.182.0/examples/jsm/"
+    "three": "./vendor/three/build/three.module.js",
+    "three/addons/": "./vendor/three/examples/jsm/"
   }
 }
 </script>
@@ -275,7 +395,13 @@ new HDRLoader().load('monochrome.hdr', (hdrTexture) => {
 });
 
 const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 80);
-camera.position.set(0, 0.4, 13);
+// Starting distance — pulled in a bit on narrower windows (a 15" laptop, say)
+// so the radio/brain-in-a-jar read larger and clearer without needing to
+// scroll-zoom in first. Only set once at load, not on resize, so it doesn't
+// fight the scroll-zoom position (camera.position.z, clamped 7–22 below) if
+// someone resizes mid-visit.
+const START_Z = window.innerWidth < 1600 ? 10.5 : 13;
+camera.position.set(0, 0.4, START_Z);
 
 // Keep the HORIZONTAL framing constant across window shapes — on a narrower/shorter
 // window (e.g. a laptop screen vs. a wide desktop monitor), widen the vertical FOV
@@ -434,104 +560,171 @@ const screenTex = new THREE.CanvasTexture(screenCanvas);
 
 let isPlaying = false;
 
+// Thoughts to cycle through with ◄ ► arrows. Each thought can carry a set of
+// pre-recorded audio files, one per button (PLAY = 'base', PITCH/ROBOT/REVERB/PAN,
+// and the mixer's 3 combos). Thoughts without an `audio` entry — or missing an
+// individual file — just fall back to a silent visual toggle on that button,
+// so it's safe to add thoughts before all their recordings exist.
+const THOUGHTS = [
+  {
+    text: 'I am not good enough',
+    audio: {
+      base:           'I am not good enough.wav',
+      pitch:          'I am not good enough pitch.wav',
+      robot:          'I am not good enough robot.wav',
+      reverb:         'I am not good enough reverb.wav',
+      pan:            'I am not good enough panning.wav',
+      mixPitchRobot:  'I am not good enough mix pitch robot.wav',
+      mixPitchReverb: 'I am not good enough pitch reverb.wav',
+      mixRobotReverb: 'I am not good enough robot reverb.wav',
+    },
+  },
+  {
+    text: 'I am a failure',
+    audio: {
+      base:           'I am a failure.wav',
+      pitch:          'I am a failure pitch.wav',
+      robot:          'I am a failure robot.wav',
+      reverb:         'I am a failure reverb.wav',
+      pan:            'I am a failure panning.wav',
+      mixPitchRobot:  'I am a failure pitch robot.wav',
+      mixPitchReverb: 'I am a failure pitch reverb.wav',
+      mixRobotReverb: 'I am a failure robot reverb.wav',
+    },
+  },
+  {
+    text: 'I am not worthy of love',
+    audio: {
+      base:           'I am not worthy of love.wav',
+      pitch:          'I am not worthy of love pitch.wav',
+      robot:          'I am not worthy of love robot.wav',
+      reverb:         'I am not worthy of love reverb.wav',
+      pan:            'I am not worthy of love panning.wav',
+      mixPitchRobot:  'I am not worthy of love pitch robot.wav',
+      mixPitchReverb: 'I am not worthy of love pitch reverb.wav',
+      mixRobotReverb: 'I am not worthy of love robot reverb.wav',
+    },
+  },
+];
+let thoughtIdx = 0;
+
 // ── Audio ───────────────────────────────────────────────────────────────────
-// Main thought audio — started/paused by PLAY, looped by LOOP, volume by slider
-const thoughtAudio = new Audio('I am not good enough.wav');
-thoughtAudio.preload = 'auto';
-thoughtAudio.volume = 0.5;
-
-// Pitch-shifted variant — started/paused by the PITCH button, same loop/volume behaviour
-const pitchAudio = new Audio('I am not good enough pitch.wav');
-pitchAudio.preload = 'auto';
-pitchAudio.volume = 0.5;
-
-// Pitch+robot combo — started/paused by the mixer's MIX 1 button
-const mix1Audio = new Audio('I am not good enough mix pitch robot.wav');
-mix1Audio.preload = 'auto';
-mix1Audio.volume = 0.5;
+// One reusable <audio> element per button slot — its `src` gets swapped to
+// match the selected thought (see loadThoughtAudio) rather than creating new
+// Audio objects per thought.
+const AUDIO_SLOTS = ['base', 'pitch', 'robot', 'reverb', 'pan', 'mixPitchRobot', 'mixPitchReverb', 'mixRobotReverb'];
+const slotAudio = {};
+AUDIO_SLOTS.forEach(slot => {
+  const a = new Audio();
+  a.preload = 'auto';
+  a.volume = 0.5;
+  a.addEventListener('ended', () => onAudioEnded(slot));
+  slotAudio[slot] = a;
+});
 
 // Whichever file was chosen last — LOOP acts on this one, so looping
 // "follows" the currently chosen file rather than being tied to just PLAY.
-let currentAudio = thoughtAudio;
+let currentAudio = slotAudio.base;
+
+// Point every slot at the selected thought's files. Slots the thought doesn't
+// have a recording for are fully cleared (not just set to '') so `.src` reads
+// back empty rather than resolving to the page's own URL.
+function loadThoughtAudio(idx) {
+  const audioMap = THOUGHTS[idx].audio || {};
+  AUDIO_SLOTS.forEach(slot => {
+    const file = audioMap[slot];
+    if (file) {
+      slotAudio[slot].src = file;
+    } else {
+      slotAudio[slot].removeAttribute('src');
+      slotAudio[slot].load();
+    }
+  });
+}
+loadThoughtAudio(thoughtIdx);
 
 function stopAudio(audio) {
   audio.pause();
   audio.currentTime = 0;
 }
 
-// Stop any of the other audio files that might currently be playing, so only
-// one ever plays at a time, and reset that file's button visuals.
-function stopOtherAudio(except) {
-  [thoughtAudio, pitchAudio, mix1Audio].forEach(a => {
-    if (a !== except && !a.paused) {
+// Stop any of the other audio slots that might currently be playing, so only
+// one ever plays at a time, and reset that slot's button visuals.
+function stopOtherAudio(exceptSlot) {
+  AUDIO_SLOTS.forEach(slot => {
+    const a = slotAudio[slot];
+    if (slot !== exceptSlot && !a.paused) {
       stopAudio(a);
-      if (a === thoughtAudio) setPlayUIOff();
-      else if (a === pitchAudio) setPitchUIOff();
-      else setMix1UIOff();
+      setSlotUIOff(slot);
     }
   });
 }
 
-// Reset PLAY / PITCH / MIX 1 button visuals — used on natural end-of-file and on ESC
-function setPlayUIOff() {
-  playBtn.position.z = BTN_Z_UP;
-  playIcon.position.z = BTN_Z_UP + 0.16;
-  playBtn.material.emissive.setHex(0x00963c);
-}
-function setPitchUIOff() {
-  const pitchBtn = effectBtns.find(b => b.ec.label === 'PITCH');
-  pitchBtn.active = false;
-  pitchBtn.cap.position.z = BTN_Z_UP;
-  pitchBtn.icon.position.z = BTN_Z_UP + 0.16;
-  pitchBtn.cap.material.emissive.setHex(pitchBtn.ec.emissive);
-}
-function setMix1UIOff() {
-  const mix1Btn = mixerBtns[0];
-  mix1Btn.active = false;
-  mix1Btn.cap.position.z = BTN_Z_UP;
-  mix1Btn.cap.material.emissiveMap = mix1Btn.splitOff;
+// Reset a button's visuals to "off" — used on natural end-of-file, on ESC,
+// and when switching thoughts. Covers PLAY ('base'), the 4 effect buttons,
+// and the mixer's 3 combo buttons.
+function setSlotUIOff(slot) {
+  if (slot === 'base') {
+    playBtn.position.z = BTN_Z_UP;
+    playIcon.position.z = BTN_Z_UP + 0.16;
+    playBtn.material.emissive.setHex(0x00963c);
+    return;
+  }
+  const eb = effectBtns.find(b => b.ec.audioKey === slot);
+  if (eb) {
+    eb.active = false;
+    eb.cap.position.z = BTN_Z_UP;
+    eb.icon.position.z = BTN_Z_UP + 0.16;
+    eb.cap.material.emissive.setHex(eb.ec.emissive);
+    return;
+  }
+  const mb = mixerBtns.find(b => b.audioKey === slot);
+  if (mb) {
+    mb.active = false;
+    mb.cap.position.z = BTN_Z_UP;
+    mb.icon.position.z = BTN_Z_UP + 0.16;
+    mb.cap.material.emissiveMap = mb.splitOff;
+  }
 }
 
 // When a file finishes (and loop is off), reset the play state visually
-function onAudioEnded(audio) {
-  if (audio.loop) return;
-  if (audio === thoughtAudio) setPlayUIOff();
-  else if (audio === pitchAudio) setPitchUIOff();
-  else setMix1UIOff();
+function onAudioEnded(slot) {
+  if (slotAudio[slot].loop) return;
+  setSlotUIOff(slot);
   isPlaying = false;
   screenGlow.intensity = 0;
   redrawScreen();
 }
-thoughtAudio.addEventListener('ended', () => onAudioEnded(thoughtAudio));
-pitchAudio.addEventListener('ended', () => onAudioEnded(pitchAudio));
-mix1Audio.addEventListener('ended', () => onAudioEnded(mix1Audio));
+
+// Starts/stops a named audio slot (stopping whatever else was playing first),
+// then hands off to `applyVisual(active)` so the calling button can update
+// its own on-screen look (PLAY's own colours, an effect button's icon +
+// position, or a mixer button's split-texture swap all differ).
+function toggleSlotPlayback(slot, active, applyVisual) {
+  stopOtherAudio(slot);
+  const audio = slotAudio[slot];
+  currentAudio = audio;
+  isPlaying = active;
+  applyVisual(active);
+  screenGlow.intensity = active ? 1.2 : 0;
+  audio.loop = isLooping;
+  if (active) audio.play().catch(() => {});
+  else audio.pause();
+  redrawScreen();
+}
 
 // ESC stops whichever file is playing
 window.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  stopAudio(thoughtAudio);
-  stopAudio(pitchAudio);
-  stopAudio(mix1Audio);
-  setPlayUIOff();
-  setPitchUIOff();
-  setMix1UIOff();
+  AUDIO_SLOTS.forEach(slot => { stopAudio(slotAudio[slot]); setSlotUIOff(slot); });
   isPlaying = false;
   screenGlow.intensity = 0;
   redrawScreen();
   radioDeepDiveOverlay.classList.remove('show');
+  methodOverlay.classList.remove('show');
+  researchQuestionOverlay.classList.remove('show');
+  howItWorksOverlay.classList.remove('show');
 });
-
-// Thoughts to cycle through with ◄ ► arrows
-const THOUGHTS = [
-  'I am not good enough',
-  'I will never succeed',
-  'Nobody understands me',
-  'I am a failure',
-  'I don\'t deserve this',
-  'I am too much',
-  'I am not worthy of love',
-];
-let thoughtIdx = 0;
 
 function redrawScreen() {
   const glow = isPlaying ? 0.22 : 0.10;
@@ -589,7 +782,7 @@ function redrawScreen() {
   sCtx.font = 'bold 29px "Courier New", Courier, monospace';
   sCtx.textAlign = 'center';
   sCtx.textBaseline = 'middle';
-  const thought = THOUGHTS[thoughtIdx];
+  const thought = THOUGHTS[thoughtIdx].text;
 
   if (isPlaying) {
     const t = Date.now();
@@ -715,19 +908,32 @@ const BTN_Z_DOWN = 0.61;   // cap recedes into socket when pressed
 
 // Canvas label helper — engraved style, same as "Thought selection"
 // (hexColor kept for signature compat)
-function makeLabel(text, hexColor, x, y, z, w = 0.74, parent = radio) {
+function makeLabel(text, hexColor, x, y, z, w = 0.8, parent = radio) {
+  // `text` can be a single string, or an array of strings to stack as separate
+  // lines — used by the mixer's combo labels ("PITCH" / "ROBOT") when the
+  // full phrase doesn't fit legibly on one line.
+  const lines = Array.isArray(text) ? text : [text];
+  const singleLine = lines.length === 1;
   const c = document.createElement('canvas');
-  c.width = 128; c.height = 34;
+  c.width = 128; c.height = singleLine ? 34 : 44;
   const cx = c.getContext('2d');
-  cx.font = 'bold 17px "Courier New", monospace';
   cx.textAlign = 'center'; cx.textBaseline = 'middle';
-  // Catch-light below, dark recessed text on top — stamped-in-metal look
-  cx.fillStyle = 'rgba(255,255,255,0.25)';
-  cx.fillText(text, 64, 18.3);
-  cx.fillStyle = 'rgba(0,0,0,1.0)';
-  cx.fillText(text, 64, 17);
+  cx.font = `bold ${singleLine ? 17 : 16.5}px "Courier New", monospace`;
+  const lineGap = 20;
+  const startY = singleLine ? 17 : (c.height - lineGap * (lines.length - 1)) / 2;
+  lines.forEach((line, i) => {
+    const ly = startY + i * lineGap;
+    // Catch-light below, dark recessed text on top — stamped-in-metal look.
+    // The dark pass is stamped twice to stay solid black at this small size
+    // instead of thinning out to grey from anti-aliasing.
+    cx.fillStyle = 'rgba(255,255,255,0.25)';
+    cx.fillText(line, 64, ly + 1.3);
+    cx.fillStyle = 'rgba(0,0,0,1.0)';
+    cx.fillText(line, 64, ly);
+    cx.fillText(line, 64, ly);
+  });
   const m = new THREE.Mesh(
-    new THREE.PlaneGeometry(w, w * 34 / 128),   // height proportional to width
+    new THREE.PlaneGeometry(w, w * c.height / 128),   // height proportional to width
     new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true })
   );
   m.position.set(x, y, z);
@@ -736,25 +942,29 @@ function makeLabel(text, hexColor, x, y, z, w = 0.74, parent = radio) {
 
 // Engraved label — dark recessed text with a light catch-light edge below,
 // so it reads as stamped into the metal rather than printed on it
-function makeEngravedLabel(text, x, y, z, w = 1.35) {
+function makeEngravedLabel(text, x, y, z, w = 1.35, { align = 'right', parent = radio } = {}) {
   const c = document.createElement('canvas');
   c.width = 320; c.height = 48;
   const cx = c.getContext('2d');
   cx.font = 'bold 27px "Courier New", monospace';
-  cx.textAlign = 'right';   // right-aligned so the text ends exactly at the plane's right edge
+  cx.textAlign = align;   // 'right' ends the text at the plane's right edge; 'center' for standalone titles
   cx.textBaseline = 'middle';
+  const tx = align === 'right' ? 318 : align === 'left' ? 2 : 160;
   // Catch-light: bright edge offset downward (light from above hits groove's lower lip)
   cx.fillStyle = 'rgba(255,255,255,0.25)';
-  cx.fillText(text, 318, 26);
-  // Recessed dark text on top
+  cx.fillText(text, tx, 26);
+  // Recessed dark text on top — stamped twice to stay solid black instead of
+  // thinning out to grey from anti-aliasing
   cx.fillStyle = 'rgba(0,0,0,1.0)';
-  cx.fillText(text, 318, 24);
+  cx.fillText(text, tx, 24);
+  cx.fillText(text, tx, 24);
   const m = new THREE.Mesh(
     new THREE.PlaneGeometry(w, w * 48 / 320),
     new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true })
   );
   m.position.set(x, y, z);
-  radio.add(m);
+  parent.add(m);
+  return m;
 }
 
 // Shared soft-shadow texture for buttons (radial gradient, dark centre → clear edge)
@@ -832,10 +1042,10 @@ const ROW_Y = -1.62;   // moved down to give more space (was -1.2)
 // Emissive bypasses lighting, so the hue stays deep no matter how bright
 // the ambient light is (bright diffuse washes to pastel under ACES).
 const EFFECT_CONFIG = [
-  { label: 'PITCH',  color: 0x7a0010, emissive: 0xb8001e, activeEm: 0xff2244, x: -2.2 },
-  { label: 'ROBOT',  color: 0x00427e, emissive: 0x0072c0, activeEm: 0x22aaff, x: -1.1 },
-  { label: 'REVERB', color: 0x500080, emissive: 0x8812cc, activeEm: 0xcc44ff, x:  0.0 },
-  { label: 'PAN',    color: 0x7a4f00, emissive: 0xc88408, activeEm: 0xffaa22, x:  1.1 },
+  { label: 'PITCH',  color: 0x7a0010, emissive: 0xb8001e, activeEm: 0xff2244, x: -2.2, audioKey: 'pitch'  },
+  { label: 'ROBOT',  color: 0x00427e, emissive: 0x0072c0, activeEm: 0x22aaff, x: -1.1, audioKey: 'robot'  },
+  { label: 'REVERB', color: 0x500080, emissive: 0x8812cc, activeEm: 0xcc44ff, x:  0.0, audioKey: 'reverb' },
+  { label: 'PAN',    color: 0x7a4f00, emissive: 0xc88408, activeEm: 0xffaa22, x:  1.1, audioKey: 'pan'    },
 ];
 
 const effectBtns = EFFECT_CONFIG.map(ec => {
@@ -921,9 +1131,7 @@ function setSliderY(newY) {
   sliderFill.position.y = SLIDER_MINY + fillH / 2;
   // Slider position = audio volume — floored at 10% so the radio never goes silent
   const vol = Math.max(0.1, frac);
-  thoughtAudio.volume = vol;
-  pitchAudio.volume = vol;
-  mix1Audio.volume = vol;
+  AUDIO_SLOTS.forEach(slot => { slotAudio[slot].volume = vol; });
 }
 setSliderY(SLIDER_MIDY); // initialise fill bar at 50 %
 
@@ -1009,7 +1217,12 @@ radio.add(loopIcon);
 makeLabel('PLAY', 0x22cc66, -1.85, BTN_Y - 0.40, 0.67);
 makeLabel('LOOP', 0x2288dd, -0.9,  BTN_Y - 0.40, 0.67);
 
-let isLooping = false;
+// Loop is on by default — pressing Play should hear the thought on repeat
+// right away, with the Loop button toggling it off/on from there.
+let isLooping = true;
+loopBtn.position.z = BTN_Z_DOWN;
+loopIcon.position.z = BTN_Z_DOWN + 0.16;
+loopBtn.material.emissive.setHex(0x2288ff);
 
 // ── Thought navigation arrow buttons (below screen) ────────────────────────
 // Pair right edge flush with screen right edge (bezel right = -0.5 + 1.7 = 1.2)
@@ -1061,35 +1274,64 @@ mixer.position.set(3.9, -0.932, 1.4);   // brought further forward
 mixer.rotation.y = -0.28;   // turned slightly toward the left (toward the radio)
 sceneRig.add(mixer);
 
-// Body — same depth as the radio (1.3) so makeBtn's z-layout matches exactly
-const mixerBody = new THREE.Mesh(new RoundedBoxGeometry(2.2, 2.2, 1.3, 8, 0.18), bodyMat);
+// Body — same depth as the radio (1.3) so makeBtn's z-layout matches exactly.
+// Height is stretched taller than the original square (2.2 → 2.7) purely by
+// extending upward — the mesh is nudged up by half the added height so the
+// bottom edge (buttons, floor contact) stays exactly where it was, and the
+// extra 0.5 opens up as clear space above the buttons for the MIXER title.
+const MIXER_HEIGHT = 2.7;
+const MIXER_HEIGHT_ADD = MIXER_HEIGHT - 2.2;
+const mixerBody = new THREE.Mesh(new RoundedBoxGeometry(2.2, MIXER_HEIGHT, 1.3, 8, 0.18), bodyMat);
+mixerBody.position.y = MIXER_HEIGHT_ADD / 2;
 mixerBody.castShadow = true;
 mixerBody.receiveShadow = true;
 mixer.add(mixerBody);
 
-// Edge strips top + bottom — same edgeMat trim as the radio
-[-1.02, 1.02].forEach(y => {
+// Edge strips top + bottom — same edgeMat trim as the radio. Bottom stays put
+// (bottom edge didn't move); top strip is pushed up to hug the new top edge.
+[-1.02, 1.02 + MIXER_HEIGHT_ADD].forEach(y => {
   const strip = new THREE.Mesh(new RoundedBoxGeometry(2.08, 0.14, 1.2, 6, 0.06), edgeMat);
   strip.position.y = y;
   strip.castShadow = true;
   mixer.add(strip);
 });
 
-// 4 round buttons, 2×2 grid — same buttons/colours as the radio's effect row,
-// with engraved MIX 1–4 labels beneath them (same style as the radio labels)
-// First 3 are two-tone (split left/right); PAN (4th) stays single-colour.
+// "MIXER" title, engraved in the same style/size as the radio's "Thought
+// selection" label, centered in the space freed up above the buttons.
+const mixerTitle = makeEngravedLabel('MIXER', 0, 1.15, 0.66, 1.7, { align: 'center', parent: mixer });
+
+// 3 round buttons — same buttons/colours as the radio's effect row, with
+// engraved combo labels beneath them (same style as the radio labels).
+// All three are two-tone (split left/right), one combo per button.
 const MIXER_SPLIT = [
   { a: 0x7a0010, b: 0x00427e, emOffA: 0xb8001e, emOffB: 0x0072c0, emOnA: 0xff2244, emOnB: 0x22aaff },   // red / blue
   { a: 0x7a0010, b: 0x500080, emOffA: 0xb8001e, emOffB: 0x8812cc, emOnA: 0xff2244, emOnB: 0xcc44ff },   // red / purple
   { a: 0x00427e, b: 0x500080, emOffA: 0x0072c0, emOffB: 0x8812cc, emOnA: 0x22aaff, emOnB: 0xcc44ff },   // blue / purple
 ];
 
-const mixerBtns = EFFECT_CONFIG.map((ec, i) => {
-  const bx = (i % 2 === 0) ? -0.55 : 0.55;
-  // Bottom row raised so its labels clear the bottom edge strip (strip at y=-1.02)
-  const by = (i < 2) ? 0.55 : -0.42;
+// Combo labels for the mixer buttons — stacked (2-line) since "PITCH & ROBOT"
+// etc. doesn't fit legibly on one line at this label size.
+const MIXER_LABELS = [
+  ['PITCH', 'ROBOT'],
+  ['PITCH', 'REVERB'],
+  ['ROBOT', 'REVERB'],
+];
+
+// Parallel to MIXER_LABELS — which THOUGHTS[].audio key each combo button plays
+const MIXER_AUDIO_KEYS = ['mixPitchRobot', 'mixPitchReverb', 'mixRobotReverb'];
+
+// Two side by side on top, the third centered below them
+const MIXER_BTN_POS = [
+  { bx: -0.55, by:  0.55 },
+  { bx:  0.55, by:  0.55 },
+  { bx:  0,    by: -0.42 },
+];
+
+const mixerBtns = MIXER_LABELS.map((label, i) => {
+  const ec = EFFECT_CONFIG[i];
+  const { bx, by } = MIXER_BTN_POS[i];
   const cap = makeBtn(bx, by, 0.24, ec.color, ec.emissive, mixer);
-  makeLabel(`MIX ${i + 1}`, 0x000000, bx, by - 0.42, 0.67, 0.74, mixer);
+  makeLabel(label, 0x000000, bx, by - 0.42, 0.67, 0.74, mixer);
 
   const split = MIXER_SPLIT[i];
   let splitOff = null, splitOn = null;
@@ -1106,7 +1348,20 @@ const mixerBtns = EFFECT_CONFIG.map((ec, i) => {
       envMapIntensity: 0.5,
     });
   }
-  return { cap, ec, active: false, splitOff, splitOn };
+  return { cap, ec, active: false, splitOff, splitOn, audioKey: MIXER_AUDIO_KEYS[i] };
+});
+
+// Same play-triangle glyph as the radio's PITCH/ROBOT/REVERB/PAN row —
+// visual cue that each mixer button plays a combined recording too.
+mixerBtns.forEach((mb, i) => {
+  const { bx, by } = MIXER_BTN_POS[i];
+  const icon = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.3, 0.3),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(playIconCvs), transparent: true })
+  );
+  icon.position.set(bx, by, BTN_Z_UP + 0.16);
+  mixer.add(icon);
+  mb.icon = icon;
 });
 
 // ── Audio cable — out of the radio's right side, into the mixer ────────────
@@ -1263,10 +1518,10 @@ let sliderDragStartLocalY  = 0;
 
 const effectCapMeshes = effectBtns.map(b => b.cap);
 const mixerCapMeshes  = mixerBtns.map(b => b.cap);
-const allHit = [sliderHandle, playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, ...effectCapMeshes, ...mixerCapMeshes];
+const allHit = [sliderHandle, playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, mixerTitle, ...effectCapMeshes, ...mixerCapMeshes];
 
 // Buttons that light up brighter on hover — play, loop, the 4 effect buttons
-// (pitch/robot/reverb/pan), the thought-selection arrows, and the 4 mixer buttons.
+// (pitch/robot/reverb/pan), the thought-selection arrows, and the 3 mixer buttons.
 const hoverCapMeshes = [playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, ...effectCapMeshes, ...mixerCapMeshes];
 const HOVER_EMISSIVE_INTENSITY = 1.8;
 let hoveredCap = null;
@@ -1280,11 +1535,28 @@ function raycastHit(e) {
   return hits[0]?.object ?? null;
 }
 
-// ── Brain / Play / Loop / Mix 1 hover tooltips ──────────────────────────────
+// ── Brain / Play / Loop / Mix 1 / Mixer title hover tooltips ────────────────
 const brainTip = document.getElementById('brain-tip');
 const playTip = document.getElementById('play-tip');
 const loopTip = document.getElementById('loop-tip');
-const mix1Tip = document.getElementById('mix1-tip');
+const mixerTitleTip = document.getElementById('mixer-title-tip');
+const effectTip = document.getElementById('effect-tip');
+const volumeTip = document.getElementById('volume-tip');
+const thoughtSelectTip = document.getElementById('thought-select-tip');
+const mixTips = [
+  document.getElementById('mix1-tip'),
+  document.getElementById('mix2-tip'),
+  document.getElementById('mix3-tip'),
+];
+
+// Reflective one-liners shown when hovering each effect button, keyed by
+// EFFECT_CONFIG's label
+const EFFECT_TIPS = {
+  PITCH:  'What happens when the tone changes?',
+  ROBOT:  'What happens when the voice becomes mechanical?',
+  REVERB: 'The same thought. A bigger room. A smaller one.',
+  PAN:    'What happens when the thought moves?',
+};
 
 function positionHoverTip(tipEl, clientX, clientY) {
   const pad = 16;
@@ -1295,6 +1567,24 @@ function positionHoverTip(tipEl, clientX, clientY) {
   tipEl.style.left = x + 'px';
   tipEl.style.top = y + 'px';
 }
+
+// ── "How it works" — a popup now (was inline text that competed for corner
+// space with the radio, overlapping it on narrower/laptop-sized windows) ──
+const howItWorksBtn = document.getElementById('howItWorksBtn');
+const howItWorksArrow = document.getElementById('howItWorksArrow');
+const howItWorksOverlay = document.getElementById('howItWorksOverlay');
+const howItWorksClose = document.getElementById('howItWorksClose');
+
+howItWorksBtn.addEventListener('click', () => {
+  howItWorksOverlay.classList.add('show');
+  howItWorksArrow.style.display = 'none';   // bouncing arrow was just to draw the eye to the button once
+});
+howItWorksClose.addEventListener('click', () => {
+  howItWorksOverlay.classList.remove('show');
+});
+howItWorksOverlay.addEventListener('click', (e) => {
+  if (e.target === howItWorksOverlay) howItWorksOverlay.classList.remove('show');
+});
 
 // ── Radio metaphor info popup — plain click button (a hover tooltip here kept
 // re-triggering as the mouse moved, making the button inside unclickable) ──
@@ -1318,6 +1608,28 @@ function updateRadioInfoBtnPosition() {
   radioInfoBtn.style.left = x + 'px';
   radioInfoBtn.style.top = y + 'px';
 }
+
+// "MIXER" title frame — a plain HTML/CSS rectangle rather than 3D geometry,
+// so it always reads as a crisp, undistorted rectangle regardless of the
+// mixer's rotation or camera zoom (a flat 3D outline on a rotated surface
+// looks skewed/trapezoidal under perspective — this sidesteps that entirely).
+// Corners are in the mixer's own local space, projected to screen space
+// every frame like the button above.
+const mixerFrameEl = document.getElementById('mixerTitleFrame');
+const mixerFrameTL = new THREE.Vector3(-0.42, 1.29, 0.66);
+const mixerFrameBR = new THREE.Vector3( 0.42, 1.01, 0.66);
+function updateMixerTitleFramePosition() {
+  const tl = mixer.localToWorld(mixerFrameTL.clone()).project(camera);
+  const br = mixer.localToWorld(mixerFrameBR.clone()).project(camera);
+  const x1 = (tl.x * 0.5 + 0.5) * window.innerWidth;
+  const y1 = (-tl.y * 0.5 + 0.5) * window.innerHeight;
+  const x2 = (br.x * 0.5 + 0.5) * window.innerWidth;
+  const y2 = (-br.y * 0.5 + 0.5) * window.innerHeight;
+  mixerFrameEl.style.left = Math.min(x1, x2) + 'px';
+  mixerFrameEl.style.top = Math.min(y1, y2) + 'px';
+  mixerFrameEl.style.width = Math.abs(x2 - x1) + 'px';
+  mixerFrameEl.style.height = Math.abs(y2 - y1) + 'px';
+}
 radioDeepDiveClose.addEventListener('click', () => {
   radioDeepDiveOverlay.classList.remove('show');
 });
@@ -1325,9 +1637,51 @@ radioDeepDiveOverlay.addEventListener('click', (e) => {
   if (e.target === radioDeepDiveOverlay) radioDeepDiveOverlay.classList.remove('show');
 });
 
+// ── Method popup — summarizes the original experiment, points to the radio's
+// zoomed-in deep dive for the full method/results/findings ─────────────────
+const methodBtn = document.getElementById('methodBtn');
+const methodOverlay = document.getElementById('methodOverlay');
+const methodClose = document.getElementById('methodClose');
+
+methodBtn.addEventListener('click', () => {
+  methodOverlay.classList.add('show');
+});
+methodClose.addEventListener('click', () => {
+  methodOverlay.classList.remove('show');
+});
+methodOverlay.addEventListener('click', (e) => {
+  if (e.target === methodOverlay) methodOverlay.classList.remove('show');
+});
+
+// "here" link inside the How-it-works popup jumps straight to the Real-life
+// setup popup instead — closes the one to avoid stacking two overlays.
+document.getElementById('realLifeSetupLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  howItWorksOverlay.classList.remove('show');
+  methodOverlay.classList.add('show');
+});
+
+// ── Research question popup — opened by clicking the brain in a jar ────────
+const researchQuestionOverlay = document.getElementById('researchQuestionOverlay');
+const researchQuestionClose = document.getElementById('researchQuestionClose');
+
+researchQuestionClose.addEventListener('click', () => {
+  researchQuestionOverlay.classList.remove('show');
+});
+researchQuestionOverlay.addEventListener('click', (e) => {
+  if (e.target === researchQuestionOverlay) researchQuestionOverlay.classList.remove('show');
+});
+
 renderer.domElement.addEventListener('pointerdown', e => {
   const hit = raycastHit(e);
-  if (!hit) return;
+  if (!hit) {
+    // Brain isn't part of the button raycast list (it's not clickable in the
+    // usual sense) — reuse the ray raycastHit() just set up to test it here.
+    if (brainModel && raycaster.intersectObject(brainModel, true).length > 0) {
+      researchQuestionOverlay.classList.add('show');
+    }
+    return;
+  }
 
   // Volume slider — drag up/down
   if (hit === sliderHandle) {
@@ -1342,18 +1696,20 @@ renderer.domElement.addEventListener('pointerdown', e => {
 
   // Play button — starts / pauses the main thought audio
   if (hit === playBtn) {
-    // Only one file plays at a time — stop any other file that was running
-    stopOtherAudio(thoughtAudio);
-    currentAudio = thoughtAudio;
-    isPlaying = !isPlaying;
-    playBtn.position.z = isPlaying ? BTN_Z_DOWN : BTN_Z_UP;
-    playIcon.position.z = playBtn.position.z + 0.16;
-    playBtn.material.emissive.setHex(isPlaying ? 0x00cc55 : 0x00963c);
-    screenGlow.intensity = isPlaying ? 1.2 : 0;
-    thoughtAudio.loop = isLooping;
-    if (isPlaying) thoughtAudio.play().catch(() => {});
-    else thoughtAudio.pause();
-    redrawScreen();
+    const applyVisual = (active) => {
+      playBtn.position.z = active ? BTN_Z_DOWN : BTN_Z_UP;
+      playIcon.position.z = playBtn.position.z + 0.16;
+      playBtn.material.emissive.setHex(active ? 0x00cc55 : 0x00963c);
+    };
+    if (slotAudio.base.src) {
+      toggleSlotPlayback('base', slotAudio.base.paused, applyVisual);
+    } else {
+      // No recording for this thought yet — button still animates, just silently
+      isPlaying = !isPlaying;
+      applyVisual(isPlaying);
+      screenGlow.intensity = isPlaying ? 1.2 : 0;
+      redrawScreen();
+    }
     return;
   }
 
@@ -1371,6 +1727,14 @@ renderer.domElement.addEventListener('pointerdown', e => {
   if (hit === prevThoughtBtn || hit === nextThoughtBtn) {
     const dir = hit === nextThoughtBtn ? 1 : -1;
     thoughtIdx = (thoughtIdx + dir + THOUGHTS.length) % THOUGHTS.length;
+
+    // Switching thoughts changes which recordings are valid — stop whatever
+    // was playing and reset every button before loading the new set
+    AUDIO_SLOTS.forEach(slot => { stopAudio(slotAudio[slot]); setSlotUIOff(slot); });
+    isPlaying = false;
+    screenGlow.intensity = 0;
+    loadThoughtAudio(thoughtIdx);
+
     // Brief press-down animation
     hit.position.z = BTN_Z_DOWN;
     setTimeout(() => { hit.position.z = BTN_Z_UP; }, 120);
@@ -1383,63 +1747,43 @@ renderer.domElement.addEventListener('pointerdown', e => {
     return;
   }
 
-  // Effect buttons
+  // Effect buttons (PITCH/ROBOT/REVERB/PAN) — each plays its own transformed
+  // recording when the current thought has one; otherwise just a silent
+  // visual toggle (no recording for this thought yet)
   const ei = effectCapMeshes.indexOf(hit);
   if (ei >= 0) {
     const eb = effectBtns[ei];
-
-    // PITCH plays its own audio file instead of just toggling a visual state
-    if (eb.ec.label === 'PITCH') {
-      // Only one file plays at a time — stop any other file that was running
-      stopOtherAudio(pitchAudio);
-      currentAudio = pitchAudio;
-      eb.active = !eb.active;
-      isPlaying = eb.active;
-      eb.cap.position.z = eb.active ? BTN_Z_DOWN : BTN_Z_UP;
+    const applyVisual = (active) => {
+      eb.cap.position.z = active ? BTN_Z_DOWN : BTN_Z_UP;
       eb.icon.position.z = eb.cap.position.z + 0.16;
-      eb.cap.material.emissive.setHex(eb.active ? eb.ec.activeEm : eb.ec.emissive);
-      screenGlow.intensity = eb.active ? 1.2 : 0;
-      pitchAudio.loop = isLooping;
-      if (eb.active) pitchAudio.play().catch(() => {});
-      else pitchAudio.pause();
-      redrawScreen();
-      return;
+      eb.cap.material.emissive.setHex(active ? eb.ec.activeEm : eb.ec.emissive);
+    };
+    if (slotAudio[eb.ec.audioKey].src) {
+      eb.active = slotAudio[eb.ec.audioKey].paused;
+      toggleSlotPlayback(eb.ec.audioKey, eb.active, applyVisual);
+    } else {
+      eb.active = !eb.active;
+      applyVisual(eb.active);
     }
-
-    eb.active = !eb.active;
-    eb.cap.position.z = eb.active ? BTN_Z_DOWN : BTN_Z_UP;
-    eb.icon.position.z = eb.cap.position.z + 0.16;
-    eb.cap.material.emissive.setHex(eb.active ? eb.ec.activeEm : eb.ec.emissive);
     return;
   }
 
-  // Mixer buttons — same toggle behaviour as the effect buttons
+  // Mixer combo buttons — each plays its own combined recording when the
+  // current thought has one; otherwise a silent visual toggle
   const mi = mixerCapMeshes.indexOf(hit);
   if (mi >= 0) {
     const mb = mixerBtns[mi];
-
-    // MIX 1 (pitch + robot) plays its own combined audio file
-    if (mi === 0) {
-      stopOtherAudio(mix1Audio);
-      currentAudio = mix1Audio;
-      mb.active = !mb.active;
-      isPlaying = mb.active;
-      mb.cap.position.z = mb.active ? BTN_Z_DOWN : BTN_Z_UP;
-      mb.cap.material.emissiveMap = mb.active ? mb.splitOn : mb.splitOff;
-      screenGlow.intensity = mb.active ? 1.2 : 0;
-      mix1Audio.loop = isLooping;
-      if (mb.active) mix1Audio.play().catch(() => {});
-      else mix1Audio.pause();
-      redrawScreen();
-      return;
-    }
-
-    mb.active = !mb.active;
-    mb.cap.position.z = mb.active ? BTN_Z_DOWN : BTN_Z_UP;
-    if (mb.splitOff) {
-      mb.cap.material.emissiveMap = mb.active ? mb.splitOn : mb.splitOff;
+    const applyVisual = (active) => {
+      mb.cap.position.z = active ? BTN_Z_DOWN : BTN_Z_UP;
+      mb.icon.position.z = mb.cap.position.z + 0.16;
+      mb.cap.material.emissiveMap = active ? mb.splitOn : mb.splitOff;
+    };
+    if (slotAudio[mb.audioKey].src) {
+      mb.active = slotAudio[mb.audioKey].paused;
+      toggleSlotPlayback(mb.audioKey, mb.active, applyVisual);
     } else {
-      mb.cap.material.emissive.setHex(mb.active ? mb.ec.activeEm : mb.ec.emissive);
+      mb.active = !mb.active;
+      applyVisual(mb.active);
     }
   }
 });
@@ -1484,11 +1828,41 @@ renderer.domElement.addEventListener('pointermove', e => {
     loopTip.style.display = 'none';
   }
 
-  // Mixer's MIX 1 button — explains the pitch+robot combination
-  if (hit === mixerBtns[0].cap) {
-    positionHoverTip(mix1Tip, e.clientX, e.clientY);
+  // Mixer combo buttons — explains what each pair of transformations does
+  const mixIdx = mixerCapMeshes.indexOf(hit);
+  mixTips.forEach((tip, i) => {
+    if (i === mixIdx) positionHoverTip(tip, e.clientX, e.clientY);
+    else tip.style.display = 'none';
+  });
+
+  // Thought selection arrows — clarifies these are pre-picked, not self-recorded
+  if (hit === prevThoughtBtn || hit === nextThoughtBtn) {
+    positionHoverTip(thoughtSelectTip, e.clientX, e.clientY);
   } else {
-    mix1Tip.style.display = 'none';
+    thoughtSelectTip.style.display = 'none';
+  }
+
+  // Effect buttons (pitch/robot/reverb/pan) — a one-line reflective prompt each
+  const effectIdx = effectCapMeshes.indexOf(hit);
+  if (effectIdx >= 0) {
+    effectTip.textContent = EFFECT_TIPS[effectBtns[effectIdx].ec.label];
+    positionHoverTip(effectTip, e.clientX, e.clientY);
+  } else {
+    effectTip.style.display = 'none';
+  }
+
+  // Volume slider handle
+  if (hit === sliderHandle) {
+    positionHoverTip(volumeTip, e.clientX, e.clientY);
+  } else {
+    volumeTip.style.display = 'none';
+  }
+
+  // "MIXER" title — explains that each button below combines two transformations
+  if (hit === mixerTitle) {
+    positionHoverTip(mixerTitleTip, e.clientX, e.clientY);
+  } else {
+    mixerTitleTip.style.display = 'none';
   }
 });
 
@@ -1509,7 +1883,11 @@ renderer.domElement.addEventListener('pointerleave', () => {
   brainTip.style.display = 'none';
   playTip.style.display = 'none';
   loopTip.style.display = 'none';
-  mix1Tip.style.display = 'none';
+  mixTips.forEach(tip => tip.style.display = 'none');
+  mixerTitleTip.style.display = 'none';
+  effectTip.style.display = 'none';
+  volumeTip.style.display = 'none';
+  thoughtSelectTip.style.display = 'none';
 });
 
 // ── Resize ─────────────────────────────────────────────────────────────────
@@ -1560,13 +1938,14 @@ renderer.setAnimationLoop(time => {
   }
 
   updateRadioInfoBtnPosition();
+  updateMixerTitleFramePosition();
   composer.render();
 });
 
 // Debug hook (harmless in production — read-only state inspection)
 window.__radioState = () => ({
   isPlaying, isLooping, thoughtIdx,
-  volume: thoughtAudio.volume,
+  volume: slotAudio.base.volume,
   playBtnZ: playBtn.position.z,
 });
 </script>
