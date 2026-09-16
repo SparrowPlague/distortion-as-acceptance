@@ -104,6 +104,7 @@
     border-radius: 4px;
   }
   #mixerOverlay .popup-box { max-width: 920px; }
+  #introOverlay .popup-body { font-size: 1.1rem; }   /* bigger body text for the room's opening blurb — title stays default size */
   /* Section heading inside a long popup — same serif family as .popup-title,
      a step down in size so it reads as a subhead rather than a second title. */
   .popup-subtitle {
@@ -259,13 +260,14 @@
      the same generic .popup-close/backdrop-click handling wired up for
      every .popup-overlay further down the script — no extra JS needed. -->
 <div class="popup-overlay show" id="introOverlay">
-  <div class="popup-box" style="max-width:460px">
+  <div class="popup-box" style="max-width:560px">
     <button class="popup-close">&#x2715;</button>
     <div class="popup-title">You are now inside the radio.</div>
     <div class="popup-body">
-      <p>On the left wall, you can view the method, setup &amp; materials.</p>
+      <p>On the left wall, you can learn about the method, setup &amp; materials.</p>
       <p>The results are on the back wall.</p>
       <p>On the right side of the floor you can click on discussion.</p>
+      <p>Hover over items to learn more about the content.</p>
     </div>
   </div>
 </div>

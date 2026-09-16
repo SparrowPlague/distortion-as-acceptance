@@ -261,7 +261,7 @@
 <div id="zoom-fade"></div>
 <div id="experience-info">
   <div class="tagline">Explore what happens when you change<br>how a thought sounds.</div>
-  <div id="howItWorksArrow" aria-hidden="true">&darr;</div>
+  <div id="howItWorksArrow" aria-hidden="true" style="display:none">&darr;</div>
   <button id="howItWorksBtn" class="info-btn" type="button">How it works</button>
   <button id="methodBtn" class="info-btn" type="button">Real-life setup</button>
   <div id="methodSubtext">How the real-life experiment was set up</div>
@@ -287,7 +287,7 @@
 <div id="mix1-tip" class="hover-tip"><strong>Pitch + Robot</strong><br>Combines a pitch shift with a robotic voice effect.</div>
 <div id="mix2-tip" class="hover-tip"><strong>Pitch + Reverb</strong><br>Combines a pitch shift with spatial reverberation.</div>
 <div id="mix3-tip" class="hover-tip"><strong>Robot + Reverb</strong><br>Combines a robotic voice effect with spatial reverberation.</div>
-<div id="mixer-title-tip" class="hover-tip">Each button combines two transformations. These combinations were among the most frequently used in the experiment and were described by participants as impactful.<br><br>Zoom into the radio to see how participants responded to these combinations.</div>
+<div id="mixer-title-tip" class="hover-tip">Each button combines two transformations. These combinations were among the most frequently used in the experiment and were described by participants as impactful.<br><br>Zoom into the radio to learn more about how participants responded to the modulations.</div>
 <div id="mixerTitleFrame" aria-hidden="true"></div>
 <button id="radio-info-btn" type="button">About the radio metaphor</button>
 
@@ -327,7 +327,10 @@
   </div>
 </div>
 
-<div class="popup-overlay" id="howItWorksOverlay">
+<!-- "show" is already in the markup, not added by JS, so the popup is visible
+     the moment the page loads — the "How it works" button stays fully
+     functional underneath so it can be reopened any time after closing. -->
+<div class="popup-overlay show" id="howItWorksOverlay">
   <div class="popup-box">
     <button class="popup-close" id="howItWorksClose">&#x2715;</button>
     <div class="popup-title">How it works</div>

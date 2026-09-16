@@ -573,7 +573,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
   background: #16213e;
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 10px;
-  max-width: 620px;
+  max-width: 685px;
   max-height: 80vh;
   overflow-y: auto;
   padding: 40px 44px;
@@ -587,7 +587,9 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
 /* Lighter than the default .ref-popup navy — this box sits over the same
    near-black video/cover background the rest of the page uses, so the
    default dark tone barely read as a distinct panel. */
-#thoughtIntroOverlay .ref-popup { background: #2c4a85; border-color: rgba(255,255,255,0.22); }
+#thoughtIntroOverlay .ref-popup { max-width: 700px; background: #a2b6df; border-color: rgba(255,255,255,0.22); }
+#thoughtIntroOverlay .ref-popup-body { color: #000; }
+#thoughtIntroOverlay .ref-popup-title { color: #000; }
 
 .ref-side-image {
   position: absolute;
@@ -920,7 +922,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
     <div class="anatomy-tooltip-body">This section has two layers.<br>Click for an overview &rarr; click Deep Dive to explore the theory and research behind it.</div>
   </div>
 
-  <div class="side-note" id="sideNote">This website is built in layers. You can engage as deeply as you choose ; experience it, understand it, or explore the research behind it. Every section invites you to go further, but never forces you to.</div>
+  
 
   <div class="thought-hint">Explore the anatomy of a negative thought,<br>hover over the concepts to learn more</div>
 </div>
@@ -935,7 +937,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
 </div>
 <div class="anatomy-tooltip" id="tipAutomatic">
   <div class="anatomy-tooltip-title">Automatic</div>
-  <div class="anatomy-tooltip-body">These thoughts arise without intention. You don&rsquo;t choose to think &ldquo;I am not good enough&rdquo; , it appears. This automaticity is what makes them feel like facts rather than opinions: they seem to come from nowhere, which makes them feel true.</div>
+  <div class="anatomy-tooltip-body">These thoughts tend to arise without intention. You don&rsquo;t choose to think &lsquo;I am not good enough&rsquo;, it appears. This automaticity is what makes them feel like facts rather than opinions: they seem to come from nowhere, which makes them feel true.</div>
 </div>
 <div class="anatomy-tooltip" id="tipBelievable">
   <div class="anatomy-tooltip-title">Believable</div>
@@ -955,10 +957,11 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
   <div class="ref-popup">
     <button class="ref-popup-close" id="thoughtIntroClose">&#x2715;</button>
     <div class="ref-popup-body">
-      <p>Instead of a linear thesis, I created an interactive website.</p>
-      <p>On this page you can explore the essential subject of my thesis: negative self-referential thoughts ; because what are those anyway, and why are they so persistent?</p>
-      <p>There is always a choice: if you want to explore without diving into the theory, you can stay on the surface.</p>
-      <p>If you want to know the theory behind it, you can always click on a deep-dive button.</p>
+      <div class="ref-popup-title">Welcome to my interactive thesis</div>
+      <p>Instead of a linear thesis, I created an interactive website.<br>I am not going to spoil everything for you, but I will guide you through the key concepts.</p>
+      <p>On this page you can explore the essential subject of my thesis:<br><b><i>Negative self-referential thoughts</i></b><br>Because what are those anyway, and why are they so persistent?</p>
+      <p>There is always a choice:<br>If you want to explore without diving into the theory, you can stay on the surface.<br>If you want to know the theory behind it, you can always click on a deep-dive button.</p>
+      <p>I am not going to force you, but it will be helpfull to read from concept to interface,<br>before moving to the next page.</p>
     </div>
   </div>
 </div>
@@ -1053,7 +1056,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
       <div class="ref-popup-original">
         <p>Defusion techniques have one thing in common: they all work by changing how a thought is experienced, rather than what it says. Repeating a word until it loses its meaning, hearing a thought in a different voice, slowing it down or singing it aloud, each of these approaches creates a small but significant shift in the relationship between the person and the thought.</p>
         <p>This research brought those principles together in a tangible audio interface, allowing participants to hear and manipulate a recording of their own negative thought in real time. The interface on this website is an illustration of that experience, not a replication of the exact research conditions, but an invitation to explore the same principles yourself.</p>
-        <p>At the heart of it lies a simple question: <br><b>What if interacting with the sound of a thought could facilitate defusion?</b></p>
+        <p>At the heart of it lies a simple question: <br><b>What if interacting with the sound of a thought could facilitate defusion and reduce the impact of negative thoughts?</b></p>
         <a href="radio-v2.html" class="radio-link" id="radioLink">Try the radio <span class="arrow">&rarr;</span></a>
         <div class="radio-link-hint">The page may take a moment to load</div>
       </div>
@@ -1069,7 +1072,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
         <p>Building on this understanding, the present research incorporated pitch and timbral manipulation as mechanisms through which the acoustic properties of a participant&rsquo;s recorded thought could be altered. Research on vocal emotion perception suggests that fundamental frequency (F0), which largely determines how high or low a voice sounds, and timbre are the primary parameters through which emotional states are communicated in speech <span class="ref" onmouseenter="showTip(event,'tip19')" onmouseleave="hideTip('tip19')">[19]</span>. Both pitch alteration and phase modulation target these acoustic properties: by manipulating them, the cues that give a thought its emotional quality are disrupted, changing how it is perceived.</p>
         <p>Reverberation and panning were incorporated to target a different dimension of the recorded thought: its perceived spatial location. Research on spatial audio suggests that spatial characteristics of sound influence listeners&rsquo; emotional responses and engagement <span class="ref" onmouseenter="showTip(event,'tip21')" onmouseleave="hideTip('tip21')">[21]</span>. By placing the thought within a different acoustic space through reverberation, or moving it between audio channels through panning, the perceived spatial origin of the thought is altered. This spatial manipulation was designed to support the defusion principle of creating distance between the individual and their private events. How these manipulations are experienced varies between individuals and is explored further in the results section.</p>
         <p>The decision to combine multiple defusion techniques within a single interface was informed by ACT&rsquo;s emphasis on experiential learning. A metaphor, as described in ACT, uses familiar experience to make an unfamiliar concept accessible, bypassing analytical language in favour of direct experience <span class="ref" onmouseenter="showTip(event,'tip3')" onmouseleave="hideTip('tip3')">[3]</span>. This aligns with both Conceptual Metaphor Theory and embodied cognition, which together suggest that abstract concepts are more effectively understood when mapped onto concrete, familiar experience and grounded in physical action <span class="ref" onmouseenter="showTip(event,'tip24')" onmouseleave="hideTip('tip24')">[24]</span>. Drawing on this, the radio served as the source domain for the mind: just as a radio broadcasts continuously and can be manipulated through physical controls, the interface allowed participants to interact with their own thought as though adjusting a broadcast. A tangible interface offers a form of engagement that goes beyond reading or listening. By allowing participants to actively manipulate the sound of their own thought, the interface grounds the principle of defusion in physical action. Furthermore, combining multiple techniques within one interface made it possible to investigate not only the effect of individual manipulations but also whether the combination itself contributes to the defusion process.</p>
-        <p>Together, these theoretical and design choices informed the central research question of this study:<br><b>To what extent does interacting with a metaphor-based tangible audio interface facilitate cognitive defusion and reduce the impact of negative self-referential thoughts in participants?</b></p>
+        <p>The central research question of this study is:<br><b>To what extent does interacting with a metaphor-based tangible audio interface facilitate cognitive defusion and reduce the impact of negative self-referential thoughts in participants?</b></p>
         <p>The interface presented in the next section is an illustration of the experiment rather than a replication of it. It offers an impression of what participants encountered, using pre-recorded examples rather than a live recording of your own thought.</p>
         <a href="radio-v2.html" class="radio-link" id="radioLinkDeepDive">Try the radio <span class="arrow">&rarr;</span></a>
         <div class="radio-link-hint">The page may take a moment to load</div>
@@ -1269,7 +1272,7 @@ const sideNoteEl = document.getElementById('sideNote');
 const anatomyContent = {
   negative: { title: 'Negative', body: 'Negative self-referential thoughts are evaluative and critical in nature. They judge, diminish, or condemn. Unlike neutral self-observations, they carry emotional weight — and that weight is what makes them feel so significant.' },
   self: { title: 'Self-referential', body: 'These thoughts are directed at the self, not at a situation or an event, but at who you are. They make a claim about your identity: not “I did something wrong” but “I am wrong.” That distinction makes them particularly hard to dismiss.' },
-  automatic: { title: 'Automatic', body: 'These thoughts arise without intention. You don’t choose to think “I am not good enough” — it appears. This automaticity is what makes them feel like facts rather than opinions: they seem to come from nowhere, which makes them feel true.' },
+  automatic: { title: 'Automatic', body: "These thoughts tend to arise without intention. You don't choose to think 'I am not good enough', it appears. This automaticity is what makes them feel like facts rather than opinions: they seem to come from nowhere, which makes them feel true." },
   believable: { title: 'Believable', body: 'This thought feels true, something you believe. Not like an opinion you could argue with, but like a fact you have to live with. That sense of believability, the feeling that the thought reflects reality, is precisely what gives it its power over you.' }
 };
 
@@ -1364,11 +1367,12 @@ const homeBtn = document.getElementById('homeBtn');
 const replayBtn = document.getElementById('replayBtn');
 const skipBtn = document.getElementById('skipBtn');
 const continueBtn = document.getElementById('continueBtn');
-
-/* ── CONTINUE TO RADIO EXPERIENCE ── */
-continueBtn.addEventListener('click', () => {
-  window.location.href = 'radio-v2.html';
-});
+// No separate click handler here — continueBtn is wired up together with
+// the "Try the radio" text links in the "POWER ON" transition block further
+// down, so it plays the same transition before navigating instead of
+// jumping to radio-v2.html instantly. It deliberately doesn't get the
+// .radio-link CLASS though — that also carries that link's small/uppercase
+// text styling, which would look wrong on a nav-bar button.
 
 beginBtn.addEventListener('click', () => {
   // Fade out title page
@@ -1400,6 +1404,7 @@ function resetScene() {
   innerLayer.querySelector('.inner-title').classList.remove('glitch-in');
   progressBar.style.width = '0%';
   continueBtn.style.display = 'none';
+  skipBtn.style.display = '';   // back to video-playing state (e.g. "Play video again")
 }
 
 /* ── GO HOME ── */
@@ -1463,6 +1468,7 @@ function autoZoom() {
         void innerTitle.offsetWidth;
         innerTitle.classList.add('glitch-in');
         continueBtn.style.display = '';
+        skipBtn.style.display = 'none';   // no video left to skip once the thought page is showing
       }
       progressBar.style.width = (70 + ((elapsed - glitchDuration) / cutDuration) * 30) + '%';
       requestAnimationFrame(frame);
@@ -1486,6 +1492,7 @@ function jumpToThoughts() {
   innerLayer.querySelector('.inner-title').classList.add('glitch-in');
   navControls.classList.add('show');
   continueBtn.style.display = '';
+  skipBtn.style.display = 'none';   // no video left to skip once the thought page is showing
   progressBar.style.width = '100%';
 }
 if (location.hash === '#thoughts') {
@@ -1493,7 +1500,10 @@ if (location.hash === '#thoughts') {
 }
 
 /* ── "POWER ON" TRANSITION — plays before jumping to the radio page ── */
-const radioLinks = document.querySelectorAll('.radio-link');
+// #continueBtn included by id, not by giving it the .radio-link class —
+// that class also carries that link's small/uppercase text styling, which
+// would look wrong on a nav-bar button.
+const radioLinks = document.querySelectorAll('.radio-link, #continueBtn');
 const radioTransition = document.getElementById('radio-transition');
 
 radioLinks.forEach((link) => {
