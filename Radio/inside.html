@@ -243,8 +243,11 @@
   .popup-image-row { display: flex; gap: 12px; margin: 20px 0 4px; }
   .zoomable-image { cursor: zoom-in; }
   .popup-image-row img { width: 100%; border-radius: 4px; display: block; }
-  .plugin-image-box { max-width: 1100px; }   /* was 620px — barely bigger than most inline thumbnails, so "enlarge" didn't read as bigger */
-  .plugin-image-box .popup-title { margin-bottom: 14px; }
+  .plugin-image-box { max-width: 1100px; background: #111; border-color: rgba(255,255,255,0.15); }   /* was 620px — barely bigger than most inline thumbnails, so "enlarge" didn't read as bigger */
+  .plugin-image-box .popup-title { margin-bottom: 14px; color: #eee; }
+  .plugin-image-box .popup-close { color: rgba(255,255,255,0.55); }
+  .plugin-image-box .popup-close:hover { color: #fff; }
+  .plugin-image-box .popup-image { border: 1px solid #000; background: #000; }
 </style>
 </head>
 <body>
@@ -300,7 +303,7 @@
       <p>Each experiment session took approximately 40/50 minutes including consent & debriefing. No fixed time limit was imposed in order to prevent any feeling of performance pressure. There were no sessions that exceeded one hour.</p>
 
       <div class="popup-subtitle">Thought selection</div>
-      <p>Participants were asked to identify one negative self-referential thought that they experienced repeatedly and found personally distressing and believable. To support this process, a worksheet was provided to help participants formulate and articulate their thought. At no point were participants required to share their negative self-referential thought with the researcher, it remained private throughout the experiment. The thought selection was conducted by the researcher, who guided participants through the thought selection process using a standardised set of instructions. A script was written in Dutch and English, so each session the same introduction and explanation was used.</p>
+      <p>Participants were asked to identify one negative self-referential thought that they experienced repeatedly and found personally distressing and believable. To support this process, a <a class="worksheet-link">worksheet</a> was provided to help participants formulate and articulate their thought. At no point were participants required to share their negative self-referential thought with the researcher, it remained private throughout the experiment. The thought selection was conducted by the researcher, who guided participants through the thought selection process using a standardised set of instructions. A script was written in Dutch and English, so each session the same introduction and explanation was used.</p>
 
       <div class="popup-subtitle">Pre Visual analog scale (VAS)</div>
       <p>The impact of the negative self-referential thought was assessed across three outcomes: believability, discomfort and acceptance. This was assessed using a visual analog scale before and after the experiment. Responses ranged from 0 &ndash; 100 with 0 (not uncomfortable at all) to 100 (very uncomfortable) for the emotional discomfort, 0 (not believable at all) to 100 (very believable) for the believability scale, and 0 (not accepted at all) to 100 (fully accepted) for the acceptance scale.</p>
@@ -313,14 +316,22 @@
       <p>After completion of the survey, participants were instructed how to record their thought. A Novation Circuit Rhythm sampler was used as the primary control device. Buttons were mapped to record, play and stop. When the participant was confident enough to record their own thought, the researcher left the room and came back as soon as the participant was done recording. Participants could record their thought up to three times and select the recording they preferred.</p>
 
       <div class="popup-subtitle">Graphical user interface</div>
-      <p>Once participants had finished their recording, the researcher launched the custom graphical user interface (GUI). A screen showed the GUI displaying a slider for each audio manipulation (pitch, robot, reverb, panning and volume). The sliders moved in real time in response to the physical controls on the Novation sampler, providing participants with visual feedback of the active modulations. A legend showing instructions for recording and resetting the audio modulations was positioned in the upper left corner of the screen. Participants were instructed to listen to each audio modulation in isolation before combining them (this instruction was also displayed on screen), so that they could clearly identify what each modulation sounded like individually. Once familiar with each effect, participants then freely explored and combined the modulations as they choose.  This element of free exploration was deliberate as it reflects ACT emphasis on experiential learning. Instead of conversing or imagining, the participants experiences the transformed sound of their own voice in real time. The audio was played in a loop, but participants were able stop the recording if the experience was too uncomfortable or distressing. The researcher walked participants through the interface with the audio on mute, so that the sound of each modulation was encountered for the first time during the experiment.</p>
+      <p>Once participants had finished their recording, the researcher launched the custom graphical user interface (GUI). A <a class="gui-image-link">screen</a> showed the GUI displaying a slider for each audio manipulation (pitch, robot, reverb, panning and volume). The sliders moved in real time in response to the physical controls on the Novation sampler, providing participants with visual feedback of the active modulations. A legend showing instructions for recording and resetting the audio modulations was positioned in the upper left corner of the screen*. The GUI was intentionally designed plain and simple, without to many distractions. The focus needed to be directed to the audio and not the screen. Participants were instructed to listen to each audio modulation in isolation before combining them (this instruction was also displayed on screen), so that they could clearly identify what each modulation sounded like individually. This allows us to assess the effect of each modulation individually as well as in combination. Once familiar with each effect, participants then freely explored and combined the modulations as they choose.  This element of free exploration was deliberate as it reflects ACT emphasis on experiential learning. Instead of conversing or imagining, the participants experiences the transformed sound of their own voice in real time. The audio was played in a loop, but participants were able stop the recording if the experience was too uncomfortable or distressing. The researcher walked participants through the interface with the audio on mute, so that the sound of each modulation was encountered for the first time during the experiment.</p>
+      <p></p>
+
+      <div class="quote-label">Instruction text:</div>
+      <div class="quote-block">
+        <p>Pay attention to what you experience.</p>
+        <p>1: Go through each modulation separately first.</p>
+        <p>Press Reset if you want to return the function to its original value.</p>
+        <p>2: You can now freely experiment and combine everything.</p>
+      </div>
 
       <div class="popup-subtitle">Post Visual analog scale (VAS) &amp; survey</div>
       <p>Following the interaction phase, participants completed a second VAS assessment (same as the VAS prior to the experiment). They also evaluated each modulation separately, rating its effect on believability, emotional discomfort and acceptance as better, neutral or worse. This made it possible to compare the effects of each modulation against each other. The ratings were scaled from -50 to +50. For believability, a higher score indicated the thought felt more believable. For emotional discomfort, a higher score indicated more discomfort. For acceptance, a higher score indicated greater acceptance of the thought.</p>
       <div class="popup-subtitle">Analysis of open-ended questions</div>
-      <p>Open-ended questions were analysed via a qualitative content analysis<span class="ref" data-tip="tip30">[30]</span> Categories for experiential shifts were derived from theoretical frameworks relevant to cognitive defusion<span class="ref" data-tip="tip11">[11]</span>.</p>
-      <p>The categorization matrix was refined iteratively during coding, conducted using Taguette<span class="ref" data-tip="tip31">[31]</span>, consistent with standard practice in qualitative content analysis<span class="ref" data-tip="tip32">[32]</span>. The full categorization matrix, including category definitions and illustrative examples, is available <a class="codebook-link">here</a>.</p>
-      <p>The following categories were used to code participant responses:</p>
+      <p>Open-ended questions were analysed via a qualitative content analysis<span class="ref" data-tip="tip30">[30]</span>. Content analysis was chosen for its ability to systematically categorize language through both deductive and inductive approaches, and for its suitability in exploring participants' subjective experiences of the interaction. Coding was conducted by a single researcher using Taguette<span class="ref" data-tip="tip31">[31]</span>. To enhance transparency and support replicability, a full codebook including category definitions and illustrative examples was developed and is available <a class="codebook-link">here</a>. Categories were refined iteratively during coding, consistent with standard practice in qualitative content analysis <span class="ref" data-tip="tip32">[32]</span>.</p>
+      <p>Categories for experiential shifts were derived from theoretical frameworks relevant to cognitive defusion<span class="ref" data-tip="tip11">[11]</span>.<br>The following categories were used to code participant responses:</p>
 
       <p><b>Experiential shifts:</b></p>
       <ul style="margin: -6px 0 16px; padding-left: 22px;">
@@ -333,7 +344,7 @@
         <li><b>Descriptive:</b> change described without clear direction</li>
       </ul>
 
-      <p>Responses were also analysed for modulation-specific metaphors, instances where particular metaphorical language was consistently associated with a specific audio modulation. For example, whether spatial metaphors occurred more frequently in descriptions of reverb than in descriptions of other modulations. Categories were developed inductively from the data, and where responses contained language corresponding to multiple categories simultaneously, all relevant codes were assigned.</p>
+      <p>Participant responses were additionally coded for metaphorical language, capturing the figurative expressions used to describe the experience of the audio manipulations. Categories were developed inductively from the data, and where responses contained language corresponding to multiple categories simultaneously, all relevant codes were assigned.</p>
       <ul style="margin: -6px 0 16px; padding-left: 22px;">
         <li><b>Spatial:</b> metaphors of location or distance, describing where the thought was perceived to be</li>
         <li><b>Personification:</b> attributing a separate character, voice or intention to the thought</li>
@@ -355,6 +366,62 @@
         <li><b>Seriousness</b></li>
         <li><b>Self-compassion</b></li>
       </ul>
+
+      <div class="popup-subtitle">Closing questions</div>
+      <p>Two closing questions were asked after completion of all surveys, to capture any remaining reflections and to examine their response to hearing their own recorded voice:</p>
+      <ul style="margin: -6px 0 16px; padding-left: 22px;">
+        <li>Is there anything we didn&rsquo;t ask, but that you would like to share about your experience?</li>
+        <li>How did you experience hearing your own voice during the experiment?</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="worksheetOverlay">
+  <div class="popup-box">
+    <button class="popup-close">&#x2715;</button>
+    <div class="popup-title">Thought Selection Worksheet</div>
+    <div class="popup-body">
+      <p>Please complete this worksheet before the audio interaction. Your sentence content stays private. You do not have to tell it to the researcher.</p>
+
+      <div class="popup-subtitle">1) What counts as a suitable thought?</div>
+      <p>A negative self-referential thought is:</p>
+      <ul style="margin: -6px 0 16px; padding-left: 22px;">
+        <li>About you (uses I / me / my).</li>
+        <li>A brief belief/appraisal (not just a feeling).</li>
+        <li>Present or near-future (e.g., I am&hellip; / I can&rsquo;t&hellip; / I will&hellip;).</li>
+        <li>One idea, 3&ndash;7 words, speakable in 1&ndash;2 seconds.</li>
+        <li>Believable to you right now and at least distressing.</li>
+        <li>Avoid names or identifying details (e.g., real names, initials, addresses, workplaces). Use generic words instead (e.g., &ldquo;someone&rdquo;, &ldquo;work&rdquo;, &ldquo;home&rdquo;).</li>
+      </ul>
+
+      <table class="popup-table">
+        <thead>
+          <tr><th>Domain</th><th>Template</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Identity / worth</td><td>I am [negative trait]</td></tr>
+          <tr><td>Ability / competence</td><td>I can&rsquo;t [verb]</td></tr>
+          <tr><td>Acceptance / likeability</td><td>I am [unlikeable / not welcome / don&rsquo;t belong]</td></tr>
+          <tr><td>Deservingness</td><td>I don&rsquo;t deserve [X]</td></tr>
+          <tr><td>Responsibility / blame</td><td>I [verb] things / I make [noun] worse</td></tr>
+          <tr><td>Prediction</td><td>I will [negative outcome]</td></tr>
+          <tr><td>Control / agency</td><td>I have no [noun] / I can&rsquo;t [verb] this</td></tr>
+          <tr><td>Appearance / body</td><td>I look [negative]</td></tr>
+          <tr><td>Morality / character</td><td>I am [moral judgement]</td></tr>
+        </tbody>
+      </table>
+
+      <div class="popup-subtitle">2) Build your sentence</div>
+      <p>Use one template above, or write your own.</p>
+      <p>Draft your own:</p>
+      <p style="border-bottom: 1px solid #999; height: 1.6em;">&nbsp;</p>
+      <p style="border-bottom: 1px solid #999; height: 1.6em;">&nbsp;</p>
+
+      <div class="popup-subtitle">3) Final sentence</div>
+      <p>My final sentence:</p>
+      <p style="border-bottom: 1px solid #999; height: 1.6em;">&nbsp;</p>
+      <p style="border-bottom: 1px solid #999; height: 1.6em;">&nbsp;</p>
     </div>
   </div>
 </div>
@@ -374,7 +441,7 @@
     <button class="popup-close">&#x2715;</button>
     <div class="popup-title">Technical Specifications</div>
     <div class="popup-body">
-      <p>In Ableton<span class="ref" data-tip="tip26">[26]</span> an audio effect rack was created, an audio rack is a chain of audio effects/devices that are used for the audio modulation. The chain starts with a compressor for volume control. After the compressor, the graillon 3 (a VST) [27] is used for shifting the pitch (from high to low). Swirl is used for the robot modulation. Swirl is an audio filter native in Ableton that uses a very fast LFO at 38Hz to move a resonant filter across a frequency spectrum set at 152Hz. In swirl you have a morph parameter, which blends different filter types giving the sound certain texture. Outer space is a preset in the reverb audio effect that simulates how sound reflects and decays in a large physical space. Utility is used to control the volume, the gain was adjusted to have a minimal db of -20 and a max of 35 db. Participants could not turn the volume down completely, ensuring continuous audio playback throughout the experiment. For the panning of the audio the E4L source panner <span class="ref" data-tip="tip28">[28]</span> was used. In this setup played through standard stereo headphones, the perceptible effect resembles conventional left-right panning, but the e4L source panner is designed for 3D (Ambisonic) spatial positioning so there was a subtle spatial depth for the attentive listener. This was chosen deliberately because the ambisonic architecture of the E4L plugin could be a foundation for future work involving more advanced spatial movement of sound. Limiter was used the close the audio chain preventing digital clipping and distortion. </p>
+      <p>In Ableton<span class="ref" data-tip="tip26">[26]</span> an audio effect rack was created, an audio rack is a chain of audio effects/devices that are used for the audio modulation. The chain starts with a compressor for volume control. After the compressor, the graillon 3 (a VST) <span class="ref" data-tip="tip27">[27]</span> is used for shifting the pitch (from high to low). The robot modulation was achieved using Swirl, an audio filter native to Ableton that applies a resonant filter effect to the voice. The reverb modulation used Outer Space, a preset that simulates how sound reflects and decays in a large physical space. Utility is used to control the volume, the gain was adjusted to have a minimal db of -20 and a max of 35 db. Participants could not turn the volume down completely, ensuring continuous audio playback throughout the experiment. For the panning of the audio the E4L source panner <span class="ref" data-tip="tip28">[28]</span> was used. In this setup played through standard stereo headphones, the perceptible effect resembles conventional left-right panning, but the e4L source panner is designed for 3D (Ambisonic) spatial positioning so there was a subtle spatial depth for the attentive listener. This was chosen deliberately because the ambisonic architecture of the E4L plugin could be a foundation for future work involving more advanced spatial movement of sound. Limiter was used the close the audio chain preventing digital clipping and distortion. </p>
       <p>Graillon, Swirl, Outer Space, Utility and the E4L Source panner were mapped via Ableton's MIDI Map Mode to specific knobs on the Novation Circuit Rhythm for real-time manipulation of the modulation parameters during the experiment.</p>
       <table class="popup-table">
         <thead>
@@ -2282,6 +2349,19 @@ document.querySelectorAll('.codebook-link').forEach(link => {
   });
 });
 
+document.querySelectorAll('.worksheet-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const parentOverlay = link.closest('.popup-overlay');
+    const worksheetOverlay = document.getElementById('worksheetOverlay');
+    if (parentOverlay) {
+      parentOverlay.classList.remove('show');
+      worksheetOverlay.dataset.returnTo = parentOverlay.id;
+    }
+    worksheetOverlay.classList.add('show');
+  });
+});
+
 document.querySelectorAll('.interactive-table-link').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
@@ -2392,6 +2472,17 @@ document.querySelectorAll('.plugin-row').forEach(row => {
     pluginImageImg.src = row.dataset.img;
     pluginImageImg.alt = row.dataset.title;
     pluginImageTitle.textContent = row.dataset.title;
+    pluginImageOverlay.classList.add('show');
+  });
+});
+
+// "screen" link in the GUI paragraph opens the GUI Screen photo in the same lightbox.
+document.querySelectorAll('.gui-image-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    pluginImageImg.src = 'GUI Screen.png';
+    pluginImageImg.alt = 'GUI Screen';
+    pluginImageTitle.textContent = 'GUI Screen';
     pluginImageOverlay.classList.add('show');
   });
 });
