@@ -366,7 +366,6 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-console.log('radio-v2.html build check: chassis metalness=0.48 envMapIntensity=0.16-0.17, antenna icon size=0.9, camera z=13');
 
 // ── Renderer ───────────────────────────────────────────────────────────────
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -723,10 +722,9 @@ window.addEventListener('keydown', (e) => {
   isPlaying = false;
   screenGlow.intensity = 0;
   redrawScreen();
-  radioDeepDiveOverlay.classList.remove('show');
-  methodOverlay.classList.remove('show');
-  researchQuestionOverlay.classList.remove('show');
-  howItWorksOverlay.classList.remove('show');
+  document.querySelectorAll('.popup-overlay.show').forEach(overlay => {
+    overlay.classList.remove('show');
+  });
 });
 
 function redrawScreen() {
@@ -1508,6 +1506,8 @@ renderer.domElement.addEventListener('wheel', e => {
     return;
   }
   camera.position.z = THREE.MathUtils.clamp(camera.position.z + e.deltaY * 0.02, 7, 22);
+  updateRadioInfoBtnPosition();
+  updateMixerTitleFramePosition();
 }, { passive: false });
 
 // ── Interaction ────────────────────────────────────────────────────────────
@@ -1515,7 +1515,6 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 let isDraggingSlider = false;
-let prevPointerY = 0;          // kept for any future use
 let sliderDragStartClientY = 0;
 let sliderDragStartLocalY  = 0;
 
@@ -1576,24 +1575,16 @@ function positionHoverTip(tipEl, clientX, clientY) {
 const howItWorksBtn = document.getElementById('howItWorksBtn');
 const howItWorksArrow = document.getElementById('howItWorksArrow');
 const howItWorksOverlay = document.getElementById('howItWorksOverlay');
-const howItWorksClose = document.getElementById('howItWorksClose');
 
 howItWorksBtn.addEventListener('click', () => {
   howItWorksOverlay.classList.add('show');
   howItWorksArrow.style.display = 'none';   // bouncing arrow was just to draw the eye to the button once
-});
-howItWorksClose.addEventListener('click', () => {
-  howItWorksOverlay.classList.remove('show');
-});
-howItWorksOverlay.addEventListener('click', (e) => {
-  if (e.target === howItWorksOverlay) howItWorksOverlay.classList.remove('show');
 });
 
 // ── Radio metaphor info popup — plain click button (a hover tooltip here kept
 // re-triggering as the mouse moved, making the button inside unclickable) ──
 const radioInfoBtn = document.getElementById('radio-info-btn');
 const radioDeepDiveOverlay = document.getElementById('radioDeepDiveOverlay');
-const radioDeepDiveClose = document.getElementById('radioDeepDiveClose');
 
 radioInfoBtn.addEventListener('click', () => {
   radioDeepDiveOverlay.classList.add('show');
@@ -1633,27 +1624,13 @@ function updateMixerTitleFramePosition() {
   mixerFrameEl.style.width = Math.abs(x2 - x1) + 'px';
   mixerFrameEl.style.height = Math.abs(y2 - y1) + 'px';
 }
-radioDeepDiveClose.addEventListener('click', () => {
-  radioDeepDiveOverlay.classList.remove('show');
-});
-radioDeepDiveOverlay.addEventListener('click', (e) => {
-  if (e.target === radioDeepDiveOverlay) radioDeepDiveOverlay.classList.remove('show');
-});
-
 // ── Method popup — summarizes the original experiment, points to the radio's
 // zoomed-in deep dive for the full method/results/findings ─────────────────
 const methodBtn = document.getElementById('methodBtn');
 const methodOverlay = document.getElementById('methodOverlay');
-const methodClose = document.getElementById('methodClose');
 
 methodBtn.addEventListener('click', () => {
   methodOverlay.classList.add('show');
-});
-methodClose.addEventListener('click', () => {
-  methodOverlay.classList.remove('show');
-});
-methodOverlay.addEventListener('click', (e) => {
-  if (e.target === methodOverlay) methodOverlay.classList.remove('show');
 });
 
 // "here" link inside the How-it-works popup jumps straight to the Real-life
@@ -1666,13 +1643,17 @@ document.getElementById('realLifeSetupLink').addEventListener('click', (e) => {
 
 // ── Research question popup — opened by clicking the brain in a jar ────────
 const researchQuestionOverlay = document.getElementById('researchQuestionOverlay');
-const researchQuestionClose = document.getElementById('researchQuestionClose');
 
-researchQuestionClose.addEventListener('click', () => {
-  researchQuestionOverlay.classList.remove('show');
-});
-researchQuestionOverlay.addEventListener('click', (e) => {
-  if (e.target === researchQuestionOverlay) researchQuestionOverlay.classList.remove('show');
+// Every popup above shares this close-button/backdrop-click behavior — one
+// generic loop instead of a hand-wired pair per overlay (matches the same
+// pattern already used in inside.html).
+document.querySelectorAll('.popup-overlay').forEach(overlay => {
+  overlay.querySelector('.popup-close').addEventListener('click', () => {
+    overlay.classList.remove('show');
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
 });
 
 renderer.domElement.addEventListener('pointerdown', e => {
@@ -1756,18 +1737,11 @@ renderer.domElement.addEventListener('pointerdown', e => {
   const ei = effectCapMeshes.indexOf(hit);
   if (ei >= 0) {
     const eb = effectBtns[ei];
-    const applyVisual = (active) => {
+    toggleComboBtn(eb, eb.ec.audioKey, (active) => {
       eb.cap.position.z = active ? BTN_Z_DOWN : BTN_Z_UP;
       eb.icon.position.z = eb.cap.position.z + 0.16;
       eb.cap.material.emissive.setHex(active ? eb.ec.activeEm : eb.ec.emissive);
-    };
-    if (slotAudio[eb.ec.audioKey].src) {
-      eb.active = slotAudio[eb.ec.audioKey].paused;
-      toggleSlotPlayback(eb.ec.audioKey, eb.active, applyVisual);
-    } else {
-      eb.active = !eb.active;
-      applyVisual(eb.active);
-    }
+    });
     return;
   }
 
@@ -1776,20 +1750,40 @@ renderer.domElement.addEventListener('pointerdown', e => {
   const mi = mixerCapMeshes.indexOf(hit);
   if (mi >= 0) {
     const mb = mixerBtns[mi];
-    const applyVisual = (active) => {
+    toggleComboBtn(mb, mb.audioKey, (active) => {
       mb.cap.position.z = active ? BTN_Z_DOWN : BTN_Z_UP;
       mb.icon.position.z = mb.cap.position.z + 0.16;
       mb.cap.material.emissiveMap = active ? mb.splitOn : mb.splitOff;
-    };
-    if (slotAudio[mb.audioKey].src) {
-      mb.active = slotAudio[mb.audioKey].paused;
-      toggleSlotPlayback(mb.audioKey, mb.active, applyVisual);
-    } else {
-      mb.active = !mb.active;
-      applyVisual(mb.active);
-    }
+    });
   }
 });
+
+// Shared by the effect and mixer-combo buttons above: if this modulation has
+// a real recording for the current thought, toggle its playback; otherwise
+// there's nothing to play yet, so just flip the pressed/unpressed visual.
+// Only how "pressed" looks differs between the two (emissive color vs.
+// emissiveMap texture), so that stays as each call site's own applyVisual.
+function toggleComboBtn(btn, audioKey, applyVisual) {
+  if (slotAudio[audioKey].src) {
+    btn.active = slotAudio[audioKey].paused;
+    toggleSlotPlayback(audioKey, btn.active, applyVisual);
+  } else {
+    btn.active = !btn.active;
+    applyVisual(btn.active);
+  }
+}
+
+// Static one-mesh(-or-two)-to-one-tooltip mappings — looped instead of a
+// separate if/else per control in both pointermove (show) and pointerleave
+// (hide). Tooltips needing extra logic (brain, mixer combos, effect label
+// text) stay handled separately below, since they aren't a plain lookup.
+const SIMPLE_HOVER_TIPS = [
+  { hits: [playBtn], tip: playTip },
+  { hits: [loopBtn], tip: loopTip },
+  { hits: [prevThoughtBtn, nextThoughtBtn], tip: thoughtSelectTip },
+  { hits: [sliderHandle], tip: volumeTip },
+  { hits: [mixerTitle], tip: mixerTitleTip },
+];
 
 renderer.domElement.addEventListener('pointermove', e => {
   if (isDraggingSlider) {
@@ -1817,19 +1811,11 @@ renderer.domElement.addEventListener('pointermove', e => {
     brainTip.style.display = 'none';
   }
 
-  // Play button — explains that the recordings are pre-made, not the visitor's own voice
-  if (hit === playBtn) {
-    positionHoverTip(playTip, e.clientX, e.clientY);
-  } else {
-    playTip.style.display = 'none';
-  }
-
-  // Loop button — explains why looping the thought is a deliberate design choice
-  if (hit === loopBtn) {
-    positionHoverTip(loopTip, e.clientX, e.clientY);
-  } else {
-    loopTip.style.display = 'none';
-  }
+  // Play/loop/thought-arrows/volume/mixer-title — plain one-mesh-to-one-tip lookups
+  SIMPLE_HOVER_TIPS.forEach(({ hits, tip }) => {
+    if (hits.includes(hit)) positionHoverTip(tip, e.clientX, e.clientY);
+    else tip.style.display = 'none';
+  });
 
   // Mixer combo buttons — explains what each pair of transformations does
   const mixIdx = mixerCapMeshes.indexOf(hit);
@@ -1838,13 +1824,6 @@ renderer.domElement.addEventListener('pointermove', e => {
     else tip.style.display = 'none';
   });
 
-  // Thought selection arrows — clarifies these are pre-picked, not self-recorded
-  if (hit === prevThoughtBtn || hit === nextThoughtBtn) {
-    positionHoverTip(thoughtSelectTip, e.clientX, e.clientY);
-  } else {
-    thoughtSelectTip.style.display = 'none';
-  }
-
   // Effect buttons (pitch/robot/reverb/pan) — a one-line reflective prompt each
   const effectIdx = effectCapMeshes.indexOf(hit);
   if (effectIdx >= 0) {
@@ -1852,20 +1831,6 @@ renderer.domElement.addEventListener('pointermove', e => {
     positionHoverTip(effectTip, e.clientX, e.clientY);
   } else {
     effectTip.style.display = 'none';
-  }
-
-  // Volume slider handle
-  if (hit === sliderHandle) {
-    positionHoverTip(volumeTip, e.clientX, e.clientY);
-  } else {
-    volumeTip.style.display = 'none';
-  }
-
-  // "MIXER" title — explains that each button below combines two transformations
-  if (hit === mixerTitle) {
-    positionHoverTip(mixerTitleTip, e.clientX, e.clientY);
-  } else {
-    mixerTitleTip.style.display = 'none';
   }
 });
 
@@ -1884,20 +1849,23 @@ renderer.domElement.addEventListener('pointerleave', () => {
   }
   renderer.domElement.style.cursor = 'default';
   brainTip.style.display = 'none';
-  playTip.style.display = 'none';
-  loopTip.style.display = 'none';
+  SIMPLE_HOVER_TIPS.forEach(({ tip }) => tip.style.display = 'none');
   mixTips.forEach(tip => tip.style.display = 'none');
-  mixerTitleTip.style.display = 'none';
   effectTip.style.display = 'none';
-  volumeTip.style.display = 'none';
-  thoughtSelectTip.style.display = 'none';
 });
+
+// Initial placement — afterwards these only need to run again when the
+// camera actually moves (wheel-zoom, the zoom-transition dive, or resize).
+updateRadioInfoBtnPosition();
+updateMixerTitleFramePosition();
 
 // ── Resize ─────────────────────────────────────────────────────────────────
 window.addEventListener('resize', () => {
   fitCamera();
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
+  updateRadioInfoBtnPosition();
+  updateMixerTitleFramePosition();
 });
 
 // ── Animation loop ──────────────────────────────────────────────────────────
@@ -1938,10 +1906,14 @@ renderer.setAnimationLoop(time => {
     camera.fov = THREE.MathUtils.lerp(zoomTransitionFov, 75, ease);
     camera.updateProjectionMatrix();
     zoomFadeEl.style.opacity = t;
+    // Camera moves every frame during this transition, so the screen-space
+    // anchors need to track it here too (outside this, they only change on
+    // wheel/resize — see those handlers — so there's no need to redo this
+    // projection on every single frame the rest of the time).
+    updateRadioInfoBtnPosition();
+    updateMixerTitleFramePosition();
   }
 
-  updateRadioInfoBtnPosition();
-  updateMixerTitleFramePosition();
   composer.render();
 });
 

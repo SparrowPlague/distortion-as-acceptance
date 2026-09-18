@@ -535,24 +535,6 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
 }
 .inner-card:hover .inner-card-more { color: #fff; }
 
-.side-note {
-  position: absolute;
-  left: 24px;
-  top: 80px;
-  width: 220px;
-  font-family: var(--f-body);
-  font-style: italic;
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgba(255,255,255,0.55);
-  transition: opacity 0.3s, transform 0.3s;
-}
-.side-note.cards-hidden {
-  opacity: 0;
-  transform: translateX(-20px);
-  pointer-events: none;
-}
-
 /* ── "WHAT IS THIS" POPUP ── */
 .ref-overlay {
   position: fixed;
@@ -827,9 +809,6 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
   .anatomy-believable { bottom: -16px; }
   .inner-cards { bottom: calc(16px + 4vh); }
   .thought-hint { top: 64px; }
-}
-@media (max-width: 700px) {
-  .side-note { display: none; }
 }
 </style>
 </head>
@@ -1140,18 +1119,22 @@ function drawCoverWave() {
 drawCoverWave();
 window.addEventListener('resize', drawCoverWave);
 
-/* ── TITLE GLITCH ── */
-const coverTitle = document.querySelector('.cover-title');
-let glitchTimer = null;
-if (coverTitle) {
-  coverTitle.addEventListener('mouseenter', () => {
-    clearTimeout(glitchTimer);
-    coverTitle.classList.remove('is-glitching');
-    void coverTitle.offsetWidth;
-    coverTitle.classList.add('is-glitching');
-    glitchTimer = setTimeout(() => coverTitle.classList.remove('is-glitching'), 700);
+/* ── TITLE GLITCH — re-triggers the glitch animation on hover (replaying a CSS
+   class-toggle animation needs a reflow between remove/add, or the browser
+   just sees the class was already there and skips it) ── */
+function wireGlitch(el) {
+  if (!el) return;
+  let timer = null;
+  el.addEventListener('mouseenter', () => {
+    clearTimeout(timer);
+    el.classList.remove('is-glitching');
+    void el.offsetWidth;
+    el.classList.add('is-glitching');
+    timer = setTimeout(() => el.classList.remove('is-glitching'), 700);
   });
 }
+const coverTitle = document.querySelector('.cover-title');
+wireGlitch(coverTitle);
 
 /* ── REFERENCE TOOLTIPS ── */
 function showTip(e, id) {
@@ -1179,22 +1162,26 @@ function closePopup(overlay) {
   if (extra) extra.classList.remove('zoom-in');
 }
 
-document.querySelectorAll('.inner-card[data-overlay]').forEach(card => {
-  const overlay = document.getElementById(card.dataset.overlay);
-  card.addEventListener('click', () => overlay.classList.add('show'));
+// Shared by every .ref-overlay below: close button + click-outside-to-close.
+// Opening is wired separately per overlay, since not all of them open the
+// same way (a card click vs. programmatically, for the thought-intro box).
+function wirePopupClose(overlay) {
   overlay.querySelector('.ref-popup-close').addEventListener('click', () => closePopup(overlay));
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closePopup(overlay);
   });
+}
+
+document.querySelectorAll('.inner-card[data-overlay]').forEach(card => {
+  const overlay = document.getElementById(card.dataset.overlay);
+  card.addEventListener('click', () => overlay.classList.add('show'));
+  wirePopupClose(overlay);
 });
 
 // Thought-page intro box — not tied to a card, just opened programmatically
 // the moment the thought page itself appears (see the two call sites below).
 const thoughtIntroOverlay = document.getElementById('thoughtIntroOverlay');
-thoughtIntroOverlay.querySelector('.ref-popup-close').addEventListener('click', () => closePopup(thoughtIntroOverlay));
-thoughtIntroOverlay.addEventListener('click', (e) => {
-  if (e.target === thoughtIntroOverlay) closePopup(thoughtIntroOverlay);
-});
+wirePopupClose(thoughtIntroOverlay);
 
 document.querySelectorAll('.popup-readmore').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1221,14 +1208,7 @@ document.addEventListener('keydown', (e) => {
 
 /* ── THOUGHT TITLE GLITCH (hover only) ── */
 const thoughtTitle = document.getElementById('thoughtTitle');
-let thoughtGlitchTimer = null;
-thoughtTitle.addEventListener('mouseenter', () => {
-  clearTimeout(thoughtGlitchTimer);
-  thoughtTitle.classList.remove('is-glitching');
-  void thoughtTitle.offsetWidth;
-  thoughtTitle.classList.add('is-glitching');
-  thoughtGlitchTimer = setTimeout(() => thoughtTitle.classList.remove('is-glitching'), 700);
-});
+wireGlitch(thoughtTitle);
 
 /* ── THOUGHT DIAGRAM: stepped anatomy-style connector lines ── */
 function drawThoughtLines() {
@@ -1269,7 +1249,6 @@ const anatomyPopup = document.getElementById('anatomyPopup');
 const anatomyPopupTitle = document.getElementById('anatomyPopupTitle');
 const anatomyPopupBody = document.getElementById('anatomyPopupBody');
 const innerCardsEl = document.getElementById('innerCards');
-const sideNoteEl = document.getElementById('sideNote');
 
 const anatomyContent = {
   negative: { title: 'Negative', body: 'Negative self-referential thoughts are evaluative and critical in nature. They judge, diminish, or condemn. Unlike neutral self-observations, they carry emotional weight — and that weight is what makes them feel so significant.' },
@@ -1346,7 +1325,6 @@ document.querySelectorAll('.anatomy-label').forEach(label => {
     setActiveAnatomy(key);
     anatomyPopup.classList.add('show');
     innerCardsEl.classList.add('cards-hidden');
-    sideNoteEl.classList.add('cards-hidden');
   });
 });
 
@@ -1354,7 +1332,6 @@ function closeAnatomyPopup() {
   anatomyPopup.classList.remove('show');
   setActiveAnatomy(null);
   innerCardsEl.classList.remove('cards-hidden');
-  sideNoteEl.classList.remove('cards-hidden');
 }
 document.getElementById('anatomyPopupClose').addEventListener('click', closeAnatomyPopup);
 
@@ -1434,6 +1411,19 @@ skipBtn.addEventListener('click', () => {
   autoZoom();
 });
 
+// Shared "reveal the thought stage" step, used both by the video's phase-2
+// hard cut (autoZoom, below) and the #thoughts deep link (jumpToThoughts) —
+// the title glitch-retrigger and progress bar differ per caller (autoZoom
+// needs to force a reflow to replay the glitch on an already-visible title;
+// jumpToThoughts never had it playing, so a plain class add is enough), so
+// those two bits stay at each call site.
+function showThoughtLayer() {
+  innerLayer.classList.add('show');
+  thoughtIntroOverlay.classList.add('show');
+  continueBtn.style.display = '';
+  skipBtn.style.display = 'none';   // no video left to skip once the thought page is showing
+}
+
 function autoZoom() {
   const glitchDuration = 900;  // full digital breakdown, starts immediately
   const cutDuration = 350;     // hard cut to next layer
@@ -1463,14 +1453,11 @@ function autoZoom() {
       if (vid.classList.contains('glitching')) {
         vid.classList.remove('glitching');
         vid.style.opacity = '0';
-        innerLayer.classList.add('show');
-        thoughtIntroOverlay.classList.add('show');
+        showThoughtLayer();
         const innerTitle = innerLayer.querySelector('.inner-title');
         innerTitle.classList.remove('glitch-in');
         void innerTitle.offsetWidth;
         innerTitle.classList.add('glitch-in');
-        continueBtn.style.display = '';
-        skipBtn.style.display = 'none';   // no video left to skip once the thought page is showing
       }
       progressBar.style.width = (70 + ((elapsed - glitchDuration) / cutDuration) * 30) + '%';
       requestAnimationFrame(frame);
@@ -1489,12 +1476,9 @@ function jumpToThoughts() {
   titlePage.style.display = 'none';
   vid.pause();
   vid.style.opacity = '0';
-  innerLayer.classList.add('show');
-  thoughtIntroOverlay.classList.add('show');
+  showThoughtLayer();
   innerLayer.querySelector('.inner-title').classList.add('glitch-in');
   navControls.classList.add('show');
-  continueBtn.style.display = '';
-  skipBtn.style.display = 'none';   // no video left to skip once the thought page is showing
   progressBar.style.width = '100%';
 }
 if (location.hash === '#thoughts') {

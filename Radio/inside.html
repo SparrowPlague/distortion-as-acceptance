@@ -236,10 +236,8 @@
     color: rgba(0,0,0,0.5);
     margin-top: 6px;
   }
-  #cfqOverlay .popup-box { max-width: 920px; }   /* wider — fits the pre/post VAS table without it feeling cramped */
-  #cfqOverlay .popup-table-hint { font-size: 0.8rem; }   /* smaller here than the default hint size elsewhere */
-  #pitchOverlay .popup-table-hint, #robotOverlay .popup-table-hint, #reverbOverlay .popup-table-hint, #panningOverlay .popup-table-hint { font-size: 0.8rem; }
-  #pitchOverlay .popup-box, #robotOverlay .popup-box, #reverbOverlay .popup-box, #panningOverlay .popup-box { max-width: 920px; }   /* wider — fits the three side-by-side plots */
+  #cfqOverlay .popup-box, #pitchOverlay .popup-box, #robotOverlay .popup-box, #reverbOverlay .popup-box, #panningOverlay .popup-box { max-width: 920px; }   /* wider — CFQ fits the pre/post VAS table, the others fit three side-by-side plots */
+  #cfqOverlay .popup-table-hint, #pitchOverlay .popup-table-hint, #robotOverlay .popup-table-hint, #reverbOverlay .popup-table-hint, #panningOverlay .popup-table-hint { font-size: 0.8rem; }   /* smaller here than the default hint size elsewhere */
   .popup-image-row { display: flex; gap: 12px; margin: 20px 0 4px; }
   .zoomable-image { cursor: zoom-in; }
   .popup-image-row img { width: 100%; border-radius: 4px; display: block; }
@@ -248,6 +246,7 @@
   .plugin-image-box .popup-close { color: rgba(255,255,255,0.55); }
   .plugin-image-box .popup-close:hover { color: #fff; }
   .plugin-image-box .popup-image { border: 1px solid #000; background: #000; }
+  .worksheet-line { border-bottom: 1px solid #999; height: 1.6em; }
 </style>
 </head>
 <body>
@@ -303,7 +302,7 @@
       <p>Each experiment session took approximately 40/50 minutes including consent & debriefing. No fixed time limit was imposed in order to prevent any feeling of performance pressure. There were no sessions that exceeded one hour.</p>
 
       <div class="popup-subtitle">Thought selection</div>
-      <p>Participants were asked to identify one negative self-referential thought that they experienced repeatedly and found personally distressing and believable. To support this process, a <a class="worksheet-link">worksheet</a> was provided to help participants formulate and articulate their thought. At no point were participants required to share their negative self-referential thought with the researcher, it remained private throughout the experiment. The thought selection was conducted by the researcher, who guided participants through the thought selection process using a standardised set of instructions. A script was written in Dutch and English, so each session the same introduction and explanation was used.</p>
+      <p>Participants were asked to identify one negative self-referential thought that they experienced repeatedly and found personally distressing and believable. To support this process, a <a class="popup-link" data-target-overlay="worksheetOverlay">worksheet</a> was provided to help participants formulate and articulate their thought. At no point were participants required to share their negative self-referential thought with the researcher, it remained private throughout the experiment. The thought selection was conducted by the researcher, who guided participants through the thought selection process using a standardised set of instructions. A script was written in Dutch and English, so each session the same introduction and explanation was used.</p>
 
       <div class="popup-subtitle">Pre Visual analog scale (VAS)</div>
       <p>The impact of the negative self-referential thought was assessed across three outcomes: believability, discomfort and acceptance. This was assessed using a visual analog scale before and after the experiment. Responses ranged from 0 &ndash; 100 with 0 (not uncomfortable at all) to 100 (very uncomfortable) for the emotional discomfort, 0 (not believable at all) to 100 (very believable) for the believability scale, and 0 (not accepted at all) to 100 (fully accepted) for the acceptance scale.</p>
@@ -316,9 +315,7 @@
       <p>After completion of the survey, participants were instructed how to record their thought. A Novation Circuit Rhythm sampler was used as the primary control device. Buttons were mapped to record, play and stop. When the participant was confident enough to record their own thought, the researcher left the room and came back as soon as the participant was done recording. Participants could record their thought up to three times and select the recording they preferred.</p>
 
       <div class="popup-subtitle">Graphical user interface</div>
-      <p>Once participants had finished their recording, the researcher launched the custom graphical user interface (GUI). A <a class="gui-image-link">screen</a> showed the GUI displaying a slider for each audio manipulation (pitch, robot, reverb, panning and volume). The sliders moved in real time in response to the physical controls on the Novation sampler, providing participants with visual feedback of the active modulations. A legend showing instructions for recording and resetting the audio modulations was positioned in the upper left corner of the screen*. The GUI was intentionally designed plain and simple, without to many distractions. The focus needed to be directed to the audio and not the screen. Participants were instructed to listen to each audio modulation in isolation before combining them (this instruction was also displayed on screen), so that they could clearly identify what each modulation sounded like individually. This allows us to assess the effect of each modulation individually as well as in combination. Once familiar with each effect, participants then freely explored and combined the modulations as they choose.  This element of free exploration was deliberate as it reflects ACT emphasis on experiential learning. Instead of conversing or imagining, the participants experiences the transformed sound of their own voice in real time. The audio was played in a loop, but participants were able stop the recording if the experience was too uncomfortable or distressing. The researcher walked participants through the interface with the audio on mute, so that the sound of each modulation was encountered for the first time during the experiment.</p>
-      <p></p>
-
+      <p>Once participants had finished their recording, the researcher launched the custom graphical user interface (GUI). A <a class="gui-image-link" data-img="GUI Screen.png" data-title="GUI Screen">screen</a> showed the GUI displaying a slider for each audio manipulation (pitch, robot, reverb, panning and volume). The sliders moved in real time in response to the physical controls on the Novation sampler, providing participants with visual feedback of the active modulations. A legend showing instructions for recording and resetting the audio modulations was positioned in the upper left corner of the screen*. The GUI was intentionally designed plain and simple, without to many distractions. The focus needed to be directed to the audio and not the screen. Participants were instructed to listen to each audio modulation in isolation before combining them (this instruction was also displayed on screen), so that they could clearly identify what each modulation sounded like individually. This allows us to assess the effect of each modulation individually as well as in combination. Once familiar with each effect, participants then freely explored and combined the modulations as they choose.  This element of free exploration was deliberate as it reflects ACT emphasis on experiential learning. Instead of conversing or imagining, the participants experiences the transformed sound of their own voice in real time. The audio was played in a loop, but participants were able stop the recording if the experience was too uncomfortable or distressing. The researcher walked participants through the interface with the audio on mute, so that the sound of each modulation was encountered for the first time during the experiment.</p>
       <div class="quote-label">Instruction text:</div>
       <div class="quote-block">
         <p>Pay attention to what you experience.</p>
@@ -330,7 +327,7 @@
       <div class="popup-subtitle">Post Visual analog scale (VAS) &amp; survey</div>
       <p>Following the interaction phase, participants completed a second VAS assessment (same as the VAS prior to the experiment). They also evaluated each modulation separately, rating its effect on believability, emotional discomfort and acceptance as better, neutral or worse. This made it possible to compare the effects of each modulation against each other. The ratings were scaled from -50 to +50. For believability, a higher score indicated the thought felt more believable. For emotional discomfort, a higher score indicated more discomfort. For acceptance, a higher score indicated greater acceptance of the thought.</p>
       <div class="popup-subtitle">Analysis of open-ended questions</div>
-      <p>Open-ended questions were analysed via a qualitative content analysis<span class="ref" data-tip="tip30">[30]</span>. Content analysis was chosen for its ability to systematically categorize language through both deductive and inductive approaches, and for its suitability in exploring participants' subjective experiences of the interaction. Coding was conducted by a single researcher using Taguette<span class="ref" data-tip="tip31">[31]</span>. To enhance transparency and support replicability, a full codebook including category definitions and illustrative examples was developed and is available <a class="codebook-link">here</a>. Categories were refined iteratively during coding, consistent with standard practice in qualitative content analysis <span class="ref" data-tip="tip32">[32]</span>.</p>
+      <p>Open-ended questions were analysed via a qualitative content analysis<span class="ref" data-tip="tip30">[30]</span>. Content analysis was chosen for its ability to systematically categorize language through both deductive and inductive approaches, and for its suitability in exploring participants' subjective experiences of the interaction. Coding was conducted by a single researcher using Taguette<span class="ref" data-tip="tip31">[31]</span>. To enhance transparency and support replicability, a full codebook including category definitions and illustrative examples was developed and is available <a class="popup-link" data-target-overlay="codebookOverlay">here</a>. Categories were refined iteratively during coding, consistent with standard practice in qualitative content analysis <span class="ref" data-tip="tip32">[32]</span>.</p>
       <p>Categories for experiential shifts were derived from theoretical frameworks relevant to cognitive defusion<span class="ref" data-tip="tip11">[11]</span>.<br>The following categories were used to code participant responses:</p>
 
       <p><b>Experiential shifts:</b></p>
@@ -415,13 +412,13 @@
       <div class="popup-subtitle">2) Build your sentence</div>
       <p>Use one template above, or write your own.</p>
       <p>Draft your own:</p>
-      <p style="border-bottom: 1px solid #999; height: 1.6em;">&nbsp;</p>
-      <p style="border-bottom: 1px solid #999; height: 1.6em;">&nbsp;</p>
+      <p class="worksheet-line">&nbsp;</p>
+      <p class="worksheet-line">&nbsp;</p>
 
       <div class="popup-subtitle">3) Final sentence</div>
       <p>My final sentence:</p>
-      <p style="border-bottom: 1px solid #999; height: 1.6em;">&nbsp;</p>
-      <p style="border-bottom: 1px solid #999; height: 1.6em;">&nbsp;</p>
+      <p class="worksheet-line">&nbsp;</p>
+      <p class="worksheet-line">&nbsp;</p>
     </div>
   </div>
 </div>
@@ -711,7 +708,7 @@
       <div style="min-height:253px" id="datawrapper-vis-xrpcH"><script type="text/javascript" defer src="https://datawrapper.dwcdn.net/xrpcH/embed.js" charset="utf-8" data-target="#datawrapper-vis-xrpcH"></script><noscript><img src="https://datawrapper.dwcdn.net/xrpcH/full.png" alt="What audio modulations did participants combine the most? (Bar Chart)" /></noscript></div>
 
       <div class="popup-subtitle">Content analysis</div>
-      <p>The results of the qualitative content analysis for experiential shifts, metaphors and affective state indicators are presented in a interactive data table (click on the <a class="interactive-table-link">table link</a> to start it). The table is divided three tabs (modulations + experiential shifts, modulation + metaphors and modulations + affective states). You can isolate a modulation or a categorie by clicking on it. Select question 1 or 2 if you want to see the coded categories for each question. It is also possible to click on the participants number to see all the coded categories across all three analyses. For all the definitions of the categories and general coding rules, click on the link to see the <a class="codebook-link">codebook</a>.</p>
+      <p>The results of the qualitative content analysis for experiential shifts, metaphors and affective state indicators are presented in a interactive data table (click on the <a class="popup-link" data-target-overlay="interactiveTableOverlay">table link</a> to start it). The table is divided three tabs (modulations + experiential shifts, modulation + metaphors and modulations + affective states). You can isolate a modulation or a categorie by clicking on it. Select question 1 or 2 if you want to see the coded categories for each question. It is also possible to click on the participants number to see all the coded categories across all three analyses. For all the definitions of the categories and general coding rules, click on the link to see the <a class="popup-link" data-target-overlay="codebookOverlay">codebook</a>.</p>
 
       <div class="popup-subtitle">Experiential shifts</div>
       <p>All the reported experiential shifts across the two analysed questions are shown in the interactive table. Increased intensity was the most frequently coded shift (n=5), followed by decreased intensity and outsider perspective (both n=4). Insider perspective and no shift were each coded for two participants, and one participant response was coded as descriptive. Pitch, reverb and robot were all three coded across all experiential shifts (Increased &amp; decreased perspective, out &amp; insider perspective and deliteralization).</p>
@@ -2269,12 +2266,19 @@ function setHoverState(mesh, isHover) {
   }
 }
 
-renderer.domElement.addEventListener('pointermove', e => {
+// Converts a pointer event to normalized device coords, aims the shared
+// raycaster from the camera, and returns whichever of `targets` it hit
+// first (or null) — used by both the hover and click listeners below.
+function raycastFromEvent(e, targets) {
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
   mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-  const hit = raycaster.intersectObjects(hoverTargets)[0]?.object ?? null;
+  return raycaster.intersectObjects(targets)[0]?.object ?? null;
+}
+
+renderer.domElement.addEventListener('pointermove', e => {
+  const hit = raycastFromEvent(e, hoverTargets);
   renderer.domElement.style.cursor = hit ? 'pointer' : 'default';
   if (hit !== hoveredMesh) {
     if (hoveredMesh) setHoverState(hoveredMesh, false);
@@ -2300,10 +2304,9 @@ renderer.domElement.addEventListener('pointerleave', () => {
 // ── Popups — opened by clicking REC/title (materials & setup) or the
 // Ableton logo (technical specs). Each clickable mesh names its own overlay
 // via userData.popupTarget, so this stays a single generic handler.
-// Closing a popup normally just hides it — except codebookOverlay and
-// interactiveTableOverlay, which can carry a data-return-to (set by the
-// codebook-link/interactive-table-link handlers below) naming the popup they
-// were opened from. Closing those returns you to that popup instead of
+// Closing a popup normally just hides it — except overlays opened via a
+// .popup-link (see below), which carry a data-return-to naming the popup
+// they were opened from. Closing those returns you to that popup instead of
 // dropping you back at the bare 3D scene, so "open the codebook from Mixer &
 // Content Analysis" and "close it again" is a round trip, not a dead end.
 function closePopup(overlay) {
@@ -2325,62 +2328,32 @@ document.querySelectorAll('.popup-overlay').forEach(overlay => {
   });
 });
 
-// "here"/"codebook" links open the codebook in a popup (an iframe onto
-// content_analysis_codebook.html) instead of a new tab. Shared class, not an
-// id, since there's more than one such link on the page — see the
-// interactive-table-link fix above for why that matters.
-// Both this and the interactive-table link close their own parent popup
-// first: every .popup-overlay shares the same z-index, so with two open at
-// once it's DOM order — not click order — that decides which one paints on
-// top. codebookOverlay happens to sit earlier in the document than e.g.
-// mixerOverlay, so opening it from inside mixerOverlay without closing that
-// parent first left it rendering underneath, invisible behind the popup you
-// clicked it from.
-document.querySelectorAll('.codebook-link').forEach(link => {
+// Text links that open another popup (the codebook, the worksheet, the
+// interactive table) instead of a new tab — `data-target-overlay` names the
+// overlay to open, so one generic handler covers all of them. Shared class,
+// not an id, since more than one such link can appear on the page (e.g. two
+// separate codebook links) — see the duplicate-id fix this replaced.
+// Each one closes its own parent popup first: every .popup-overlay shares
+// the same z-index, so with two open at once it's DOM order — not click
+// order — that decides which one paints on top. codebookOverlay happens to
+// sit earlier in the document than e.g. mixerOverlay, so opening it from
+// inside mixerOverlay without closing that parent first left it rendering
+// underneath, invisible behind the popup you clicked it from.
+document.querySelectorAll('.popup-link').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
     const parentOverlay = link.closest('.popup-overlay');
-    const codebookOverlay = document.getElementById('codebookOverlay');
+    const targetOverlay = document.getElementById(link.dataset.targetOverlay);
     if (parentOverlay) {
       parentOverlay.classList.remove('show');
-      codebookOverlay.dataset.returnTo = parentOverlay.id;
+      targetOverlay.dataset.returnTo = parentOverlay.id;
     }
-    codebookOverlay.classList.add('show');
-  });
-});
-
-document.querySelectorAll('.worksheet-link').forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const parentOverlay = link.closest('.popup-overlay');
-    const worksheetOverlay = document.getElementById('worksheetOverlay');
-    if (parentOverlay) {
-      parentOverlay.classList.remove('show');
-      worksheetOverlay.dataset.returnTo = parentOverlay.id;
-    }
-    worksheetOverlay.classList.add('show');
-  });
-});
-
-document.querySelectorAll('.interactive-table-link').forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const parentOverlay = link.closest('.popup-overlay');
-    const tableOverlay = document.getElementById('interactiveTableOverlay');
-    if (parentOverlay) {
-      parentOverlay.classList.remove('show');
-      tableOverlay.dataset.returnTo = parentOverlay.id;
-    }
-    tableOverlay.classList.add('show');
+    targetOverlay.classList.add('show');
   });
 });
 
 renderer.domElement.addEventListener('click', e => {
-  const rect = renderer.domElement.getBoundingClientRect();
-  mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-  mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  const hit = raycaster.intersectObjects(clickTargets)[0]?.object ?? null;
+  const hit = raycastFromEvent(e, clickTargets);
   if (hit?.userData.popupTarget) {
     document.getElementById(hit.userData.popupTarget).classList.add('show');
   } else if (hit?.userData.isPlayButton) {
@@ -2463,26 +2436,18 @@ document.querySelectorAll('.ref[data-tip]').forEach(el => {
   el.addEventListener('mouseleave', () => hideTip(el.dataset.tip));
 });
 
-// ── Plugin screenshots — click a row in the specs table to see that plugin ─
+// ── Plugin screenshots — click a row in the specs table (or a text link like
+// the GUI paragraph's "screen") to see that image, sized from its own
+// data-img/data-title rather than a hardcoded filename per link. ─────────
 const pluginImageOverlay = document.getElementById('pluginImageOverlay');
 const pluginImageImg = document.getElementById('pluginImageImg');
 const pluginImageTitle = document.getElementById('pluginImageTitle');
-document.querySelectorAll('.plugin-row').forEach(row => {
-  row.addEventListener('click', () => {
-    pluginImageImg.src = row.dataset.img;
-    pluginImageImg.alt = row.dataset.title;
-    pluginImageTitle.textContent = row.dataset.title;
-    pluginImageOverlay.classList.add('show');
-  });
-});
-
-// "screen" link in the GUI paragraph opens the GUI Screen photo in the same lightbox.
-document.querySelectorAll('.gui-image-link').forEach(link => {
-  link.addEventListener('click', (e) => {
+document.querySelectorAll('.plugin-row, .gui-image-link').forEach(el => {
+  el.addEventListener('click', (e) => {
     e.preventDefault();
-    pluginImageImg.src = 'GUI Screen.png';
-    pluginImageImg.alt = 'GUI Screen';
-    pluginImageTitle.textContent = 'GUI Screen';
+    pluginImageImg.src = el.dataset.img;
+    pluginImageImg.alt = el.dataset.title;
+    pluginImageTitle.textContent = el.dataset.title;
     pluginImageOverlay.classList.add('show');
   });
 });
