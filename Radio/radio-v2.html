@@ -1856,6 +1856,15 @@ renderer.domElement.addEventListener('pointerleave', () => {
 
 // Initial placement — afterwards these only need to run again when the
 // camera actually moves (wheel-zoom, the zoom-transition dive, or resize).
+// Both projections read matrixWorld off the radio/camera, which is only kept
+// current by the render loop — and that loop hasn't run yet at this point in
+// the script. Without forcing an update first, this first projection uses
+// stale (identity) matrices and places the button off-screen; it only
+// self-corrects once the user resizes or scrolls the wheel, since those
+// handlers also call these two functions. Forcing the update here means the
+// button is positioned correctly from the very first frame.
+camera.updateMatrixWorld();
+scene.updateMatrixWorld(true);
 updateRadioInfoBtnPosition();
 updateMixerTitleFramePosition();
 

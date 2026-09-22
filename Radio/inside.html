@@ -9,9 +9,8 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #23252a; overflow: hidden; }
   canvas { display: block; }
-  #go-back {
+  #go-back, #go-thought {
     position: fixed;
-    bottom: 48px;
     left: 48px;
     display: flex;
     align-items: center;
@@ -19,7 +18,9 @@
     cursor: pointer;
     user-select: none;
   }
-  #go-back .circle {
+  #go-back { bottom: 48px; }
+  #go-thought { bottom: 98px; }   /* stacked directly above go-back, same gap as the circle's own height */
+  #go-back .circle, #go-thought .circle {
     width: 34px;
     height: 34px;
     border-radius: 50%;
@@ -27,10 +28,10 @@
     background: rgba(255,255,255,0.08);
     transition: background 0.2s;
   }
-  #go-back:hover .circle {
+  #go-back:hover .circle, #go-thought:hover .circle {
     background: rgba(255,255,255,0.22);
   }
-  #go-back span {
+  #go-back span, #go-thought span {
     color: #fff;
     font: 500 13px/1 'Courier New', monospace;
     letter-spacing: 0.18em;
@@ -251,9 +252,14 @@
 </head>
 <body>
 
+<div id="go-thought">
+  <div class="circle"></div>
+  <span>Go back to the thought</span>
+</div>
+
 <div id="go-back">
   <div class="circle"></div>
-  <span>Go back</span>
+  <span>Go back to the radio</span>
 </div>
 
 <!-- Shown automatically on load (the "show" class is already in the markup,
@@ -2583,6 +2589,13 @@ renderer.setAnimationLoop((time) => {
 // ── Go back to the radio ────────────────────────────────────────────────────
 document.getElementById('go-back').addEventListener('click', () => {
   window.location.href = 'radio-v2.html';
+});
+
+// ── Go back to the thought (jumps straight past thesis-experience.html's
+// cover/video, landing on the "What is this? / Why does it feel real? / ..."
+// card layer — same deep-link hash that jumpToThoughts() there listens for) ──
+document.getElementById('go-thought').addEventListener('click', () => {
+  window.location.href = 'thesis-experience.html#thoughts';
 });
 </script>
 
