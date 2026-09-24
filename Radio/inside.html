@@ -2542,7 +2542,10 @@ renderer.setAnimationLoop((time) => {
 // phone-sized visitor gets sent back to the flat radio-mobile.html instead
 // of the 3D radio-v2.html.
 document.getElementById('go-back').addEventListener('click', () => {
-  window.location.href = window.innerWidth <= 700 ? 'radio-mobile.html' : 'radio-v2.html';
+  // The smaller of width/height, not width alone — a landscape phone is
+  // still a phone (its width can exceed 700px once rotated), so checking
+  // width only would wrongly route it to the heavy 3D version.
+  window.location.href = Math.min(window.innerWidth, window.innerHeight) <= 700 ? 'radio-mobile.html' : 'radio-v2.html';
 });
 
 // ── Go back to the thought (jumps straight past thesis-experience.html's

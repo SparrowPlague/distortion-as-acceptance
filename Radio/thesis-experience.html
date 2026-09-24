@@ -841,7 +841,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
    dedicated line per word always does. The logo/tag-corner's generous
    --s8 side padding (64px) also reads as "centered" on a ~375px-wide
    screen — cut it down to --s4 so they sit back in the corners. */
-@media (max-width: 700px) {
+@media (max-width: 700px), (max-height: 700px) {
   .cover-top {
     padding: var(--s4) var(--s4);
   }
@@ -866,7 +866,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
    phone that same fixed 340px margin eats almost the entire width, leaving
    the video a sliver — a small fixed margin instead lets it fill most of
    the (much smaller) screen. */
-@media (max-width: 700px) {
+@media (max-width: 700px), (max-height: 700px) {
   video {
     width: calc(100% - 40px);
     height: calc(100% - 40px);
@@ -888,7 +888,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
    that already works fine on touch and needs no change. */
 .mobile-thought { display: none; }
 
-@media (max-width: 700px) {
+@media (max-width: 700px), (max-height: 700px) {
   .inner-layer {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -937,7 +937,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
    sized and padded for a wide desktop panel, so on a narrow phone the
    lines wrap awkwardly and feel cramped despite being "large" text.
    Smaller, tighter-padded text reads more comfortably at this width. */
-@media (max-width: 700px) {
+@media (max-width: 700px), (max-height: 700px) {
   .ref-popup {
     padding: 26px 18px;
   }
@@ -1665,11 +1665,13 @@ const radioTransition = document.getElementById('radio-transition');
 // Below 700px (same breakpoint used for every other mobile rebuild on this
 // site), the radio itself has no 3D/WebGL version — send those visitors to
 // the flat, button-based radio-mobile.html instead, so a phone never even
-// downloads Three.js for a scene it wouldn't render well anyway.
+// downloads Three.js for a scene it wouldn't render well anyway. Checked as
+// the smaller of width/height, not width alone, so a phone held sideways
+// (width temporarily > 700px) still counts as a phone.
 radioLinks.forEach((link) => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
-    const target = window.innerWidth <= 700 ? 'radio-mobile.html' : 'radio-v2.html';
+    const target = Math.min(window.innerWidth, window.innerHeight) <= 700 ? 'radio-mobile.html' : 'radio-v2.html';
     radioTransition.classList.add('show');
     setTimeout(() => {
       window.location.href = target;

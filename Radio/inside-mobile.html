@@ -356,18 +356,18 @@ a { color: inherit; }
   .popup-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 20px 0 4px;
-    font-size: 0.85rem;
+    margin: 16px 0 4px;
+    font-size: 0.74rem;
   }
   .popup-table th, .popup-table td {
     text-align: left;
-    padding: 8px 10px;
+    padding: 6px 8px;
     border-bottom: 1px solid rgba(0,0,0,0.15);
   }
   .popup-table th {
     font-family: 'IBM Plex Mono', 'Courier New', monospace;
     font-weight: 700;
-    font-size: 0.7rem;
+    font-size: 0.62rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: #555;
@@ -375,14 +375,18 @@ a { color: inherit; }
   .plugin-row { cursor: pointer; transition: background 0.15s ease; }
   .plugin-row:hover { background: rgba(122,79,158,0.08); }
   .popup-table-hint {
-    font-size: 0.95rem;
+    font-size: 0.72rem;
     font-style: italic;
     color: rgba(0,0,0,0.5);
     margin-top: 6px;
   }
-  #cfqOverlay .popup-box, #pitchOverlay .popup-box, #robotOverlay .popup-box, #reverbOverlay .popup-box, #panningOverlay .popup-box { max-width: 920px; }   /* wider — CFQ fits the pre/post VAS table, the others fit three side-by-side plots */
-  #cfqOverlay .popup-table-hint, #pitchOverlay .popup-table-hint, #robotOverlay .popup-table-hint, #reverbOverlay .popup-table-hint, #panningOverlay .popup-table-hint { font-size: 0.8rem; }   /* smaller here than the default hint size elsewhere */
-  .popup-image-row { display: flex; gap: 12px; margin: 20px 0 4px; }
+  /* Images that were shown side by side on the wide desktop popup (e.g.
+     three plots per modulation) stack instead on a narrow phone screen —
+     side by side here just squeezed each one down to unreadable. The
+     desktop-only "wider box for side-by-side plots" override is dropped
+     for the same reason: nothing needs the extra width once nothing sits
+     side by side any more. */
+  .popup-image-row { display: flex; flex-direction: column; gap: 16px; margin: 20px 0 4px; }
   .zoomable-image { cursor: zoom-in; }
   .popup-image-row img { width: 100%; border-radius: 4px; display: block; }
   .plugin-image-box { max-width: 1100px; background: #111; border-color: rgba(255,255,255,0.15); }   /* was 620px — barely bigger than most inline thumbnails, so "enlarge" didn't read as bigger */
