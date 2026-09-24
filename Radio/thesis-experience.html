@@ -886,30 +886,49 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
    connector lines and the "hover" hint (there's no hover on touch).
    Tapping a label still opens the same bottom-sheet popup as on desktop —
    that already works fine on touch and needs no change. */
+.mobile-thought { display: none; }
+
 @media (max-width: 700px) {
   .inner-layer {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     justify-content: flex-start;
-    padding: 90px 20px 40px;
-    gap: 40px;
+    padding: 140px 20px 40px;
+    gap: 0;
   }
-  .thought-diagram {
-    width: 100%;
-    min-height: 0;
+  /* The desktop diagram (absolute-positioned labels + drawn connector
+     lines around the sentence) is built for a layout with real width and
+     height to spread into — hide it entirely on phones rather than
+     continuing to fight its positioning with overrides. */
+  .thought-diagram, .thought-hint { display: none; }
+  .mobile-thought {
+    display: flex;
     flex-direction: column;
-    padding: 0;
-    transform: none;
-    gap: 22px;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 56px;
   }
-  .thought-lines, .thought-hint { display: none; }
-  .anatomy-label { position: static; }
+  .mobile-thought-title {
+    font-family: var(--f-display);
+    font-variation-settings: 'wdth' 76, 'wght' 830;
+    font-size: clamp(1.7rem, 7.5vw, 2.6rem);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .mobile-anatomy-label {
+    position: static;
+    margin: 10px 0;
+  }
   .inner-cards {
     position: static;
     left: auto;
     bottom: auto;
     transform: none;
     width: 100%;
+    max-width: 100%;
   }
 }
 </style>
@@ -990,6 +1009,24 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
     <div class="anatomy-label anatomy-self" data-key="self"><span class="anatomy-dot"></span>Self-referential</div>
     <div class="anatomy-label anatomy-automatic" data-key="automatic"><span class="anatomy-dot"></span>Automatic</div>
     <div class="anatomy-label anatomy-believable" data-key="believable"><span class="anatomy-dot"></span>Believable</div>
+  </div>
+
+  <!-- Mobile-only stacked stand-in for .thought-diagram above — shown instead
+       of it below 700px (see the matching @media block). Built as a fully
+       separate, plain block rather than trying to further override the
+       desktop diagram's absolute-positioned labels/connector-line layout,
+       since those overrides kept fighting something we couldn't pin down.
+       Reuses the "anatomy-label" class + data-key on each row so the
+       existing generic click handlers (which just do
+       document.querySelectorAll('.anatomy-label')) pick these up too, with
+       no JS changes needed — tapping one opens the same bottom-sheet popup
+       as the desktop version. -->
+  <div class="mobile-thought" id="mobileThought">
+    <div class="mobile-thought-title">&ldquo;I am not good enough.&rdquo;</div>
+    <div class="anatomy-label mobile-anatomy-label" data-key="negative"><span class="anatomy-dot"></span>Negative</div>
+    <div class="anatomy-label mobile-anatomy-label" data-key="self"><span class="anatomy-dot"></span>Self-referential</div>
+    <div class="anatomy-label mobile-anatomy-label" data-key="automatic"><span class="anatomy-dot"></span>Automatic</div>
+    <div class="anatomy-label mobile-anatomy-label" data-key="believable"><span class="anatomy-dot"></span>Believable</div>
   </div>
 
   <div class="inner-cards" id="innerCards">
