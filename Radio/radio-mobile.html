@@ -29,16 +29,19 @@
     font-weight: 600;
     font-size: 1.15rem;
     line-height: 1.4;
+    text-align: center;
     margin-bottom: 14px;
   }
 
   .headphones-note {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     font-weight: 700;
     font-size: 0.78rem;
     letter-spacing: 0.02em;
+    text-align: center;
     margin-bottom: 22px;
   }
   .headphones-note svg { flex-shrink: 0; }
@@ -47,6 +50,7 @@
   .info-row {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 10px;
     margin-bottom: 28px;
   }
@@ -56,12 +60,19 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #000;
-    background: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.85);
     border: 1px solid rgba(0,0,0,0.45);
     padding: 10px 14px;
     border-radius: 2px;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 3px 6px rgba(0,0,0,0.12);
+    transform: translateY(0);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
   }
-  .info-btn:active { background: rgba(255,255,255,0.95); }
+  .info-btn:active {
+    background: rgba(255,255,255,0.95);
+    transform: translateY(2px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.1);
+  }
 
   /* ── Thought selector ── */
   .thought-select {
@@ -74,6 +85,7 @@
     border-radius: 6px;
     padding: 16px;
     margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   }
   .thought-arrow {
     cursor: pointer;
@@ -88,8 +100,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3), 0 3px 5px rgba(0,0,0,0.12);
+    transform: translateY(0);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
   }
-  .thought-arrow:active { background: rgba(0,0,0,0.08); }
+  .thought-arrow:active {
+    background: rgba(0,0,0,0.08);
+    transform: translateY(2px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
+  }
   #thoughtText {
     flex: 1;
     text-align: center;
@@ -115,6 +134,7 @@
     border-radius: 6px;
     padding: 18px;
     margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   }
   .panel-title {
     font-weight: 700;
@@ -142,13 +162,21 @@
     background: #fff;
     color: #000;
     text-align: center;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.12);
+    transform: translateY(0);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+  }
+  .toggle-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
   }
   .toggle-btn.active {
     background: #00963c;
     border-color: #00963c;
     color: #fff;
+    box-shadow: 0 3px 0 #00722d, 0 4px 8px rgba(0,0,0,0.18);
   }
-  #loopToggle.active { background: #2288ff; border-color: #2288ff; }
+  #loopToggle.active { background: #2288ff; border-color: #2288ff; box-shadow: 0 3px 0 #0f66c4, 0 4px 8px rgba(0,0,0,0.18); }
 
   .volume-row {
     display: flex;
@@ -180,11 +208,18 @@
     background: #fff;
     color: #000;
     text-align: center;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.12);
+    transform: translateY(0);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
   }
-  .effect-btn[data-key="pitch"].active  { background: #b8001e; border-color: #b8001e; color: #fff; }
-  .effect-btn[data-key="robot"].active  { background: #0072c0; border-color: #0072c0; color: #fff; }
-  .effect-btn[data-key="reverb"].active { background: #8812cc; border-color: #8812cc; color: #fff; }
-  .effect-btn[data-key="pan"].active    { background: #c88408; border-color: #c88408; color: #fff; }
+  .effect-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .effect-btn[data-key="pitch"].active  { background: #b8001e; border-color: #b8001e; color: #fff; box-shadow: 0 3px 0 #7a0010, 0 4px 8px rgba(0,0,0,0.18); }
+  .effect-btn[data-key="robot"].active  { background: #0072c0; border-color: #0072c0; color: #fff; box-shadow: 0 3px 0 #00427e, 0 4px 8px rgba(0,0,0,0.18); }
+  .effect-btn[data-key="reverb"].active { background: #8812cc; border-color: #8812cc; color: #fff; box-shadow: 0 3px 0 #500080, 0 4px 8px rgba(0,0,0,0.18); }
+  .effect-btn[data-key="pan"].active    { background: #c88408; border-color: #c88408; color: #fff; box-shadow: 0 3px 0 #7a4f00, 0 4px 8px rgba(0,0,0,0.18); }
 
   .mixer-buttons {
     display: flex;
@@ -202,8 +237,15 @@
     background: #fff;
     color: #000;
     text-align: center;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.12);
+    transform: translateY(0);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
   }
-  .mixer-btn.active { background: #7c3aa0; border-color: #7c3aa0; color: #fff; }
+  .mixer-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .mixer-btn.active { background: #7c3aa0; border-color: #7c3aa0; color: #fff; box-shadow: 0 3px 0 #4f2568, 0 4px 8px rgba(0,0,0,0.18); }
 
   #continueBtn {
     display: block;
@@ -218,8 +260,15 @@
     border-radius: 4px;
     padding: 18px;
     margin-top: 18px;
+    box-shadow: 0 3px 0 #444, 0 5px 10px rgba(0,0,0,0.2);
+    transform: translateY(0);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
   }
-  #continueBtn:active { background: #333; }
+  #continueBtn:active {
+    background: #333;
+    transform: translateY(3px);
+    box-shadow: 0 0 0 #444, 0 1px 2px rgba(0,0,0,0.15);
+  }
   .continue-hint {
     text-align: center;
     font-size: 0.72rem;
