@@ -12,6 +12,13 @@
    ══════════════════════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&display=swap');
 * { margin: 0; padding: 0; box-sizing: border-box; }
+/* Real phone browsers (Safari/Chrome) can auto-boost text size in content
+   they judge "too small for this block" — noticeable mainly on text sitting
+   inside a scrollable, positioned container (like these popups), and not
+   reproduced by desktop devtools device emulation, which is why this only
+   showed up on an actual phone. This turns that auto-boost off so the
+   authored font sizes above are what actually render. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 html, body { width: 100%; }
 body {
   background: #eceef0;
