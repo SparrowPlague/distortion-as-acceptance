@@ -931,6 +931,30 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
     max-width: 100%;
   }
 }
+
+/* ── MOBILE: popup text size ──
+   Same issue as inside-mobile.html: the ref-popup/anatomy-popup text was
+   sized and padded for a wide desktop panel, so on a narrow phone the
+   lines wrap awkwardly and feel cramped despite being "large" text.
+   Smaller, tighter-padded text reads more comfortably at this width. */
+@media (max-width: 700px) {
+  .ref-popup {
+    padding: 26px 18px;
+  }
+  .ref-popup-title {
+    font-size: 1.05rem;
+  }
+  .ref-popup-body {
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+  .anatomy-popup-title {
+    font-size: 1rem;
+  }
+  .anatomy-popup-body {
+    font-size: 0.82rem;
+  }
+}
 </style>
 </head>
 <body>
