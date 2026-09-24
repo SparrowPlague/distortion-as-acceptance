@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Participant Data Explorer — Mobile</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════
+   Reused verbatim from interactive_table.html: the .tag.* colour
+   classes (the actual semantic colour-coding for shifts/metaphors/
+   affective states) and the profile modal. The desktop-only bits
+   (th./td. table cell colours, .table-wrap, hover states) are simply
+   unused here — harmless dead CSS, kept rather than risk missing a
+   colour class this file also needs. Everything below this block is
+   this mobile card-list's own layout, which overrides body/h1/etc.
+   ═══════════════════════════════════════════════════════════════════ */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f8f8f6; color: #1a1a1a; padding: 32px 24px; }
+
+  h1 { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 24px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 1.5px solid #ddd; }
+  .tab { padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: none; color: #888; border-bottom: 2px solid transparent; margin-bottom: -1.5px; transition: all 0.15s; }
+  .tab:hover { color: #333; }
+  .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
+
+  /* Question-mode toggle — switches between the aggregated ("all questions")
+     tables and a per-question breakdown built from questionData. */
+  .qmode-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .qmode { padding: 5px 12px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #888; border-radius: 4px; transition: all 0.15s; }
+  .qmode:hover { color: #333; border-color: #bbb; }
+  .qmode.active { color: #fff; background: #1a1a1a; border-color: #1a1a1a; }
+  .question-caption { font-size: 16px; color: #444; font-style: italic; margin: -2px 0 16px; max-width: 900px; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 11px; width: 100%; }
+  th { padding: 7px 9px; text-align: center; font-weight: 600; font-size: 10px; border-bottom: 1.5px solid #1a1a1a; white-space: nowrap; }
+  th.row-header { text-align: left; }
+  th.mod { background: #fde8e8; cursor: pointer; user-select: none; transition: opacity 0.15s, filter 0.15s, outline 0.15s; }
+  th.mod:hover { background: #fbd4d4; }
+  th.mod.mod-selected { outline: 2px solid #1a1a1a; outline-offset: -2px; background: #f4a0a0; }
+  th.mod.mod-dimmed { opacity: 0.35; filter: grayscale(1); }
+  th.cat { background: #f0f0ee; cursor: pointer; user-select: none; transition: opacity 0.15s, filter 0.15s, outline 0.15s; }
+  th.cat:hover { background: #e4e4e0; }
+  th.cat.cat-selected { outline: 2px solid #1a1a1a; outline-offset: -2px; background: #dcdcd6; }
+  th.cat.cat-dimmed { opacity: 0.35; filter: grayscale(1); }
+  td.cat-col-dimmed { opacity: 0.3; filter: grayscale(1); }
+  td { padding: 6px 9px; text-align: center; border-bottom: 0.5px solid #e8e8e8; }
+  td.p-label { text-align: left; font-weight: 500; color: #555; font-size: 11px; cursor: pointer; }
+  td.p-label:hover { color: #000; text-decoration: underline; }
+  td.mod-dark { background: #e06666; color: white; border-radius: 2px; font-size: 10px; }
+  td.mod-light { background: #f4a0a0; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift { background: #52b788; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-inc { background: #1a5c2a; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-dec { background: #90EE90; color: #333; border-radius: 2px; font-size: 10px; }
+  td.shift-out { background: #52b788; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-in  { background: #a8d5a2; color: #333; border-radius: 2px; font-size: 10px; }
+  td.shift-del { background: #2d6a4f; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-noshift { background: #7d8471; color: white; border-radius: 2px; font-size: 10px; }
+  td.shift-desc { background: #1f9e89; color: white; border-radius: 2px; font-size: 10px; }
+  /* Metaphors — amber/orange shades, deliberately shuffled (not a dark→light
+     gradient) so neighbouring columns contrast rather than blend together. */
+  td.met { background: #e07b00; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-spatial { background: #7a3e00; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-personification { background: #e07b00; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-weight { background: #a35300; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-atmospheric { background: #f4a83d; color: #3a2400; border-radius: 2px; font-size: 10px; }
+  td.met-soundtexture { background: #cc6a00; color: white; border-radius: 2px; font-size: 10px; }
+  td.met-repetition { background: #ffd8a8; color: #5a3a00; border-radius: 2px; font-size: 10px; }
+  /* Affective states — blue shades, likewise shuffled for neighbour contrast. */
+  td.aff { background: #4a90d9; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-discomfort { background: #1c3f66; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-humor { background: #6fa8e0; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-hurt { background: #2e5e94; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-loneliness { background: #94c2ea; color: #1a1a1a; border-radius: 2px; font-size: 10px; }
+  td.aff-pleasantness { background: #3f7ab8; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-sadness { background: #bcdaf2; color: #1a1a1a; border-radius: 2px; font-size: 10px; }
+  td.aff-seriousness { background: #4a90d9; color: white; border-radius: 2px; font-size: 10px; }
+  td.aff-selfcompassion { background: #e0eefb; color: #1a1a1a; border-radius: 2px; font-size: 10px; }
+  td.empty { background: #f5f5f5; color: #ccc; font-size: 10px; }
+  tr:hover td { background-color: #f0efe9; }
+  tr:hover td.empty { background-color: #ebebeb; }
+  tr:hover td.mod-dark, tr:hover td.mod-light, tr:hover td.shift, tr:hover td.shift-inc, tr:hover td.shift-dec, tr:hover td.shift-out, tr:hover td.shift-in, tr:hover td.shift-del, tr:hover td.shift-noshift, tr:hover td.shift-desc,
+  tr:hover td.met, tr:hover td.met-spatial, tr:hover td.met-personification, tr:hover td.met-weight, tr:hover td.met-atmospheric, tr:hover td.met-soundtexture, tr:hover td.met-repetition,
+  tr:hover td.aff, tr:hover td.aff-discomfort, tr:hover td.aff-humor, tr:hover td.aff-hurt, tr:hover td.aff-loneliness, tr:hover td.aff-pleasantness, tr:hover td.aff-sadness, tr:hover td.aff-seriousness, tr:hover td.aff-selfcompassion
+  { filter: brightness(1.1); }
+  tr.total-row td { font-weight: 600; border-top: 1.5px solid #1a1a1a; background: #f8f8f6 !important; }
+
+  /* Modulation filter — click a modulation header (Pitch/Robot/Reverb/Panning/Volume)
+     to focus on it: the other modulation columns dim, and any participant row that
+     didn't report the selected modulation dims entirely (including their shift/
+     metaphor/affective cells), across all three tabs at once. */
+  td.mod-col-dimmed { opacity: 0.3; filter: grayscale(1); }
+  tr.row-dimmed td { opacity: 0.22; filter: grayscale(1); }
+  tr.row-dimmed:hover td { background-color: transparent; }
+
+  .divider { border-left: 1.5px solid #bbb; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 6px; padding: 28px; max-width: 520px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.18); position: relative; }
+  .modal h2 { font-size: 14px; font-weight: 600; margin-bottom: 18px; }
+  .modal-close { position: absolute; top: 14px; right: 16px; font-size: 18px; cursor: pointer; color: #888; background: none; border: none; }
+  .modal-section { margin-bottom: 14px; }
+  .modal-section-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 6px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag { font-size: 10px; padding: 3px 8px; border-radius: 3px; font-weight: 500; }
+  .tag.mod-dark { background: #e06666; color: white; }
+  .tag.mod-light { background: #f4a0a0; color: white; }
+  .tag.shift-inc { background: #1a5c2a; color: white; }
+  .tag.shift-dec { background: #90EE90; color: #333; }
+  .tag.shift-out { background: #52b788; color: white; }
+  .tag.shift-in  { background: #a8d5a2; color: #333; }
+  .tag.shift-del { background: #2d6a4f; color: white; }
+  .tag.shift-noshift { background: #7d8471; color: white; }
+  .tag.shift-desc { background: #1f9e89; color: white; }
+  .tag.met { background: #e07b00; color: white; }
+  .tag.met-spatial { background: #7a3e00; color: white; }
+  .tag.met-personification { background: #e07b00; color: white; }
+  .tag.met-weight { background: #a35300; color: white; }
+  .tag.met-atmospheric { background: #f4a83d; color: #3a2400; }
+  .tag.met-soundtexture { background: #cc6a00; color: white; }
+  .tag.met-repetition { background: #ffd8a8; color: #5a3a00; }
+  .tag.aff { background: #4a90d9; color: white; }
+  .tag.aff-discomfort { background: #1c3f66; color: white; }
+  .tag.aff-humor { background: #6fa8e0; color: white; }
+  .tag.aff-hurt { background: #2e5e94; color: white; }
+  .tag.aff-loneliness { background: #94c2ea; color: #1a1a1a; }
+  .tag.aff-pleasantness { background: #3f7ab8; color: white; }
+  .tag.aff-sadness { background: #bcdaf2; color: #1a1a1a; }
+  .tag.aff-seriousness { background: #4a90d9; color: white; }
+  .tag.aff-selfcompassion { background: #e0eefb; color: #1a1a1a; }
+  .tag.none { background: #eee; color: #888; }
+
+  .note { font-size: 13px; font-weight: 700; color: #aaa; margin-top: 16px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; font-size: 10px; color: #666; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+/* ── Mobile shell — same visual language as the rest of the site's
+   mobile pages (IBM Plex Mono, light-grey background, shadowed cards). ── */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+body {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  background: #eceef0;
+  color: #000;
+  padding: 16px 14px 60px;
+}
+h1 { font-size: 0.95rem; letter-spacing: 0.02em; margin-bottom: 4px; }
+.subtitle { font-size: 0.72rem; color: rgba(0,0,0,0.55); margin-bottom: 18px; line-height: 1.5; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: none; margin-bottom: 10px; }
+.tab {
+  font: 700 10px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  border: 1px solid rgba(0,0,0,0.3);
+  border-radius: 4px;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+.tab.active { background: #1a1a1a; border-color: #1a1a1a; color: #fff; }
+
+.qmode-tabs { margin-bottom: 6px; }
+.question-caption { font-size: 0.72rem; line-height: 1.5; }
+
+.mod-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 18px; }
+.mod-chip {
+  font: 700 10px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 7px 10px;
+  border-radius: 4px;
+  border: 1px solid #b33;
+  background: #e06666;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.mod-chip.mod-selected {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #fff;
+}
+
+.card-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.p-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  transition: opacity 0.15s, filter 0.15s;
+}
+.p-card.dimmed { opacity: 0.3; filter: grayscale(1); }
+.p-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.p-card-label { font-weight: 700; font-size: 0.8rem; }
+.p-card-mods { display: flex; flex-wrap: wrap; gap: 4px; }
+.p-card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 9px; }
+
+.totals-panel {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.totals-title { font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(0,0,0,0.5); margin-bottom: 8px; }
+.totals-row { display: flex; justify-content: space-between; font-size: 0.78rem; padding: 3px 0; }
+.totals-row span:last-child { font-weight: 700; }
+
+.note { font-size: 0.72rem; }
+</style>
+</head>
+<body>
+
+<h1>Participant Data Explorer</h1>
+<p class="subtitle">Tap a tab to switch analysis. Tap a modulation to focus on it. Tap a participant's card for their full profile.</p>
+
+<div class="tabs">
+  <button class="tab active" data-tab="shifts">Shifts</button>
+  <button class="tab" data-tab="metaphors">Metaphors</button>
+  <button class="tab" data-tab="affective">Affective</button>
+</div>
+
+<div class="tabs qmode-tabs">
+  <button class="tab qmode active" data-qmode="all">All questions</button>
+  <button class="tab qmode" data-qmode="q1">Question 1</button>
+  <button class="tab qmode" data-qmode="q2">Question 2</button>
+</div>
+<p class="question-caption" id="question-caption" style="display:none; margin-bottom:14px;"></p>
+
+<div class="mod-filter" id="mod-filter"></div>
+
+<div class="card-list" id="card-list"></div>
+
+<div class="totals-panel" id="totals-panel"></div>
+
+<div class="legend">
+  <span class="legend-item"><span class="legend-dot" style="background:#e06666"></span> Pitch / Reverb / Volume</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#f4a0a0"></span> Robot / Panning</span>
+</div>
+<p class="note">Tap any participant card to see their full profile across all three analyses.</p>
+
+<!-- MODAL — reused as-is from interactive_table.html for the "full profile" view -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">&times;</button>
+    <h2 id="modal-title">Participant</h2>
+    <div class="modal-section">
+      <div class="modal-section-title">Modulations reported</div>
+      <div class="tags" id="modal-mods"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Experiential shifts</div>
+      <div class="tags" id="modal-shifts"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Metaphors</div>
+      <div class="tags" id="modal-mets"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Affective states</div>
+      <div class="tags" id="modal-affs"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// Reused verbatim from interactive_table.html — same data, same
+// category to CSS-class mappings, same "full profile" modal. Only the
+// rendering (cards instead of a wide table) and the tab/filter wiring
+// below are new; nothing here duplicates data that could drift out of
+// sync with the desktop table if it's ever updated.
+// ═══════════════════════════════════════════════════════════════════
+const data = {
+  P1:  { mods: ['Pitch:dark','Reverb:dark','Panning:light','Volume:dark'], shifts: ['Decreased intensity'], mets: ['Spatial'], affs: ['Pleasantness'] },
+  P2:  { mods: ['Reverb:dark'], shifts: ['Increased intensity','Decreased intensity'], mets: [], affs: ['Discomfort','Loneliness'] },
+  P3:  { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Increased intensity','Decreased intensity'], mets: [], affs: [] },
+  P4:  { mods: ['Pitch:dark','Reverb:dark','Volume:dark'], shifts: ['Increased intensity','Descriptive'], mets: ['Personification'], affs: [] },
+  P5:  { mods: ['Pitch:dark'], shifts: ['No shift'], mets: [], affs: ['Humor','Pleasantness'] },
+  P6:  { mods: ['Pitch:dark','Robot:light','Reverb:dark','Panning:light'], shifts: ['Deliteralization'], mets: ['Spatial','Personification'], affs: ['Discomfort'] },
+  P7:  { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Increased intensity'], mets: [], affs: [] },
+  P8:  { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Sound texture'], affs: [] },
+  P9:  { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: [], affs: ['Humor'] },
+  P10: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: [], mets: ['Sound texture'], affs: ['Humor'] },
+  P11: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Personification'], affs: ['Humor'] },
+  P12: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective','Insider perspective'], mets: ['Personification','Repetition'], affs: ['Discomfort','Self-compassion'] },
+  P13: { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: ['Weight','Atmospheric'], affs: ['Discomfort'] },
+  P14: { mods: ['Robot:light','Reverb:dark'], shifts: ['Decreased intensity'], mets: ['Spatial','Atmospheric'], affs: [] },
+  P15: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Insider perspective'], mets: ['Weight','Atmospheric','Repetition'], affs: ['Sadness','Seriousness'] },
+  P16: { mods: ['Pitch:dark'], shifts: ['Outsider perspective','No shift'], mets: [], affs: [] },
+  P17: { mods: ['Robot:light','Reverb:dark'], shifts: ['Deliteralization'], mets: ['Spatial'], affs: [] },
+  P18: { mods: ['Pitch:dark','Robot:light'], shifts: ['Increased intensity'], mets: [], affs: ['Hurt','Seriousness'] },
+};
+
+const shiftClass = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralization':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
+const metClass = { 'Spatial':'met-spatial','Personification':'met-personification','Weight':'met-weight','Atmospheric':'met-atmospheric','Sound texture':'met-soundtexture','Repetition':'met-repetition' };
+const affClass = { 'Discomfort':'aff-discomfort','Humor':'aff-humor','Hurt':'aff-hurt','Loneliness':'aff-loneliness','Pleasantness':'aff-pleasantness','Sadness':'aff-sadness','Seriousness':'aff-seriousness','Self-compassion':'aff-selfcompassion' };
+
+// ── Per-question data ───────────────────────────────────────────────────────
+// A separate breakdown of what each participant reported specifically at
+// Question 1 vs Question 2 (as opposed to `data` above, which is the
+// aggregate across the whole interview). Not everything in `data` necessarily
+// reappears here — anything a participant mentioned that couldn't clearly be
+// tied to one of these two questions is simply left out, per instruction.
+// A modulation entry is either a plain name ('Pitch') or, when a participant
+// specified a sub-detail, { name, detail } (e.g. Pitch: high/low, Panning: left).
+const QUESTION_TEXT = {
+  q1: 'Did combining two or more modulations shift your experience of the sentence? Name one such combination and briefly describe what change (or did not).',
+  q2: 'Name one specific moment or action during the modulation when something shifted in how you experienced the sentence. What exactly did you do (which control/movement), and what did you notice?',
+};
+
+const questionData = {
+  P1:  { q1: { mods: ['Pitch','Reverb','Volume'], shifts: ['Decreased intensity'], mets: ['Spatial'], affs: ['Pleasantness'] },
+         q2: { mods: [{ name:'Panning', detail:'left' }], shifts: [], mets: [], affs: ['Pleasantness'] } },
+  P2:  { q1: { mods: [], shifts: ['Decreased intensity'], mets: [], affs: [] },
+         q2: { mods: ['Reverb'], shifts: ['Increased intensity'], mets: [], affs: ['Discomfort','Loneliness'] } },
+  P3:  { q1: { mods: ['Robot','Pitch'], shifts: ['Decreased intensity'], mets: [], affs: [] },
+         q2: { mods: ['Reverb'], shifts: ['Increased intensity'], mets: [], affs: [] } },
+  P4:  { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Volume'], shifts: ['Increased intensity'], mets: [], affs: [] },
+         q2: { mods: ['Pitch','Volume','Reverb'], shifts: ['Descriptive'], mets: ['Personification'], affs: [] } },
+  P5:  { q1: { mods: [], shifts: ['No shift'], mets: [], affs: [] },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humor','Pleasantness'] } },
+  P6:  { q1: { mods: ['Pitch','Robot','Reverb'], shifts: ['Deliteralization'], mets: [], affs: [] },
+         q2: { mods: ['Panning'], shifts: [], mets: ['Personification','Spatial'], affs: ['Discomfort'] } },
+  P7:  { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Reverb'], shifts: ['Increased intensity'], mets: [], affs: [] },
+         q2: { mods: [], shifts: [], mets: [], affs: [] } },
+  P8:  { q1: { mods: ['Pitch','Robot'], shifts: ['Outsider perspective'], mets: ['Sound texture'], affs: [] },
+         q2: { mods: ['Reverb'], shifts: [], mets: ['Spatial'], affs: [] } },
+  P9:  { q1: { mods: ['Pitch','Reverb'], shifts: [], mets: [], affs: ['Humor'] },
+         q2: { mods: ['Pitch'], shifts: [], mets: [], affs: [] } },
+  P10: { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Robot','Reverb'], shifts: [], mets: ['Sound texture'], affs: [] },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humor'] } },
+  P11: { q1: { mods: ['Pitch','Reverb'], shifts: ['Outsider perspective'], mets: ['Personification','Spatial'], affs: [] },
+         q2: { mods: ['Pitch'], shifts: [], mets: [], affs: ['Humor'] } },
+  P12: { q1: { mods: ['Pitch','Reverb'], shifts: ['Insider perspective'], mets: ['Repetition','Personification'], affs: ['Discomfort','Self-compassion'] },
+         q2: { mods: ['Pitch','Reverb'], shifts: ['Outsider perspective'], mets: [], affs: [] } },
+  P13: { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Reverb'], shifts: [], mets: ['Weight','Atmospheric'], affs: ['Discomfort'] },
+         q2: { mods: ['Reverb'], shifts: [], mets: ['Weight'], affs: [] } },
+  P14: { q1: { mods: ['Robot','Reverb'], shifts: [], mets: ['Atmospheric','Spatial'], affs: [] },
+         q2: { mods: ['Robot'], shifts: ['Decreased intensity'], mets: ['Spatial'], affs: [] } },
+  P15: { q1: { mods: ['Pitch','Robot','Reverb'], shifts: [], mets: ['Repetition','Atmospheric'], affs: [] },
+         q2: { mods: [{ name:'Pitch', detail:'low' }], shifts: ['Insider perspective'], mets: ['Weight'], affs: ['Sadness'] } },
+  P16: { q1: { mods: [], shifts: ['No shift'], mets: [], affs: [] },
+         q2: { mods: ['Pitch'], shifts: ['Outsider perspective'], mets: [], affs: [] } },
+  P17: { q1: { mods: ['Robot'], shifts: ['Deliteralization'], mets: [], affs: [] },
+         q2: { mods: ['Reverb'], shifts: [], mets: ['Spatial'], affs: [] } },
+  P18: { q1: { mods: ['Pitch','Robot'], shifts: ['Increased intensity'], mets: [], affs: ['Hurt'] },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Seriousness'] } },
+};
+
+const MOD_DARK_MODS = { Pitch:true, Reverb:true, Volume:true, Robot:false, Panning:false };
+const SHIFT_CATS_Q = ['Increased intensity','Decreased intensity','Outsider perspective','Insider perspective','Deliteralization','No shift','Descriptive'];
+const MET_CATS = ['Spatial','Personification','Weight','Atmospheric','Sound texture','Repetition'];
+const AFF_CATS = ['Discomfort','Humor','Hurt','Loneliness','Pleasantness','Sadness','Seriousness','Self-compassion'];
+const SHIFT_CLASS_Q = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralization':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
+
+const MOD_NAMES = ['Pitch', 'Robot', 'Reverb', 'Panning', 'Volume'];
+
+function showModal(p) {
+  const d = data[p];
+  document.getElementById('modal-title').textContent = 'Participant ' + p.replace('P','');
+  
+  document.getElementById('modal-mods').innerHTML = d.mods.length
+    ? d.mods.map(m => { const [name,type]=m.split(':'); return `<span class="tag mod-${type}">${name}</span>`; }).join('')
+    : '<span class="tag none">—</span>';
+
+  document.getElementById('modal-shifts').innerHTML = d.shifts.length
+    ? d.shifts.map(s => `<span class="tag ${shiftClass[s]||'shift'}">${s}</span>`).join('')
+    : '<span class="tag none">—</span>';
+
+  document.getElementById('modal-mets').innerHTML = d.mets.length
+    ? d.mets.map(m => `<span class="tag ${metClass[m]||'met'}">${m}</span>`).join('')
+    : '<span class="tag none">—</span>';
+
+  document.getElementById('modal-affs').innerHTML = d.affs.length
+    ? d.affs.map(a => `<span class="tag ${affClass[a]||'aff'}">${a}</span>`).join('')
+    : '<span class="tag none">—</span>';
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+// ── State ──────────────────────────────────────────────────────────
+let currentTab = 'shifts';
+let questionMode = 'all';
+let selectedMod = null;
+
+function catListFor(tab) {
+  return tab === 'shifts' ? SHIFT_CATS_Q : (tab === 'metaphors' ? MET_CATS : AFF_CATS);
+}
+function listKeyFor(tab) {
+  return tab === 'shifts' ? 'shifts' : (tab === 'metaphors' ? 'mets' : 'affs');
+}
+function classFor(tab, cat) {
+  if (tab === 'shifts') return SHIFT_CLASS_Q[cat] || 'shift';
+  if (tab === 'metaphors') return metClass[cat] || 'met';
+  return affClass[cat] || 'aff';
+}
+
+// ── Modulation filter chips ───────────────────────────────────────
+const modFilterEl = document.getElementById('mod-filter');
+MOD_NAMES.forEach(m => {
+  const btn = document.createElement('button');
+  btn.className = 'mod-chip';
+  btn.dataset.mod = m;
+  btn.textContent = m;
+  btn.addEventListener('click', () => {
+    selectedMod = (selectedMod === m) ? null : m;
+    modFilterEl.querySelectorAll('.mod-chip').forEach(c => c.classList.toggle('mod-selected', c.dataset.mod === selectedMod));
+    render();
+  });
+  modFilterEl.appendChild(btn);
+});
+
+// ── Tabs ───────────────────────────────────────────────────────────
+document.querySelectorAll('.tab[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentTab = btn.dataset.tab;
+    document.querySelectorAll('.tab[data-tab]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+document.querySelectorAll('.tab[data-qmode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    questionMode = btn.dataset.qmode;
+    document.querySelectorAll('.tab[data-qmode]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const caption = document.getElementById('question-caption');
+    if (questionMode === 'all') {
+      caption.style.display = 'none';
+    } else {
+      caption.style.display = '';
+      caption.textContent = (questionMode === 'q1' ? 'Question 1: ' : 'Question 2: ') + QUESTION_TEXT[questionMode];
+    }
+    render();
+  });
+});
+
+// ── Card list + totals ─────────────────────────────────────────────
+function render() {
+  const cats = catListFor(currentTab);
+  const listKey = listKeyFor(currentTab);
+  const cardList = document.getElementById('card-list');
+  cardList.innerHTML = '';
+
+  const catTotals = cats.map(() => 0);
+
+  for (let p = 1; p <= 18; p++) {
+    const pid = 'P' + p;
+    // "All questions" reads the aggregate `data`; Q1/Q2 read `questionData`
+    // for that participant/question, same source split as the desktop table.
+    const src = questionMode === 'all'
+      ? data[pid]
+      : ((questionData[pid] && questionData[pid][questionMode]) || { mods: [], shifts: [], mets: [], affs: [] });
+
+    const modNamesHere = questionMode === 'all'
+      ? src.mods.map(m => m.split(':')[0])
+      : src.mods.map(m => typeof m === 'string' ? m : m.name);
+    const hasSelectedMod = !selectedMod || modNamesHere.includes(selectedMod);
+
+    const card = document.createElement('div');
+    card.className = 'p-card' + (hasSelectedMod ? '' : ' dimmed');
+    card.addEventListener('click', () => showModal(pid));
+
+    const modsHtml = modNamesHere.length
+      ? modNamesHere.map(m => '<span class="tag ' + (MOD_DARK_MODS[m] ? 'mod-dark' : 'mod-light') + '">' + m + '</span>').join('')
+      : '<span class="tag none">no modulations reported</span>';
+
+    const list = src[listKey] || [];
+    list.forEach(c => { const i = cats.findIndex(x => x.toLowerCase() === c.toLowerCase()); if (i >= 0) catTotals[i]++; });
+    const tagsHtml = list.length
+      ? list.map(c => '<span class="tag ' + classFor(currentTab, c) + '">' + c + '</span>').join('')
+      : '<span class="tag none">&mdash;</span>';
+
+    card.innerHTML = '<div class="p-card-top"><span class="p-card-label">' + pid + '</span></div>'
+      + '<div class="p-card-mods">' + modsHtml + '</div>'
+      + '<div class="p-card-tags" style="margin-top:6px">' + tagsHtml + '</div>';
+    cardList.appendChild(card);
+  }
+
+  const totalsPanel = document.getElementById('totals-panel');
+  totalsPanel.innerHTML = '<div class="totals-title">Totals — ' + currentTab + '</div>'
+    + cats.map((c, i) => '<div class="totals-row"><span>' + c + '</span><span>' + catTotals[i] + '</span></div>').join('');
+}
+
+render();
+</script>
+
+</body>
+</html>

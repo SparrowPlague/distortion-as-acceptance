@@ -699,9 +699,10 @@ document.querySelectorAll('.popup-overlay').forEach(overlay => {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('show'); });
 });
 
-// ── Continue — replaces the desktop's scroll-to-zoom transition into inside.html ──
+// ── Continue — replaces the desktop's scroll-to-zoom transition into the
+// (also flat, no-3D) inside-mobile.html ──
 document.getElementById('continueBtn').addEventListener('click', () => {
-  window.location.href = 'inside.html';
+  window.location.href = 'inside-mobile.html';
 });
 </script>
 
