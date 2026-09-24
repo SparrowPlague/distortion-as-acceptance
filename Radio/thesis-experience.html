@@ -1419,7 +1419,12 @@ function showAnatomyTip(label, tip, side) {
   tip.style.top = y + 'px';
 }
 
-document.querySelectorAll('.anatomy-label').forEach(label => {
+// Excludes .mobile-anatomy-label: on touch, a tap can fire a synthetic
+// mouseenter just before the click, which popped this hover box open at
+// the same time as the tap-triggered bottom-sheet popup below — showing
+// the same explanation twice. The desktop diagram's labels still get the
+// hover box as normal.
+document.querySelectorAll('.anatomy-label:not(.mobile-anatomy-label)').forEach(label => {
   const info = anatomyTooltips[label.dataset.key];
   if (!info) return;
   label.addEventListener('mouseenter', () => showAnatomyTip(label, info.el, info.side));
