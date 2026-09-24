@@ -2538,8 +2538,11 @@ renderer.setAnimationLoop((time) => {
 });
 
 // ── Go back to the radio ────────────────────────────────────────────────────
+// Same width check as thesis-experience.html's "Try the radio" links — a
+// phone-sized visitor gets sent back to the flat radio-mobile.html instead
+// of the 3D radio-v2.html.
 document.getElementById('go-back').addEventListener('click', () => {
-  window.location.href = 'radio-v2.html';
+  window.location.href = window.innerWidth <= 700 ? 'radio-mobile.html' : 'radio-v2.html';
 });
 
 // ── Go back to the thought (jumps straight past thesis-experience.html's

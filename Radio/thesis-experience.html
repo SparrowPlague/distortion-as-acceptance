@@ -1633,12 +1633,17 @@ if (location.hash === '#thoughts') {
 const radioLinks = document.querySelectorAll('.radio-link, #continueBtn');
 const radioTransition = document.getElementById('radio-transition');
 
+// Below 700px (same breakpoint used for every other mobile rebuild on this
+// site), the radio itself has no 3D/WebGL version — send those visitors to
+// the flat, button-based radio-mobile.html instead, so a phone never even
+// downloads Three.js for a scene it wouldn't render well anyway.
 radioLinks.forEach((link) => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
+    const target = window.innerWidth <= 700 ? 'radio-mobile.html' : 'radio-v2.html';
     radioTransition.classList.add('show');
     setTimeout(() => {
-      window.location.href = 'radio-v2.html';
+      window.location.href = target;
     }, 780);
   });
 });

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radio — I am not good enough</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; }
+  body {
+    background: #eceef0;
+    color: #000;
+    font: 400 15px/1.6 'IBM Plex Mono', 'Courier New', monospace;
+    padding: 20px 20px 60px;
+  }
+
+  a { color: inherit; }
+  #back-link {
+    display: inline-block;
+    font: 500 12px/1 'IBM Plex Mono', 'Courier New', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin-bottom: 22px;
+  }
+
+  .tagline {
+    font-weight: 600;
+    font-size: 1.15rem;
+    line-height: 1.4;
+    margin-bottom: 14px;
+  }
+
+  .headphones-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    margin-bottom: 22px;
+  }
+  .headphones-note svg { flex-shrink: 0; }
+
+  /* ── Info buttons row (How it works / metaphor / real-life setup / research question) ── */
+  .info-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .info-btn {
+    cursor: pointer;
+    font: 700 11px/1 'IBM Plex Mono', 'Courier New', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #000;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(0,0,0,0.45);
+    padding: 10px 14px;
+    border-radius: 2px;
+  }
+  .info-btn:active { background: rgba(255,255,255,0.95); }
+
+  /* ── Thought selector ── */
+  .thought-select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .thought-arrow {
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.35);
+    background: #fff;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thought-arrow:active { background: rgba(0,0,0,0.08); }
+  #thoughtText {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    font-style: italic;
+    font-size: 1rem;
+  }
+
+  .section-caption {
+    min-height: 1.4em;
+    font-size: 0.78rem;
+    font-style: italic;
+    color: rgba(0,0,0,0.6);
+    text-align: center;
+    margin-bottom: 22px;
+    padding: 0 6px;
+  }
+
+  /* ── Card wrapper shared by the transport / effects / mixer blocks ── */
+  .panel {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 6px;
+    padding: 18px;
+    margin-bottom: 10px;
+  }
+  .panel-title {
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.55);
+    margin-bottom: 14px;
+  }
+
+  .transport-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .toggle-btn {
+    flex: 1;
+    cursor: pointer;
+    font: 700 12px/1 'IBM Plex Mono', 'Courier New', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 16px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.35);
+    background: #fff;
+    color: #000;
+    text-align: center;
+  }
+  .toggle-btn.active {
+    background: #00963c;
+    border-color: #00963c;
+    color: #fff;
+  }
+  #loopToggle.active { background: #2288ff; border-color: #2288ff; }
+
+  .volume-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .volume-row label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.55);
+  }
+  .volume-row input[type="range"] { flex: 1; }
+
+  .effects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .effect-btn {
+    cursor: pointer;
+    font: 700 12px/1 'IBM Plex Mono', 'Courier New', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 18px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.35);
+    background: #fff;
+    color: #000;
+    text-align: center;
+  }
+  .effect-btn[data-key="pitch"].active  { background: #b8001e; border-color: #b8001e; color: #fff; }
+  .effect-btn[data-key="robot"].active  { background: #0072c0; border-color: #0072c0; color: #fff; }
+  .effect-btn[data-key="reverb"].active { background: #8812cc; border-color: #8812cc; color: #fff; }
+  .effect-btn[data-key="pan"].active    { background: #c88408; border-color: #c88408; color: #fff; }
+
+  .mixer-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mixer-btn {
+    cursor: pointer;
+    font: 700 12px/1.3 'IBM Plex Mono', 'Courier New', monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 14px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.35);
+    background: #fff;
+    color: #000;
+    text-align: center;
+  }
+  .mixer-btn.active { background: #7c3aa0; border-color: #7c3aa0; color: #fff; }
+
+  #continueBtn {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    font: 700 13px/1 'IBM Plex Mono', 'Courier New', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 18px;
+    margin-top: 18px;
+  }
+  #continueBtn:active { background: #333; }
+  .continue-hint {
+    text-align: center;
+    font-size: 0.72rem;
+    font-style: italic;
+    color: rgba(0,0,0,0.55);
+    margin-top: 8px;
+  }
+
+  /* ── Popups (same look as the desktop radio page) ── */
+  .popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 950;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    padding: 20px;
+  }
+  .popup-overlay.show { opacity: 1; pointer-events: all; }
+  .popup-box {
+    background: #f5f3ee;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 32px 24px;
+    position: relative;
+    font: 400 0.92rem/1.6 'IBM Plex Mono', 'Courier New', monospace;
+    color: #111;
+  }
+  .popup-title {
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+  .popup-body p { margin-bottom: 14px; }
+  .popup-body a { color: inherit; text-decoration: underline; cursor: pointer; font-weight: 700; }
+  .popup-video-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    margin: 18px 0 10px;
+  }
+  .popup-video {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #000;
+  }
+  .popup-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .popup-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: rgba(0,0,0,0.5);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<a id="back-link" href="thesis-experience.html#thoughts">&larr; Back to &ldquo;I am not good enough&rdquo;</a>
+
+<div class="tagline">Explore what happens when you change how a thought sounds.</div>
+<div class="headphones-note">
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/></svg>
+  Use headphones for an optimal listening experience
+</div>
+
+<div class="info-row">
+  <button class="info-btn" id="howItWorksBtn" type="button">How it works</button>
+  <button class="info-btn" id="metaphorBtn" type="button">About the radio metaphor</button>
+  <button class="info-btn" id="methodBtn" type="button">Real-life setup</button>
+  <button class="info-btn" id="researchBtn" type="button">Research question</button>
+</div>
+
+<!-- Thought selector -->
+<div class="thought-select">
+  <div class="thought-arrow" id="prevThoughtBtn" aria-label="Previous thought">&larr;</div>
+  <div id="thoughtText">&ldquo;I am not good enough&rdquo;</div>
+  <div class="thought-arrow" id="nextThoughtBtn" aria-label="Next thought">&rarr;</div>
+</div>
+<div class="section-caption" id="caption">In the experiment, participants constructed their own thought. Here, you can choose from a selection.</div>
+
+<!-- Transport: play / loop / volume -->
+<div class="panel">
+  <div class="transport-row">
+    <div class="toggle-btn active" id="playToggle" data-slot="base">&#9654; Play</div>
+    <div class="toggle-btn active" id="loopToggle">&#8635; Loop</div>
+  </div>
+  <div class="volume-row">
+    <label for="volumeSlider">Vol</label>
+    <input type="range" id="volumeSlider" min="0" max="100" value="50">
+  </div>
+</div>
+
+<!-- Effects -->
+<div class="panel">
+  <div class="panel-title">Modulations</div>
+  <div class="effects-grid">
+    <div class="effect-btn" data-key="pitch">Pitch</div>
+    <div class="effect-btn" data-key="robot">Robot</div>
+    <div class="effect-btn" data-key="reverb">Reverb</div>
+    <div class="effect-btn" data-key="pan">Pan</div>
+  </div>
+</div>
+
+<!-- Mixer -->
+<div class="panel">
+  <div class="panel-title">Mixer</div>
+  <div class="mixer-buttons">
+    <div class="mixer-btn" data-key="mixPitchRobot">Pitch + Robot</div>
+    <div class="mixer-btn" data-key="mixPitchReverb">Pitch + Reverb</div>
+    <div class="mixer-btn" data-key="mixRobotReverb">Robot + Reverb</div>
+  </div>
+</div>
+
+<button id="continueBtn" type="button">Continue &rarr;</button>
+<div class="continue-hint">For the full method, results &amp; discussion, press continue.</div>
+
+<!-- ── Popups ── -->
+<div class="popup-overlay show" id="howItWorksOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="howItWorksClose">&#x2715;</button>
+    <div class="popup-title">How it works</div>
+    <div class="popup-body">
+      <p><b>1: Select a thought</b><br>
+      <b>2: Press play to hear it on repeat</b><br>
+      <b>3: Tap the buttons to hear examples of the modulated thoughts</b><br>
+      <b>4: The mixer combines the most impactful modulations from the experiment. Tap the buttons on the mixer to hear them.</b></p>
+      <p><b>Want to learn more about the experiment?</b><br>
+      Tap buttons &amp; words to explore concepts. For more scientific context (such as method &amp; results), press Continue below.</p>
+      <p><i>This website shows a way to experience the experiment. If you want to learn how the real-life experiment was set up, tap &ldquo;Real-life setup&rdquo; above.</i></p>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="metaphorOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="metaphorClose">&#x2715;</button>
+    <div class="popup-title">Radio Doom &amp; Gloom</div>
+    <div class="popup-body">
+      <p>The "Radio Doom &amp; Gloom" is a metaphor from Acceptance and Commitment Therapy. The mind, like a radio, is always broadcasting negative thoughts, worries, self-criticism.</p>
+      <p>This research took that metaphor as a starting point, but extended it. In the experiment, participants were able to interact with a recording of their own negative thought in real time — hearing it at a different pitch, distorted, echoed, slowed. The interface on this website gives you an impression of that experience through pre-recorded examples.</p>
+      <div class="popup-video-label">View the ACT Radio Doom &amp; Gloom metaphor</div>
+      <div class="popup-video">
+        <iframe src="https://www.youtube.com/embed/Bu2k0EGXAVo" title="ACT Radio metaphor" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="methodOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="methodClose">&#x2715;</button>
+    <div class="popup-title">Real-life setup</div>
+    <div class="popup-body">
+      <p>In the original experiment, participants recorded their own negative self-referential thought. They then listened to it played back through the interface and explored various audio modulations themselves. Before and after, they rated how much they believed the thought, how much emotional discomfort it caused, and how willing they were to accept it.</p>
+      <p>For the full method, results and discussion, press Continue.</p>
+    </div>
+  </div>
+</div>
+
+<div class="popup-overlay" id="researchOverlay">
+  <div class="popup-box">
+    <button class="popup-close" id="researchClose">&#x2715;</button>
+    <div class="popup-title">Research question</div>
+    <div class="popup-body">
+      <p>To what extent does interacting with a metaphor-based tangible audio interface facilitate cognitive defusion and reduce the impact of negative self-referential thoughts in participants?</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data: same three thoughts / audio files as the desktop radio (radio-v2.html) ──
+const THOUGHTS = [
+  {
+    text: 'I am not good enough',
+    audio: {
+      base:           'I am not good enough.wav',
+      pitch:          'I am not good enough pitch.wav',
+      robot:          'I am not good enough robot.wav',
+      reverb:         'I am not good enough reverb.wav',
+      pan:            'I am not good enough panning.wav',
+      mixPitchRobot:  'I am not good enough mix pitch robot.wav',
+      mixPitchReverb: 'I am not good enough pitch reverb.wav',
+      mixRobotReverb: 'I am not good enough robot reverb.wav',
+    },
+  },
+  {
+    text: 'I am a failure',
+    audio: {
+      base:           'I am a failure.wav',
+      pitch:          'I am a failure pitch.wav',
+      robot:          'I am a failure robot.wav',
+      reverb:         'I am a failure reverb.wav',
+      pan:            'I am a failure panning.wav',
+      mixPitchRobot:  'I am a failure pitch robot.wav',
+      mixPitchReverb: 'I am a failure pitch reverb.wav',
+      mixRobotReverb: 'I am a failure robot reverb.wav',
+    },
+  },
+  {
+    text: 'I am not worthy of love',
+    audio: {
+      base:           'I am not worthy of love.wav',
+      pitch:          'I am not worthy of love pitch.wav',
+      robot:          'I am not worthy of love robot.wav',
+      reverb:         'I am not worthy of love reverb.wav',
+      pan:            'I am not worthy of love panning.wav',
+      mixPitchRobot:  'I am not worthy of love pitch robot.wav',
+      mixPitchReverb: 'I am not worthy of love pitch reverb.wav',
+      mixRobotReverb: 'I am not worthy of love robot reverb.wav',
+    },
+  },
+];
+let thoughtIdx = 0;
+
+const AUDIO_SLOTS = ['base', 'pitch', 'robot', 'reverb', 'pan', 'mixPitchRobot', 'mixPitchReverb', 'mixRobotReverb'];
+const slotAudio = {};
+AUDIO_SLOTS.forEach(slot => {
+  const a = new Audio();
+  a.preload = 'auto';
+  a.volume = 0.5;
+  a.addEventListener('ended', () => onAudioEnded(slot));
+  slotAudio[slot] = a;
+});
+
+// Maps each audio slot to the button that plays it, so stopOtherAudio/
+// setSlotUIOff can flip the right button's visual state generically.
+const slotButtons = {};
+document.querySelectorAll('[data-slot], .effect-btn, .mixer-btn').forEach(btn => {
+  const key = btn.dataset.slot || btn.dataset.key;
+  if (key) slotButtons[key] = btn;
+});
+
+let currentAudio = slotAudio.base;
+let isPlaying = false;
+let isLooping = true;   // on by default — matches the desktop radio
+
+function loadThoughtAudio(idx) {
+  const audioMap = THOUGHTS[idx].audio || {};
+  AUDIO_SLOTS.forEach(slot => {
+    const file = audioMap[slot];
+    if (file) { slotAudio[slot].src = file; }
+    else { slotAudio[slot].removeAttribute('src'); slotAudio[slot].load(); }
+  });
+}
+loadThoughtAudio(thoughtIdx);
+
+function stopAudio(audio) { audio.pause(); audio.currentTime = 0; }
+
+function setSlotUIOff(slot) {
+  slotButtons[slot]?.classList.remove('active');
+}
+
+function stopOtherAudio(exceptSlot) {
+  AUDIO_SLOTS.forEach(slot => {
+    const a = slotAudio[slot];
+    if (slot !== exceptSlot && !a.paused) { stopAudio(a); setSlotUIOff(slot); }
+  });
+}
+
+function onAudioEnded(slot) {
+  if (slotAudio[slot].loop) return;
+  setSlotUIOff(slot);
+  isPlaying = false;
+}
+
+// Starts/stops a slot, stopping whatever else was playing first — only one
+// slot ever plays at a time (matches the desktop radio: PLAY/PITCH/ROBOT/
+// REVERB/PAN/the 3 mixer combos are mutually exclusive versions of the
+// same thought, not layered on top of each other).
+function toggleSlotPlayback(slot, active) {
+  stopOtherAudio(slot);
+  const audio = slotAudio[slot];
+  currentAudio = audio;
+  isPlaying = active;
+  slotButtons[slot]?.classList.toggle('active', active);
+  audio.loop = isLooping;
+  if (active) audio.play().catch(() => {});
+  else audio.pause();
+}
+
+function setCaption(text) {
+  document.getElementById('caption').textContent = text;
+}
+
+// ── Play ──
+document.getElementById('playToggle').addEventListener('click', () => {
+  const active = slotAudio.base.paused;
+  toggleSlotPlayback('base', active);
+  setCaption('In the experiment participants heard their own recorded negative thought played back to them. The thoughts on this radio are pre-recorded examples.');
+});
+
+// ── Loop ──
+document.getElementById('loopToggle').addEventListener('click', (e) => {
+  isLooping = !isLooping;
+  currentAudio.loop = isLooping;
+  e.currentTarget.classList.toggle('active', isLooping);
+  setCaption('Looping the thought is intentional — repeating a phrase until it loses its meaning is itself a form of defusion, known as semantic satiation. Tap again to stop the loop.');
+});
+
+// ── Volume ──
+const volumeSlider = document.getElementById('volumeSlider');
+volumeSlider.addEventListener('input', () => {
+  const vol = volumeSlider.value / 100;
+  AUDIO_SLOTS.forEach(slot => { slotAudio[slot].volume = vol; });
+  setCaption('You can turn it down. But never off.');
+});
+
+// ── Effect buttons (pitch/robot/reverb/pan) ──
+const EFFECT_CAPTIONS = {
+  pitch:  'What happens when the tone changes?',
+  robot:  'What happens when the voice becomes mechanical?',
+  reverb: 'The same thought. A bigger room. A smaller one.',
+  pan:    'What happens when the thought moves?',
+};
+document.querySelectorAll('.effect-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.key;
+    const active = slotAudio[key].paused;
+    toggleSlotPlayback(key, active);
+    setCaption(EFFECT_CAPTIONS[key]);
+  });
+});
+
+// ── Mixer buttons ──
+const MIXER_CAPTIONS = {
+  mixPitchRobot:  'Pitch + Robot — combines a pitch shift with a robotic voice effect.',
+  mixPitchReverb: 'Pitch + Reverb — combines a pitch shift with spatial reverberation.',
+  mixRobotReverb: 'Robot + Reverb — combines a robotic voice effect with spatial reverberation.',
+};
+document.querySelectorAll('.mixer-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.key;
+    const active = slotAudio[key].paused;
+    toggleSlotPlayback(key, active);
+    setCaption(MIXER_CAPTIONS[key]);
+  });
+});
+
+// ── Thought selector ──
+function updateThoughtUI() {
+  document.getElementById('thoughtText').innerHTML = '&ldquo;' + THOUGHTS[thoughtIdx].text + '&rdquo;';
+}
+function switchThought(dir) {
+  AUDIO_SLOTS.forEach(slot => { stopAudio(slotAudio[slot]); setSlotUIOff(slot); });
+  isPlaying = false;
+  thoughtIdx = (thoughtIdx + dir + THOUGHTS.length) % THOUGHTS.length;
+  loadThoughtAudio(thoughtIdx);
+  updateThoughtUI();
+  setCaption('In the experiment, participants constructed their own thought. Here, you can choose from a selection.');
+}
+document.getElementById('prevThoughtBtn').addEventListener('click', () => switchThought(-1));
+document.getElementById('nextThoughtBtn').addEventListener('click', () => switchThought(1));
+
+// ── Popups — generic open/close, same pattern as the other pages ──
+function openPopup(id) { document.getElementById(id).classList.add('show'); }
+function closePopup(id) { document.getElementById(id).classList.remove('show'); }
+document.getElementById('howItWorksBtn').addEventListener('click', () => openPopup('howItWorksOverlay'));
+document.getElementById('howItWorksClose').addEventListener('click', () => closePopup('howItWorksOverlay'));
+document.getElementById('metaphorBtn').addEventListener('click', () => openPopup('metaphorOverlay'));
+document.getElementById('metaphorClose').addEventListener('click', () => closePopup('metaphorOverlay'));
+document.getElementById('methodBtn').addEventListener('click', () => openPopup('methodOverlay'));
+document.getElementById('methodClose').addEventListener('click', () => closePopup('methodOverlay'));
+document.getElementById('researchBtn').addEventListener('click', () => openPopup('researchOverlay'));
+document.getElementById('researchClose').addEventListener('click', () => closePopup('researchOverlay'));
+document.querySelectorAll('.popup-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('show'); });
+});
+
+// ── Continue — replaces the desktop's scroll-to-zoom transition into inside.html ──
+document.getElementById('continueBtn').addEventListener('click', () => {
+  window.location.href = 'inside.html';
+});
+</script>
+
+</body>
+</html>
