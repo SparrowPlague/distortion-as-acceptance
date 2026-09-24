@@ -830,6 +830,88 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
   .inner-cards { bottom: calc(16px + 4vh); }
   .thought-hint { top: 64px; }
 }
+
+/* ── MOBILE: title page ──
+   Desktop keeps the title on one line (nowrap) since clamp() always has
+   room to shrink it enough on a wide viewport. On a narrow phone screen
+   the clamp() floor (2.9rem) is still wider than the viewport, so nowrap
+   forces "Distortion as Acceptance" to run off both edges instead of
+   shrinking further. Below 600px, drop nowrap and stack each word — a
+   smaller floor alone still doesn't reliably fit the longest word, but a
+   dedicated line per word always does. The logo/tag-corner's generous
+   --s8 side padding (64px) also reads as "centered" on a ~375px-wide
+   screen — cut it down to --s4 so they sit back in the corners. */
+@media (max-width: 700px) {
+  .cover-top {
+    padding: var(--s4) var(--s4);
+  }
+  .cover-body {
+    padding: 0 var(--s5);
+  }
+  .cover-title {
+    white-space: normal;
+    font-size: clamp(2.3rem, 13vw, 3.4rem);
+  }
+  .cover-title-line {
+    display: block;
+  }
+  .cover-title-line.as {
+    margin: 2px 0;
+  }
+}
+
+/* ── MOBILE: video ──
+   The desktop margin (calc(100% - 340px)) was tuned so the video isn't
+   upscaled past its native resolution on a large screen. On a ~375px-wide
+   phone that same fixed 340px margin eats almost the entire width, leaving
+   the video a sliver — a small fixed margin instead lets it fill most of
+   the (much smaller) screen. */
+@media (max-width: 700px) {
+  video {
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+  }
+}
+
+/* ── MOBILE: thought/anatomy diagram layer ──
+   Desktop surrounds the sentence with four labels placed via negative
+   offsets (above/below/either side) and connects them with drawn SVG
+   lines — a layout that assumes real width and height to spread out into.
+   The "inner cards" row below is separately pinned to a fixed bottom
+   offset, and .inner-layer itself doesn't scroll, so on a short phone
+   screen all of this piles on top of itself instead of just running off
+   the bottom. Below 600px: let the layer scroll, drop every absolute
+   position in favour of normal stacked flow (the sentence, then each
+   label, then the cards, top to bottom), and hide the now-meaningless
+   connector lines and the "hover" hint (there's no hover on touch).
+   Tapping a label still opens the same bottom-sheet popup as on desktop —
+   that already works fine on touch and needs no change. */
+@media (max-width: 700px) {
+  .inner-layer {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding: 90px 20px 40px;
+    gap: 40px;
+  }
+  .thought-diagram {
+    width: 100%;
+    min-height: 0;
+    flex-direction: column;
+    padding: 0;
+    transform: none;
+    gap: 22px;
+  }
+  .thought-lines, .thought-hint { display: none; }
+  .anatomy-label { position: static; }
+  .inner-cards {
+    position: static;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    width: 100%;
+  }
+}
 </style>
 </head>
 <body>
