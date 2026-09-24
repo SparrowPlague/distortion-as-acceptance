@@ -52,7 +52,7 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 28px;
+    margin-bottom: 44px;
   }
   .info-btn {
     cursor: pointer;
@@ -60,16 +60,16 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #000;
-    background: rgba(255,255,255,0.85);
+    background: linear-gradient(180deg, #fff 0%, #fff 35%, #dcdcdc 100%);
     border: 1px solid rgba(0,0,0,0.45);
     padding: 10px 14px;
     border-radius: 2px;
-    box-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 3px 6px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 3px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
     transform: translateY(0);
     transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
   }
   .info-btn:active {
-    background: rgba(255,255,255,0.95);
+    background: linear-gradient(180deg, #e8e8e8 0%, #fff 100%);
     transform: translateY(2px);
     box-shadow: 0 0 0 rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.1);
   }
@@ -80,12 +80,12 @@
     align-items: center;
     justify-content: center;
     gap: 14px;
-    background: #fff;
-    border: 1px solid rgba(0,0,0,0.2);
+    background: linear-gradient(160deg, #6c6c78 0%, #57565f 22%, #45444c 50%, #57565f 78%, #3d3c42 100%);
+    border: 1px solid rgba(255,255,255,0.14);
     border-radius: 6px;
     padding: 16px;
     margin-bottom: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.25);
   }
   .thought-arrow {
     cursor: pointer;
@@ -94,18 +94,18 @@
     flex-shrink: 0;
     border-radius: 50%;
     border: 1px solid rgba(0,0,0,0.35);
-    background: #fff;
+    background: linear-gradient(180deg, #fff 0%, #fff 35%, #d8d8d8 100%);
     font-size: 1rem;
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 0 rgba(0,0,0,0.3), 0 3px 5px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3), 0 3px 5px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
     transform: translateY(0);
     transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
   }
   .thought-arrow:active {
-    background: rgba(0,0,0,0.08);
+    background: linear-gradient(180deg, #e0e0e0 0%, #fff 100%);
     transform: translateY(2px);
     box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
   }
@@ -113,8 +113,8 @@
     flex: 1;
     text-align: center;
     font-weight: 600;
-    font-style: italic;
     font-size: 1rem;
+    color: #fff;
   }
 
   .section-caption {
@@ -145,12 +145,20 @@
     margin-bottom: 14px;
   }
 
-  /* Modulations + Mixer panels — dark background, buttons stay light on top */
+  /* Modulations + Mixer panels — dark background, buttons stay light on top.
+     A flat solid fill read as near-black; a subtle top-to-bottom gradient
+     plus a soft inner highlight along the top edge gives it more of a
+     brushed-panel material feel instead of a plain dark rectangle. */
   .panel-dark {
-    background: #2b2b2e;
-    border-color: rgba(255,255,255,0.12);
+    background: linear-gradient(160deg, #6a6a6f 0%, #55545a 22%, #43424a 50%, #55545a 78%, #3b3a40 100%);
+    border-color: rgba(255,255,255,0.14);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.25);
   }
-  .panel-dark .panel-title { color: rgba(255,255,255,0.6); }
+  .panel-dark .panel-title { color: rgba(255,255,255,0.65); }
+  /* Same family as .panel-dark, slightly warmer/lighter so the transport
+     panel doesn't read as an identical copy of Modulations/Mixer. */
+  .panel-dark-transport { background: linear-gradient(160deg, #706e68 0%, #5d5b56 22%, #4a4844 50%, #5d5b56 78%, #403e3a 100%); }
+  .panel-dark .volume-row label { color: rgba(255,255,255,0.6); }
 
   .transport-row {
     display: flex;
@@ -166,10 +174,10 @@
     padding: 16px 10px;
     border-radius: 4px;
     border: 1px solid rgba(0,0,0,0.35);
-    background: #fff;
+    background: linear-gradient(180deg, #fff 0%, #fff 35%, #dcdcdc 100%);
     color: #000;
     text-align: center;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
     transform: translateY(0);
     transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
   }
@@ -178,12 +186,16 @@
     box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
   }
   .toggle-btn.active {
-    background: #00963c;
+    background: linear-gradient(180deg, #2fc463 0%, #00963c 40%, #007a30 100%);
     border-color: #00963c;
     color: #fff;
-    box-shadow: 0 3px 0 #00722d, 0 4px 8px rgba(0,0,0,0.18);
+    box-shadow: 0 3px 0 #00722d, 0 4px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.45);
   }
-  #loopToggle.active { background: #2288ff; border-color: #2288ff; box-shadow: 0 3px 0 #0f66c4, 0 4px 8px rgba(0,0,0,0.18); }
+  #loopToggle.active {
+    background: linear-gradient(180deg, #5cabff 0%, #2288ff 40%, #0f6fe0 100%);
+    border-color: #2288ff;
+    box-shadow: 0 3px 0 #0f66c4, 0 4px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.45);
+  }
 
   .volume-row {
     display: flex;
@@ -223,10 +235,19 @@
     transform: translateY(3px);
     box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
   }
-  .effect-btn[data-key="pitch"].active  { background: #b8001e; border-color: #b8001e; color: #fff; box-shadow: 0 3px 0 #7a0010, 0 4px 8px rgba(0,0,0,0.18); }
-  .effect-btn[data-key="robot"].active  { background: #0072c0; border-color: #0072c0; color: #fff; box-shadow: 0 3px 0 #00427e, 0 4px 8px rgba(0,0,0,0.18); }
-  .effect-btn[data-key="reverb"].active { background: #8812cc; border-color: #8812cc; color: #fff; box-shadow: 0 3px 0 #500080, 0 4px 8px rgba(0,0,0,0.18); }
-  .effect-btn[data-key="pan"].active    { background: #c88408; border-color: #c88408; color: #fff; box-shadow: 0 3px 0 #7a4f00, 0 4px 8px rgba(0,0,0,0.18); }
+  /* Resting colour = the 3D radio's "emissive" (mid) colour for that
+     button; .active jumps to its brightest "activeEm" colour. Using the
+     3D radio's own two brighter tiers here, instead of its darkest
+     resting-material tier, keeps red/purple from reading near-black and
+     keeps panning a proper amber/orange instead of drab olive-brown. */
+  .effect-btn[data-key="pitch"]  { background: linear-gradient(180deg, #e2264a 0%, #b8001e 40%, #93001a 100%); border-color: #b8001e; color: #fff; box-shadow: 0 3px 0 #7a0010, 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35); }
+  .effect-btn[data-key="robot"]  { background: linear-gradient(180deg, #2f9bef 0%, #0072c0 40%, #005a99 100%); border-color: #0072c0; color: #fff; box-shadow: 0 3px 0 #00427e, 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35); }
+  .effect-btn[data-key="reverb"] { background: linear-gradient(180deg, #ab3ce8 0%, #8812cc 40%, #6d0ea3 100%); border-color: #8812cc; color: #fff; box-shadow: 0 3px 0 #500080, 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35); }
+  .effect-btn[data-key="pan"]    { background: linear-gradient(180deg, #e5a12e 0%, #c88408 40%, #a06b06 100%); border-color: #c88408; color: #fff; box-shadow: 0 3px 0 #7a4f00, 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35); }
+  .effect-btn[data-key="pitch"].active  { background: linear-gradient(180deg, #ff5c78 0%, #ff2244 40%, #d81530 100%); border-color: #ff2244; box-shadow: 0 3px 0 #b8001e, 0 4px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.55); }
+  .effect-btn[data-key="robot"].active  { background: linear-gradient(180deg, #6cc3ff 0%, #22aaff 40%, #0f8fdf 100%); border-color: #22aaff; box-shadow: 0 3px 0 #0072c0, 0 4px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.55); }
+  .effect-btn[data-key="reverb"].active { background: linear-gradient(180deg, #dd7bff 0%, #cc44ff 40%, #b021e8 100%); border-color: #cc44ff; box-shadow: 0 3px 0 #8812cc, 0 4px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.55); }
+  .effect-btn[data-key="pan"].active    { background: linear-gradient(180deg, #ffc266 0%, #ffaa22 40%, #e8910a 100%); border-color: #ffaa22; box-shadow: 0 3px 0 #c88408, 0 4px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.55); }
 
   .mixer-buttons {
     display: flex;
@@ -252,7 +273,22 @@
     transform: translateY(3px);
     box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
   }
-  .mixer-btn.active { background: #7c3aa0; border-color: #7c3aa0; color: #fff; box-shadow: 0 3px 0 #4f2568, 0 4px 8px rgba(0,0,0,0.18); }
+  /* Each combo is a diagonal 50/50 split of its two component effect
+     colours (same resting/active tiers as the effect buttons above), so
+     Pitch+Robot reads as red/blue, Pitch+Reverb as red/purple, and
+     Robot+Reverb as blue/purple. */
+  .mixer-btn {
+    color: #fff;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.35), 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  /* Gloss layer painted on top of the diagonal colour split (first
+     background listed sits above the ones after it). */
+  .mixer-btn[data-key="mixPitchRobot"]  { background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #b8001e 50%, #0072c0 50%); border-color: rgba(0,0,0,0.35); }
+  .mixer-btn[data-key="mixPitchReverb"] { background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #b8001e 50%, #8812cc 50%); border-color: rgba(0,0,0,0.35); }
+  .mixer-btn[data-key="mixRobotReverb"] { background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0072c0 50%, #8812cc 50%); border-color: rgba(0,0,0,0.35); }
+  .mixer-btn[data-key="mixPitchRobot"].active  { background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #ff2244 50%, #22aaff 50%); }
+  .mixer-btn[data-key="mixPitchReverb"].active { background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #ff2244 50%, #cc44ff 50%); }
+  .mixer-btn[data-key="mixRobotReverb"].active { background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #22aaff 50%, #cc44ff 50%); }
 
   #continueBtn {
     display: block;
@@ -262,12 +298,12 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #fff;
-    background: #000;
+    background: linear-gradient(180deg, #333 0%, #000 40%, #000 100%);
     border: none;
     border-radius: 4px;
     padding: 18px;
     margin-top: 18px;
-    box-shadow: 0 3px 0 #444, 0 5px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 0 #444, 0 5px 10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.25);
     transform: translateY(0);
     transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
   }
@@ -278,8 +314,8 @@
   }
   .continue-hint {
     text-align: center;
-    font-size: 0.72rem;
-    font-style: italic;
+    font-size: 0.9rem;
+    font-weight: 700;
     color: rgba(0,0,0,0.55);
     margin-top: 8px;
   }
@@ -300,7 +336,7 @@
   }
   .popup-overlay.show { opacity: 1; pointer-events: all; }
   .popup-box {
-    background: #f5f3ee;
+    background: #eceef0;
     border: 1px solid rgba(0,0,0,0.2);
     border-radius: 8px;
     width: 100%;
@@ -376,7 +412,7 @@
 <div class="section-caption" id="caption">In the experiment, participants constructed their own thought. Here, you can choose from a selection.</div>
 
 <!-- Transport: play / loop / volume -->
-<div class="panel">
+<div class="panel panel-dark panel-dark-transport">
   <div class="transport-row">
     <div class="toggle-btn active" id="playToggle" data-slot="base">&#9654; Play</div>
     <div class="toggle-btn active" id="loopToggle">&#8635; Loop</div>
