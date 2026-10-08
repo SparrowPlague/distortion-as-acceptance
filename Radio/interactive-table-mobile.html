@@ -6,13 +6,13 @@
 <title>Participant Data Explorer — Mobile</title>
 <style>
 /* ═══════════════════════════════════════════════════════════════════
-   Reused verbatim from interactive_table.html: the .tag.* colour
-   classes (the actual semantic colour-coding for shifts/metaphors/
-   affective states) and the profile modal. The desktop-only bits
-   (th./td. table cell colours, .table-wrap, hover states) are simply
-   unused here — harmless dead CSS, kept rather than risk missing a
-   colour class this file also needs. Everything below this block is
-   this mobile card-list's own layout, which overrides body/h1/etc.
+   Copied as-is from interactive_table.html: the .tag.* colour classes
+   (the colour coding for shifts/metaphors/affective states) and the
+   profile modal. Some desktop-only rules (table cell colours, table
+   wrap, hover states) are not used here, but are kept rather than risk
+   removing a colour class this file still needs. Everything below
+   this block is this mobile card list's own layout, which overrides
+   body/h1/etc.
    ═══════════════════════════════════════════════════════════════════ */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f8f8f6; color: #1a1a1a; padding: 32px 24px; }
@@ -26,7 +26,7 @@
   .tab:hover { color: #333; }
   .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
 
-  /* Question-mode toggle — switches between the aggregated ("all questions")
+  /* Question-mode toggle: switches between the aggregated "all questions"
      tables and a per-question breakdown built from questionData. */
   .qmode-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
   .qmode { padding: 5px 12px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #888; border-radius: 4px; transition: all 0.15s; }
@@ -61,8 +61,8 @@
   td.shift-del { background: #2d6a4f; color: white; border-radius: 2px; font-size: 10px; }
   td.shift-noshift { background: #7d8471; color: white; border-radius: 2px; font-size: 10px; }
   td.shift-desc { background: #1f9e89; color: white; border-radius: 2px; font-size: 10px; }
-  /* Metaphors — amber/orange shades, deliberately shuffled (not a dark→light
-     gradient) so neighbouring columns contrast rather than blend together. */
+  /* Metaphors: amber/orange shades. The order is shuffled, not a dark-to-light
+     gradient, so columns next to each other stand out instead of blending in. */
   td.met { background: #e07b00; color: white; border-radius: 2px; font-size: 10px; }
   td.met-spatial { background: #7a3e00; color: white; border-radius: 2px; font-size: 10px; }
   td.met-personification { background: #e07b00; color: white; border-radius: 2px; font-size: 10px; }
@@ -70,7 +70,7 @@
   td.met-atmospheric { background: #f4a83d; color: #3a2400; border-radius: 2px; font-size: 10px; }
   td.met-soundtexture { background: #cc6a00; color: white; border-radius: 2px; font-size: 10px; }
   td.met-repetition { background: #ffd8a8; color: #5a3a00; border-radius: 2px; font-size: 10px; }
-  /* Affective states — blue shades, likewise shuffled for neighbour contrast. */
+  /* Affective states: blue shades, also shuffled so neighbouring columns stand out. */
   td.aff { background: #4a90d9; color: white; border-radius: 2px; font-size: 10px; }
   td.aff-discomfort { background: #1c3f66; color: white; border-radius: 2px; font-size: 10px; }
   td.aff-humor { background: #6fa8e0; color: white; border-radius: 2px; font-size: 10px; }
@@ -89,10 +89,10 @@
   { filter: brightness(1.1); }
   tr.total-row td { font-weight: 600; border-top: 1.5px solid #1a1a1a; background: #f8f8f6 !important; }
 
-  /* Modulation filter — click a modulation header (Pitch/Robot/Reverb/Panning/Volume)
-     to focus on it: the other modulation columns dim, and any participant row that
-     didn't report the selected modulation dims entirely (including their shift/
-     metaphor/affective cells), across all three tabs at once. */
+  /* Modulation filter: clicking a modulation header (Pitch/Robot/Reverb/Panning/Volume)
+     dims the other modulation columns and dims any participant row that did not
+     report that modulation, including their shift/metaphor/affective cells. This
+     applies to all three tabs at once. */
   td.mod-col-dimmed { opacity: 0.3; filter: grayscale(1); }
   tr.row-dimmed td { opacity: 0.22; filter: grayscale(1); }
   tr.row-dimmed:hover td { background-color: transparent; }
@@ -141,8 +141,8 @@
   .legend-item { display: flex; align-items: center; gap: 4px; }
   .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
 
-/* ── Mobile shell — same visual language as the rest of the site's
-   mobile pages (IBM Plex Mono, light-grey background, shadowed cards). ── */
+/* ── Mobile shell: same look as the rest of the site's mobile pages
+   (IBM Plex Mono, light-grey background, shadowed cards). ── */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 body {
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
@@ -280,11 +280,11 @@ h1 { font-size: 0.95rem; letter-spacing: 0.02em; margin-bottom: 4px; }
 
 <script>
 // ═══════════════════════════════════════════════════════════════════
-// Reused verbatim from interactive_table.html — same data, same
-// category to CSS-class mappings, same "full profile" modal. Only the
-// rendering (cards instead of a wide table) and the tab/filter wiring
-// below are new; nothing here duplicates data that could drift out of
-// sync with the desktop table if it's ever updated.
+// Copied as-is from interactive_table.html: same data, same category-
+// to-CSS-class mappings, same "full profile" modal. Only the rendering
+// (cards instead of a wide table) and the tab/filter logic below are
+// new to this mobile file; they just read the data below rather than
+// storing their own separate copy of it.
 // ═══════════════════════════════════════════════════════════════════
 const data = {
   P1:  { mods: ['Pitch:dark','Reverb:dark','Panning:light','Volume:dark'], shifts: ['Decreased intensity'], mets: ['Spatial'], affs: ['Pleasantness'] },
@@ -312,13 +312,12 @@ const metClass = { 'Spatial':'met-spatial','Personification':'met-personificatio
 const affClass = { 'Discomfort':'aff-discomfort','Humour':'aff-humor','Hurt':'aff-hurt','Loneliness':'aff-loneliness','Pleasantness':'aff-pleasantness','Sadness':'aff-sadness','Seriousness':'aff-seriousness','Self-compassion':'aff-selfcompassion' };
 
 // ── Per-question data ───────────────────────────────────────────────────────
-// A separate breakdown of what each participant reported specifically at
-// Question 1 vs Question 2 (as opposed to `data` above, which is the
-// aggregate across the whole interview). Not everything in `data` necessarily
-// reappears here — anything a participant mentioned that couldn't clearly be
-// tied to one of these two questions is simply left out, per instruction.
-// A modulation entry is either a plain name ('Pitch') or, when a participant
-// specified a sub-detail, { name, detail } (e.g. Pitch: high/low, Panning: left).
+// What each participant reported specifically for Question 1 and Question 2,
+// as opposed to `data` above, which is the total across the whole interview.
+// Not everything in `data` appears here: anything that could not clearly be
+// linked to one of the two questions was left out.
+// A modulation entry is either a plain name ('Pitch') or, if the participant
+// gave a sub-detail, an object { name, detail } (e.g. Pitch: high/low, Panning: left).
 const QUESTION_TEXT = {
   q1: 'Did combining two or more modulations shift your experience of the sentence? Name one such combination and briefly describe what change (or did not).',
   q2: 'Name one specific moment or action during the modulation when something shifted in how you experienced the sentence. What exactly did you do (which control/movement), and what did you notice?',
@@ -468,8 +467,8 @@ function render() {
 
   for (let p = 1; p <= 18; p++) {
     const pid = 'P' + p;
-    // "All questions" reads the aggregate `data`; Q1/Q2 read `questionData`
-    // for that participant/question, same source split as the desktop table.
+    // "All questions" reads the total `data`; Q1/Q2 read `questionData`
+    // for that participant and question, the same split as the desktop table.
     const src = questionMode === 'all'
       ? data[pid]
       : ((questionData[pid] && questionData[pid][questionMode]) || { mods: [], shifts: [], mets: [], affs: [] });

@@ -7,17 +7,17 @@
 <style>
 
 /* ══════════════════════════════════════════════════════════════════════
-   MOBILE SHELL — page structure/nav; popup-*, ref, quote-*, knob-tip etc.
-   below this block are reused verbatim from inside.html's own stylesheet.
+   MOBILE SHELL: page structure and navigation. The popup-*, ref, quote-*,
+   knob-tip, etc. rules below this block are copied as-is from inside.html's
+   own stylesheet.
    ══════════════════════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&display=swap');
 * { margin: 0; padding: 0; box-sizing: border-box; }
-/* Real phone browsers (Safari/Chrome) can auto-boost text size in content
-   they judge "too small for this block" — noticeable mainly on text sitting
-   inside a scrollable, positioned container (like these popups), and not
-   reproduced by desktop devtools device emulation, which is why this only
-   showed up on an actual phone. This turns that auto-boost off so the
-   authored font sizes above are what actually render. */
+/* Real phone browsers (Safari/Chrome) can automatically enlarge text they
+   judge "too small", mainly inside a scrollable, positioned container like
+   these popups. Desktop devtools device emulation does not reproduce this,
+   which is why it only showed up on an actual phone. This line turns that
+   auto-enlarging off, so the font sizes set below are what actually renders. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 html, body { width: 100%; }
 body {
@@ -25,7 +25,7 @@ body {
   color: #000;
   font: 400 15px/1.6 'IBM Plex Mono', 'Courier New', monospace;
   padding: 20px 20px 60px;
-  max-width: 480px;   /* caps how wide the column gets in landscape, or on a tablet — content shouldn't just stretch to fill whatever width is available */
+  max-width: 480px;   /* caps the column width on landscape or tablet, so content doesn't stretch to fill the full screen */
   margin: 0 auto;
 }
 a { color: inherit; }
@@ -41,9 +41,9 @@ a { color: inherit; }
 .intro-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 8px; }
 .intro-body { font-size: 0.85rem; color: rgba(0,0,0,0.65); margin-bottom: 18px; }
 
-/* ── Easter-egg play button — small, tucked under the intro rather than
-   given its own prominent card, matching how understated it is on the
-   desktop scene (a single back-wall knob, easy to miss on purpose). ── */
+/* ── Easter-egg play button: kept small, tucked under the intro rather
+   than given its own prominent card, to match how easy it is to miss on
+   purpose on the desktop scene (just a single back-wall knob). ── */
 .easter-egg {
   display: inline-flex;
   align-items: center;
@@ -64,9 +64,9 @@ a { color: inherit; }
 .easter-egg:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.1); }
 .easter-egg.playing { background: linear-gradient(180deg, #5cabff 0%, #2288ff 40%, #0f6fe0 100%); border-color: #2288ff; color: #fff; box-shadow: 0 2px 0 #0f66c4, 0 3px 6px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.45); }
 
-/* ── Section cards — each a tappable entry point into one of the four
-   original wall/floor markers' popups, with its own "visual head" instead
-   of the 3D room's spatial cues. ── */
+/* ── Section cards: each one is a tappable entry point into one of the
+   four popups that, on the desktop scene, are wall/floor markers in the
+   3D room. Each card has its own image instead of that spatial cue. ── */
 .section-card {
   cursor: pointer;
   background: #fff;
@@ -157,10 +157,10 @@ a { color: inherit; }
 
 
   @import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap');
-  /* #go-back/#go-thought below are dead CSS on this page — leftovers from
-     inside.html's own fixed nav buttons, which this mobile shell replaces
-     with .back-links/.back-link above. No element here uses these IDs, so
-     harmless to leave, but noted in case that ever changes. */
+  /* #go-back and #go-thought below are unused on this page. They are
+     leftovers from inside.html's own fixed nav buttons, which this mobile
+     shell replaces with .back-links/.back-link above. No element here uses
+     these IDs, so they are harmless, just noted in case that changes. */
   #go-back, #go-thought {
     position: fixed;
     left: 48px;
@@ -171,7 +171,7 @@ a { color: inherit; }
     user-select: none;
   }
   #go-back { bottom: 48px; }
-  #go-thought { bottom: 98px; }   /* stacked directly above go-back, same gap as the circle's own height */
+  #go-thought { bottom: 98px; }   /* sits directly above go-back, with a gap the same size as the circle */
   #go-back .circle, #go-thought .circle {
     width: 34px;
     height: 34px;
@@ -203,15 +203,16 @@ a { color: inherit; }
     transition: opacity 0.25s ease, left 0s 0.25s;
     padding: 24px;
   }
-  /* left/opacity/pointer-events alone can't be trusted to keep a hidden popup from
-     intercepting clicks: the Datawrapper chart embedded in #mixerOverlay sets its
-     own inline `style="all: initial"`, which resets pointer-events (and visibility)
-     back to their defaults on itself, overriding whatever this hidden ancestor
-     inherits down. Physically moving the whole overlay off-screen while hidden
-     sidesteps that — no override on the embed's part can make an off-screen element
-     receive clicks meant for the 3D canvas. The "left 0s 0.25s" delay keeps the
-     existing fade-out animation intact: position only snaps away once the fade
-     (same 0.25s) has finished, not the instant .show is removed. */
+  /* left/opacity/pointer-events alone cannot be trusted to stop a hidden popup
+     from intercepting clicks: the Datawrapper chart embedded in #mixerOverlay
+     sets its own inline `style="all: initial"`, which resets pointer-events
+     (and visibility) back to default on itself, overriding whatever the
+     hidden popup tries to pass down. Moving the whole popup off-screen while
+     hidden avoids that problem, since an off-screen element cannot receive
+     clicks no matter what the embed overrides. The "left 0s 0.25s" delay
+     keeps the existing fade-out animation working: the popup only jumps
+     off-screen once that 0.25s fade has finished, not the instant .show
+     is removed. */
   .popup-overlay.show { opacity: 1; pointer-events: all; left: 0; transition: opacity 0.25s ease; }
   .popup-box {
     background: #eceef0;
@@ -221,10 +222,8 @@ a { color: inherit; }
     max-width: 760px;
     max-height: 88vh;
     overflow-y: auto;
-    overscroll-behavior-y: contain;   /* stops wheel-scroll momentum "chaining" past the
-                                          box's top/bottom edge — a known cause of scroll
-                                          seeming to randomly stop until you grab the
-                                          scrollbar directly */
+    overscroll-behavior-y: contain;   /* stops scroll momentum from passing through the
+                                          box's top/bottom edge to the page behind it */
     padding: 24px 18px;
     position: relative;
     font: 400 0.85rem/1.6 'Spectral', serif;
@@ -248,7 +247,7 @@ a { color: inherit; }
     border: 1px solid rgba(0,0,0,0.15);
     border-radius: 4px;
   }
-  /* Extra large — an interactive multi-tab data table needs real room to be readable. */
+  /* Extra large: an interactive multi-tab data table needs real room to be readable. */
   .interactive-table-box { max-width: 1400px; }
   .interactive-table-frame {
     width: 100%;
@@ -257,9 +256,9 @@ a { color: inherit; }
     border-radius: 4px;
   }
   #mixerOverlay .popup-box { max-width: 920px; }
-  #introOverlay .popup-body { font-size: 1.1rem; }   /* bigger body text for the room's opening blurb — title stays default size */
-  /* Section heading inside a long popup — same serif family as .popup-title,
-     a step down in size so it reads as a subhead rather than a second title. */
+  #introOverlay .popup-body { font-size: 1.1rem; }   /* bigger body text for the room's opening blurb; the title stays the default size */
+  /* Section heading inside a long popup: same serif family as .popup-title,
+     just a size smaller so it reads as a subheading, not a second title. */
   .popup-subtitle {
     font-family: Georgia, serif;
     font-weight: 700;
@@ -267,9 +266,9 @@ a { color: inherit; }
     margin: 18px 0 6px;
   }
   .popup-body .popup-subtitle:first-child { margin-top: 0; }
-  /* Illustrative participant quotes (original Dutch + English translation)
-     under a written analysis subsection — the coded excerpt within each
-     quote is bracketed in the source text and highlighted here. */
+  /* Participant quote examples (original Dutch plus English translation)
+     shown under a written analysis subsection. The coded part of each
+     quote is marked with brackets in the source text, and highlighted here. */
   .quote-label {
     font-family: Georgia, serif;
     font-weight: 700;
@@ -328,8 +327,8 @@ a { color: inherit; }
     pointer-events: none;
     box-shadow: 0 8px 24px rgba(0,0,0,0.18);
   }
-  /* Same look as radio-v2.html's .hover-tip (font/size/background), a step
-     up in size per request — used for the back-wall knob hover tips. */
+  /* Same look as radio-v2.html's .hover-tip (font, size, background), just
+     a size bigger as requested. Used for the back-wall knob hover tips. */
   .knob-tip {
     position: fixed;
     display: none;
@@ -344,9 +343,9 @@ a { color: inherit; }
     pointer-events: none;
     box-shadow: 0 8px 24px rgba(0,0,0,0.18);
   }
-  /* Shown for the duration of the PLAY-button track, positioned above it in
-     screen space — same look as .knob-tip, just driven by playback state
-     instead of hover, and re-centered on resize (see updatePlayHintPosition). */
+  /* Shown for as long as the PLAY-button track is playing, positioned
+     above it on screen. Same look as .knob-tip, but driven by playback
+     state instead of hover, and re-centred on resize (see updatePlayHintPosition). */
   #playHint {
     position: fixed;
     display: none;
@@ -390,12 +389,11 @@ a { color: inherit; }
     color: rgba(0,0,0,0.5);
     margin-top: 6px;
   }
-  /* Images that were shown side by side on the wide desktop popup (e.g.
-     three plots per modulation) stack instead on a narrow phone screen —
-     side by side here just squeezed each one down to unreadable. The
-     desktop-only "wider box for side-by-side plots" override is dropped
-     for the same reason: nothing needs the extra width once nothing sits
-     side by side any more. */
+  /* Images shown side by side on the wide desktop popup (e.g. three plots
+     per modulation) stack instead on a narrow phone screen, since side by
+     side would squeeze each one down to unreadable. The desktop-only
+     "wider box for side-by-side plots" rule is dropped here for the same
+     reason: once nothing sits side by side, nothing needs the extra width. */
   .popup-image-row { display: flex; flex-direction: column; gap: 16px; margin: 20px 0 4px; }
   .zoomable-image { cursor: zoom-in; }
   .popup-image-row img { width: 100%; border-radius: 4px; display: block; }
@@ -522,7 +520,7 @@ a { color: inherit; }
       <div class="popup-subtitle">Post Visual analog scale (VAS) &amp; survey</div>
       <p>Following the interaction phase, participants completed a second VAS assessment (same as the VAS prior to the experiment). They also evaluated each modulation separately, rating its effect on believability, emotional discomfort and acceptance as better, neutral or worse. This made it possible to compare the effects of each modulation against each other. The ratings were scaled from -50 to +50. For believability, a higher score indicated the thought felt more believable. For emotional discomfort, a higher score indicated more discomfort. For acceptance, a higher score indicated greater acceptance of the thought.</p>
       <div class="popup-subtitle">Analysis of open-ended questions</div>
-      <p>Open-ended questions were analysed via a qualitative content analysis<span class="ref" data-tip="tip30">[30]</span>. Content analysis was chosen for its ability to systematically categorize language through both deductive and inductive approaches, and for its suitability in exploring participants' subjective experiences of the interaction. Coding was conducted by a single researcher using Taguette<span class="ref" data-tip="tip31">[31]</span>. To enhance transparency and support replicability, a full codebook including category definitions and illustrative examples was developed and is available <a class="popup-link" data-target-overlay="codebookOverlay">here</a>. Categories were refined iteratively during coding, consistent with standard practice in qualitative content analysis <span class="ref" data-tip="tip32">[32]</span>.</p>
+      <p>Open-ended questions were analysed via a qualitative content analysis<span class="ref" data-tip="tip30">[30]</span>. Content analysis was chosen for its ability to systematically categorise language through both deductive and inductive approaches, and for its suitability in exploring participants' subjective experiences of the interaction. Coding was conducted by a single researcher using Taguette<span class="ref" data-tip="tip31">[31]</span>. To enhance transparency and support replicability, a full codebook including category definitions and illustrative examples was developed and is available <a class="popup-link" data-target-overlay="codebookOverlay">here</a>. Categories were refined iteratively during coding, consistent with standard practice in qualitative content analysis <span class="ref" data-tip="tip32">[32]</span>.</p>
       <p>Categories for experiential shifts were derived from theoretical frameworks relevant to cognitive defusion<span class="ref" data-tip="tip11">[11]</span>.<br>The following categories were used to code participant responses:</p>
 
       <p><b>Experiential shifts:</b></p>
@@ -739,19 +737,19 @@ a { color: inherit; }
     <button class="popup-close">&#x2715;</button>
     <div class="popup-title">Discussion</div>
     <div class="popup-body">
-      <p>The present study explored the use of a tangible audio interface as an approach to facilitating cognitive defusion. Four audio modulations were examined for their effect on the impact of a negative self-referential thought. These were measured through believability, discomfort and acceptance. Given the small sample size, results should be interpreted with caution. The study is exploratory, therefore the results do not confirm a hypothesis. Results rather show an indication of a pattern. Interacting with the interface nonetheless lowered both believability and discomfort overall. Acceptance did not change significantly.</p>
+      <p>The present study explored the use of a tangible audio interface as an approach to facilitating cognitive defusion. Four audio modulations were examined for their effect on the impact of a negative self-referential thought. These were measured through believability, discomfort and acceptance. The outcome measures are seen as indicators for cognitive defusion, as the defusion process itself cannot be observed within a single interaction. Given the small sample size, results should be interpreted with caution. The study is exploratory, therefore the results do not confirm a hypothesis. Results rather show an indication of a pattern. Interacting with the interface nonetheless lowered both believability and discomfort overall. Acceptance did not change significantly.</p>
 
-      <p>Across the four modulations, robot produced the most consistent results with decreases in believability and increases in acceptance. Reverb had a unexpected result; there was an increase in discomfort instead of a decrease. Panning showed no effect. Pitch produced no significant effects, but the change scores varied widely between participants. These results indicate that the modulations did not produce unidirectional effects. The type of audio modulation and individual differences seem to influence the experience of hearing your own negative thought.</p>
+      <p>Across the four modulations, robot produced the most consistent results with decreases in believability and increases in acceptance. Reverb had an unexpected result; there was an increase in discomfort instead of a decrease. Panning showed no effect. Pitch produced no significant effects, but the change scores varied widely between participants. Volume was not examined in the present study and may still influence the experience in ways not captured here. These results indicate that the modulations did not produce unidirectional effects. The type of audio modulation and individual differences seem to influence the experience of hearing your own negative thought.</p>
 
       <div class="popup-subtitle">Pitch</div>
-      <p>For pitch no significant effects were found on any of the outcome measures. Scores varied widely between participants, some rating higher and some lower after the pitch modulation. This spread may explain why no significant effect was found. Qualitative data support this, participants reported both increased and decreased intensity in their experience of the sentence, along with a range of affective states. The variety in responses to the pitch modulation could be explained by three factors. First, pitch (also referred to as fundamental frequency, or F0) communicates different emotional qualities depending on its level. Lower pitch has been associated with sadness, while higher pitch has been associated with happiness (among other emotions) <span class="ref" data-tip="tip20">[20]</span>. Since participants explored both higher and lower pitch values, some may have found lower pitch more emotionally impactful than other participants. This could be one source of the individual differences observed. A second explanation is that listeners do not all emotionally respond the same way to a given pitch level<span class="ref" data-tip="tip20">[20]</span>. Multiple participants reported humour in response to higher pitch, for example, while one participant instead reported seriousness. Third, how representative a recording sounds of someone&rsquo;s own voice varies from person to person <span class="ref" data-tip="tip23">[23]</span>. If a difference in baseline affects how participants respond to a pitch modulation, then this could explain why person a is more affected by high pitch than person b. This is supported by the closing interviews; one participant who identified as non-binary found higher pitch more difficult to hear than lower pitch, while another associated lower pitch with age and higher pitch with youth. Personal identity could be one explanation for why pitch modulations are experienced differently.</p>
+      <p>For pitch no significant effects were found on any of the outcome measures. The qualitative data helps explain this: participants reported both increased and decreased intensity in their experience of the sentence, along with a range of affective states, suggesting the absence of a consistent direction of change. The variety in responses to the pitch modulation could be explained by three factors. First, pitch (also referred to as fundamental frequency, or F0) communicates different emotional qualities depending on its level. Lower pitch has been associated with sadness, while higher pitch has been associated with happiness (among other emotions) <span class="ref" data-tip="tip20">[20]</span>. Since participants explored both higher and lower pitch values, some may have found lower pitch more emotionally impactful than other participants. This could be one source of the individual differences observed. A second explanation is that listeners do not all emotionally respond the same way to a given pitch level<span class="ref" data-tip="tip20">[20]</span>. Multiple participants reported humour in response to higher pitch, for example, while one participant instead reported seriousness. Third, how representative a recording sounds of someone&rsquo;s own voice varies from person to person <span class="ref" data-tip="tip23">[23]</span>. If a difference in baseline affects how participants respond to a pitch modulation, then this could explain why person a is more affected by high pitch than person b. This is supported by the closing interviews; one participant who identified as non-binary found higher pitch more difficult to hear than lower pitch, while another associated lower pitch with age and higher pitch with youth. Personal identity could be one explanation for why pitch modulations are experienced differently.</p>
 
       <div class="popup-subtitle">Robot</div>
-      <p>Robot showed the most consistent effects across participants, with significant decreases in believability and increases in acceptance. This finding is unexpected, since robot produced the strongest quantitative effects of the four modulations yet drew fewer specific qualitative descriptions than pitch or reverb. Only two participants reported deliteralisation in response to robot <span class="ref" data-tip="tip3">[3]</span><span class="ref" data-tip="tip11">[11]</span>, an effect that reflects cognitive defusion. With pitch, F0 and the formants shifted together, thereby producing an unnaturally high or low voice that still sounded like a distorted version of the participant’s voice. The robot modulation on the other hand altered its timbre. Timbre has been shown to be a primary acoustic cue for vocal emotion perception <span class="ref" data-tip="tip19">[19]</span>. If the timbre transformations disrupt the emotional qualities of the voice more effectively, then this could explain why the robot modulation had stronger effects than other modulations. If the voice no longer carries recognizable vocal cues, its function as a negative self-referential statement could therefore weaken. Participants also always included either pitch or robot in their reported combinations, which is consistent with this interpretation, since both modulations alter the vocal qualities most relevant to the emotional impact of the thought.</p>
+      <p>Robot showed the most consistent effects across participants, with significant decreases in believability and increases in acceptance. This finding is unexpected, since robot produced the strongest quantitative effects of the four modulations yet drew fewer specific qualitative descriptions than pitch or reverb. Only two participants reported deliteralisation in response to robot <span class="ref" data-tip="tip3">[3]</span><span class="ref" data-tip="tip11">[11]</span>, an effect that reflects cognitive defusion. With pitch, F0 and the formants shifted together, thereby producing an unnaturally high or low voice that still sounded like a distorted version of the participant’s voice. The robot modulation on the other hand altered its timbre. Timbre has been shown to be a primary acoustic cue for vocal emotion perception <span class="ref" data-tip="tip19">[19]</span>. If the timbre transformations disrupt the emotional qualities of the voice more effectively, then this could explain why the robot modulation had stronger effects than other modulations. If the voice no longer carries recognisable vocal cues, its function as a negative self-referential statement could therefore weaken. Participants also always included either pitch or robot in their reported combinations, which is consistent with this interpretation, since both modulations alter the vocal qualities most relevant to the emotional impact of the thought. An alternative explanation for the robot modulation could be reduced intelligibility. If participants could not understand the words they had recorded, the sentence may lose its linguistic function as a meaningful statement, which is comparable to deliteralisation. It is unclear whether participants could not understand their recorded thought because of defusion (deliteralisation), distraction, or both. Whether these are distinct processes or overlapping ones cannot be determined from the current data. Distraction in the traditional sense tries to shift the attention away from the emotional stimulus toward something neutral and unrelated. The interface however, is not redirecting the attention to something unrelated, participants stayed focussed on the negative thought, at least on an auditory level. The effect could reflect defusion, a shift from linguistic to auditory processing or something in between, this remains an open question and requires further research. What these explanations share is that attention remained directed at the thought rather than away from it. If multiple mechanisms contribute to the observed effect, the interface may reduce the impact of a negative self-referential thought in more than one way.</p>
       <p></p>
 
       <div class="popup-subtitle">Reverb</div>
-      <p>Reverb showed a surprising result; there was a significant increase in discomfort. Believability also increased, although this change was not significant. This is the opposite of the overall pattern, in which the interface lowered both measures. The increase in discomfort could be explained by the longer reverberation time of the used preset. In a recent study longer reverberation times seemed to strengthen emotional characteristics such as &lsquo;scary&rsquo; and &lsquo;sad&rsquo; <span class="ref" data-tip="tip42">[42]</span>. In the present study, the qualitative data showed that participants used atmospheric metaphors such as ominous, creepy and haunting to describe reverb, this could be seen as comparable. However, research is not in consensus, another study found that reverberation enhanced feelings of nostalgia, transcendence and wonder. Feelings such as &lsquo;unease&rsquo; were unaffected <span class="ref" data-tip="tip43">[43]</span>. Although unease and discomfort are distinct measures, they may be related. Both studies used musical stimuli, not spoken material, and unlike theirs, the recorded material in the present study already carried negative emotional content. Reverberation may therefore have intensified how negative the thought already felt, without transforming it. Reverb tends to make a threatening sound feel more threatening, not more transcendent.</p>
+      <p>Reverb was expected to create distance between the participant and the thought by simulating a large physical space, which could support the defusion process. Instead, discomfort increased significantly. Believability also increased, although this change was not significant. This is the opposite of the overall pattern, in which the interface lowered both measures. The increase in discomfort could be explained by the longer reverberation time of the used preset. In a recent study longer reverberation times seemed to strengthen emotional characteristics such as &lsquo;scary&rsquo; and &lsquo;sad&rsquo; <span class="ref" data-tip="tip42">[42]</span>. In the present study, the qualitative data showed that participants used atmospheric metaphors such as ominous, creepy and haunting to describe reverb. This could be seen as comparable. However, research is not in consensus, another study found that reverberation enhanced feelings of nostalgia, transcendence and wonder. Feelings such as &lsquo;unease&rsquo; were unaffected <span class="ref" data-tip="tip43">[43]</span>. Although unease and discomfort are distinct measures, they may be related. Both studies used musical stimuli, not spoken material, and unlike theirs, the recorded material in the present study already carried negative emotional content. Reverberation may therefore have intensified how negative the thought already felt, without transforming it. Reverb tends to make a threatening sound feel more threatening, not more transcendent.</p>
 
       <div class="popup-subtitle">Panning</div>
       <p>Panning had no effect on believability, discomfort or acceptance, consistent with the qualitative data in which it was most frequently reported as producing no shift in experience. Panning was implemented using a binaural source panner <span class="ref" data-tip="tip28">[28]</span>. This is different from a simple stereo left-right effect. A binaural panner creates movement around the listener&rsquo;s head; however the settings used in this experiment made this effect subtle and barely perceptible through headphones. Binaural audio has been shown to increase emotional impact and engagement in spoken narratives compared to stereo <span class="ref" data-tip="tip44">[44]</span>. The implementation used here was relatively simple compared to more advanced binaural or ambisonic techniques, which may explain why no comparable effect was found in this study. Panning also differs from pitch and robot in a more fundamental way. Pitch and robot directly altered the vocal qualities; panning changed only the spatial position of the sound, a property less directly tied to how uncomfortable or believable the thought felt. If panning were extended to a more advanced implementation, it might affect the experience of a negative self-referential thought more strongly.</p>
@@ -761,28 +759,28 @@ a { color: inherit; }
 
       <div class="quote-block">
         <p>&ldquo;Vooral de reverb handeling in combinatie met pitch deed voor mij het meeste. Nog meer merkte ik dat mijn eigen stem met reverb het meeste deed, omdat het als een negatief mantra ging voelen wat een nare priester tegen mij aan het opdreunen was, alleen was ik het zelf. Mogelijk voelde ik daardoor wat meer zelfmedelijden dat ik dit over mezelf denk.&rdquo;</p>
-        <p>&ldquo;The reverb manipulation in combination with pitch had the most impact for me. I noticed even more that my own voice with reverb did the most, because it started to feel like a negative mantra being recited by a dark priest, but it was me. This possibly made me feel some self-compassion for thinking this about myself.&rdquo;</p>
+        <p>&ldquo;Especially the reverb effect combined with pitch affected me the most. I noticed even more that my own voice with reverb had the strongest effect. It started to feel like a negative mantra being chanted at me by an unpleasant priest, except it was myself. That possibly made me feel a bit more self-compassionate for thinking this about myself.&rdquo;</p>
       </div>
 
-      <p>Psychological flexibility, the ability to experience uncomfortable emotions without them controlling one&rsquo;s thoughts and actions, is one of the core aims of ACT. Lisboa et al. <span class="ref" data-tip="tip38">[38]</span> found that flexibility between immersed and distanced perspectives was associated with adaptive change. In the present experiment, several participants showed shifts consistent with the described flexibility. Their descriptions were coded with contrasting perspectives such as outsider and insider perspective, but also show both increased and decreased intensity and a variety of affective states. The study by Lisboa et al. researched that flexibility in context of a longer time-span during sessions with a therapist. Here, participants interacted with the interface on their own. Whether the audio interface is able to support this kind of flexibility over the long term, has not been tested and therefore remains an open question.</p>
+      <p>Psychological flexibility, the ability to experience uncomfortable emotions without them controlling one&rsquo;s thoughts and actions, is one of the core aims of ACT. Lisboa et al. <span class="ref" data-tip="tip38">[38]</span> found that flexibility between immersed and distanced perspectives was associated with adaptive change. In the present experiment, several participants showed shifts consistent with the described flexibility. Their descriptions were coded with contrasting perspectives such as outsider and insider perspective, but also showed both increased and decreased intensity and a variety of affective states. The study by Lisboa et al. researched that flexibility in context of a longer time-span during sessions with a therapist. Here, participants interacted with the interface on their own. Whether the audio interface is able to support this kind of flexibility over the long term, has not been tested and therefore remains an open question.</p>
 
-      <p>A recent study on VR-based cognitive defusion in young people with depression and anxiety <span class="ref" data-tip="tip45">[45]</span> compared a VR defusion exercise with a non-immersive audio exercise within a single session. Participants in the audio condition listened to a recording of a therapist guiding them through a cognitive defusion exercise. Although participants preferred the VR condition and rated it as more engaging, the audio condition produced more immediate improvements. The authors attributed this outcome to how demanding defusion can be. Individuals have to focus and mentally manipulate a thought. In contrast to the VR environment, the audio condition lacked visual stimuli. This could explain why the audio condition was better equipped to support the process of cognitive defusion. The same rationale can be applied to the interface presented here. Participants engaged directly with recorded sound of their own negative thought. The screen which showed the controls and instructions were kept deliberately plain. Possibly, the attention could therefore be more easily directed to the sound. This is important because distractions could interfere with cognitive defusion. It would be harder to determine whether an observed improvement resulted from being distracted or from a process of cognitive defusion. Future research could compare the audio condition from the VR study against the audio-modulation condition from the present study to explore whether a self-directed exercise based on audio modulation can achieve effects comparable to those of an established guided defusion exercise. However, these two conditions differentiate on a deeper level. They differ in the content of the exercise itself and whose voice is used, so any different outcome can not be contributed to guidance alone. It would therefore be more robust if the controlled variable would be the exercise content and the independent variable would be whether the audio is guided or self-directed.</p>
+      <p>A recent study on VR-based cognitive defusion in young people with depression and anxiety <span class="ref" data-tip="tip45">[45]</span> compared a VR defusion exercise with a non-immersive audio exercise within a single session. Participants in the audio condition listened to a recording of a therapist guiding them through a cognitive defusion exercise. Although participants preferred the VR condition and rated it as more engaging, the audio condition produced more immediate improvements. The authors attributed this outcome to how demanding defusion can be. Individuals have to focus and mentally manipulate a thought. In contrast to the VR environment, the audio condition lacked visual stimuli. This could explain why the audio condition was better equipped to support the process of cognitive defusion. The same rationale can be applied to the interface presented here. Participants engaged directly with recorded sound of their own negative thought. The screen which showed the controls and instructions was kept deliberately plain. Possibly, the attention could therefore be more easily directed to the sound. This is important because distractions could interfere with cognitive defusion. It would be harder to determine whether an observed improvement resulted from being distracted or from a process of cognitive defusion. Future research could compare the audio condition from the VR study against the audio-modulation condition from the present study to explore whether a self-directed exercise based on audio modulation can achieve effects comparable to those of an established guided defusion exercise. However, these two conditions differ at a deeper level. They differ in the content of the exercise itself and whose voice is used, so any different outcome cannot be contributed to guidance alone. It would therefore be more robust if the controlled variable would be the exercise content and the independent variable would be whether the audio is guided or self-directed.</p>
 
-      <p>Our findings are consistent with Masuda et al. <span class="ref" data-tip="tip18">[18]</span><span class="ref" data-tip="tip29">[29]</span> who found that rapid vocal repetition reduced the believability and discomfort of a negative self-referential thought. In the study done by Masuda et al., the participants repeated the thought aloud themselves; here, they listened to a looped recording of their thought instead. The shared reduction in outcome measures could be ascribed to the same underlying mechanism, namely semantic satiation <span class="ref" data-tip="tip17">[17]</span>. Most research on semantic satiation is focused on satiation using active repetition, such as the described study. However, the few studies that do exist show that satiation can also occur through listening <span class="ref" data-tip="tip48">[48]</span><span class="ref" data-tip="tip49">[49]</span><span class="ref" data-tip="tip50">[50]</span>. The current study add to this by showing that auditory satiation could also be used to support cognitive defusion by reducing believability and discomfort of negative self-referential thoughts. That said, participants could manipulate the audio of their thought, meaning their engagement was not purely passive, unlike in the studies described above. Future studies should therefore compare passive and active listening directly.</p>
+      <p>Our findings are consistent with Masuda et al. <span class="ref" data-tip="tip18">[18]</span><span class="ref" data-tip="tip29">[29]</span> who found that rapid vocal repetition reduced the believability and discomfort of a negative self-referential thought. In the study done by Masuda et al., the participants repeated the thought aloud themselves; here, they listened to a looped recording of their thought instead. The shared reduction in outcome measures could be ascribed to the same underlying mechanism, namely semantic satiation. Most research on semantic satiation is focused on satiation using active repetition, such as the described study. However, the few studies that do exist show that satiation can also occur through listening <span class="ref" data-tip="tip48">[48]</span><span class="ref" data-tip="tip49">[49]</span><span class="ref" data-tip="tip50">[50]</span>. The current study is consistent with the possibility that auditory satiation could also support cognitive defusion, as believability and discomfort of negative self-referential thoughts decreased overall. That said, participants could manipulate the audio of their thought, meaning their engagement was not purely passive, unlike in the studies described above. Future studies should therefore compare passive and active listening directly.</p>
 
       <p>This could be done by including an unmodulated audio condition, in which participants listen to a recording of their own voice without any audio modulation, allowing passive listening to be tested separately from the modulated condition used here. If we want to compare directly to Masuda et al&rsquo;s condition, we would need to match both the content and the pace of rapid vocal repetition. Participants could for instance, listen to a recording of the same rapidly repeated word, instead of repeating it aloud themselves. A further extension could be done by adding an active condition with real-time modulation. Participants would speak the repeated content aloud while being able to manipulate the modulation of their own voice as they hear it through headphones (altered auditory feedback). This would make it possible to test whether combining active production with modulation has an effect beyond the passive, modulated condition used in the present study.</p>
 
       <div class="popup-subtitle">Limitations</div>
-      <p>One of the limitations of this study is the small sample size (N = 18); therefore, results should be interpreted with caution. A sensitivity analysis (G*Power 3.1.9.4) showed that with this sample size, the study had 80% power to detect only large effects (dz &ge; 0.72, two-tailed). Smaller effects may therefore have gone undetected, which means that a non-significant result does not necessarily mean there is no effect. Detecting a medium effect (d = 0.5) would have required about 35 participants, almost twice the current sample. Of the five significant results found among the pre-post and modulation analyses, only one (the believability VAS measure) exceeded the sensitivity threshold of dz = 0.72. The remaining four significant findings had smaller effect sizes than this threshold, and are therefore less certain as a result despite reaching statistical significance. In total 15 statistical tests were run across these analyses without correcting for multiple comparisons (no Bonferroni correction was applied). This increases the risk of Type I errors, meaning one of the five significant results may have occurred by chance. A larger sample size is needed to establish whether these effects hold up. <br>A related limitation concerns the absence of a baseline exclusion criterion. Masuda et al. <span class="ref" data-tip="tip18">[18]</span> excluded participants whose believability and discomfort scores fell below a set threshold, to ensure the thought used was distressing and believable enough to test. This criterion was not applied here, since doing so would have further reduced an already small sample. As a result, some participants may have started with a thought that did not meet that threshold, which could have weakened the study&rsquo;s ability to detect real effects. Applying it in later studies would ensure the thought tested is meaningful for every participant. The acceptance measure raises a separate concern. This measure was included to track whether participants grew more accepting of the thought over the course of the interaction. Believability and discomfort were adapted from Masuda et al. <span class="ref" data-tip="tip18">[18]</span>, while acceptance was developed in the context of this study and has not been validated elsewhere. The lack of a significant change in acceptance could therefore reflect a genuine absence of effect, or it could reflect a limitation of the measure itself. This could be resolved by validating the measure, or using an established one instead.</p>
-      <p>This study also relied on a single session with no follow-up assessment. Sessions spread over time, together with follow-up assessments, would show whether these effects persist. Repeated sessions carry a risk of their own. The number of times someone hears a recording of their own voice affects how that voice is recognized <span class="ref" data-tip="tip41">[41]</span>, which could mean participants grow accustomed to it, reducing the interface&rsquo;s effect over multiple sessions. A single session cannot capture this risk. Future research could also examine whether this effect differs with vocal experience; individuals with extensive vocal training, such as singers, may already relate differently to their own voice.</p>
+      <p>One of the limitations of this study is the small sample size (N = 18); therefore, results should be interpreted with caution. A sensitivity analysis (G*Power 3.1.9.4) showed that with this sample size, the study had 80% power to detect only large effects (dz &ge; 0.72, two-tailed). Smaller effects may therefore have gone undetected, which means that a non-significant result does not necessarily mean there is no effect. Detecting a medium effect (d = 0.5) would have required about 35 participants, almost twice the current sample. Of the five significant results found among the pre-post and modulation analyses, only one (the believability VAS measure) exceeded the sensitivity threshold of dz = 0.72. The remaining four significant findings had smaller effect sizes than this threshold, and are therefore less certain as a result despite reaching statistical significance. In total 15 statistical tests were run across these analyses without correcting for multiple comparisons (no Bonferroni correction was applied). This increases the risk of Type I errors, meaning one of the five significant results may have occurred by chance. A larger sample size is needed to establish whether these effects hold up. <br>A related limitation concerns the absence of a baseline exclusion criterion. Masuda et al. <span class="ref" data-tip="tip18">[18]</span> excluded participants whose believability and discomfort scores fell below a set threshold, to ensure the thought used was distressing and believable enough to test. This criterion was not applied here, since doing so would have further reduced the small sample size. As a result, some participants may have started with a thought that did not meet that threshold, which could have weakened the study&rsquo;s ability to detect real effects. Applying it in later studies would ensure the thought tested is meaningful for every participant. The acceptance measure raises a separate concern. This measure was included to track whether participants grew more accepting of the thought over the course of the interaction. Believability and discomfort were adapted from Masuda et al. <span class="ref" data-tip="tip18">[18]</span>, while acceptance was developed in the context of this study and has not been validated elsewhere. The lack of a significant change in acceptance could therefore reflect a genuine absence of effect, or it could reflect a limitation of the measure itself. This could be resolved by validating the measure, or using an established one instead.</p>
+      <p>This study also relied on a single session with no follow-up assessment. Sessions spread over time, together with follow-up assessments, would show if these effects persist. Repeated sessions have a risk as well. The number of times someone hears a recording of their own voice affects how that voice is recognised <span class="ref" data-tip="tip41">[41]</span>, which could mean participants grow accustomed to it, reducing the interface&rsquo;s effect over multiple sessions. A single session cannot capture this risk. Future research could also examine whether this effect is different with vocal experience; individuals with extensive vocal training, such as singers, may already relate differently to their own voice.</p>
       <p>Participants were free to combine multiple modulations within a single interaction. These combinations were only explored through open-ended questions, not through the same believability, discomfort and acceptance measures used for the individual modulations. It therefore remains unclear whether combining modulations produces something beyond what any single modulation would produce on its own. The open-ended responses were coded through concept analysis, as described in the Methods section. This coding was carried out by a single researcher, so no inter-rater reliability could be established. A second coder analysing the same data, or at least a subset of it, would make it possible to check how consistent these codes are.</p>
 
       <div class="popup-subtitle">Implications</div>
-      <p>Although this study focused on cognitive defusion, the interface&rsquo;s underlying goal is helping people become more flexible and adaptive in how they relate to their emotions and thoughts. Other approaches that share this goal could possibly also use similar audio-based tools. Repeated listening to a recording of a negative thought also resembles exposure therapy, where sustained engagement with a distressing stimulus reduces its emotional impact through habituation <span class="ref" data-tip="tip47">[47]</span>. This draws on a different underlying process than cognitive defusion. Both, though, encourage engaging with a difficult thought instead of avoiding it.</p>
+      <p>Although this study focused on cognitive defusion, the interface&rsquo;s underlying goal is helping people become more flexible and adaptive in how they relate to their emotions and thoughts. The definition of defusion, altering the literal meaning and behaviour-regulatory function of private events without necessarily changing their form, frequency, or situational sensitivity <span class="ref" data-tip="tip3">[3]</span> <span class="ref" data-tip="tip11">[11]</span>, is broad enough to overlap with other therapeutic approaches, and the interface is therefore not limited to ACT exclusively. Distinguishing between defusion and other strategies that share similar goals is not straightforward, as other techniques could possibly facilitate defusion as well. For instance, exposure therapy reduces emotional impact by sustained engagement with a distressing stimulus <span class="ref" data-tip="tip47">[47]</span>. This overlaps with the repeated listening to a recording of a negative thought in the present study. It cannot be ruled out that habituation through repeated listening also contributed to the observed effects. It would be valuable to research in what ways defusion overlaps with other strategies and how other strategies outside ACT could support the defusion process.</p>
       <p>In practice, the interface could work alongside existing ACT vocal techniques, such as the silly voice exercise <span class="ref" data-tip="tip11">[11]</span>. Which technique works best would depend on the client, with a therapist choosing which one works. Participants responded very differently to the individual modulations, which is why that flexibility matters. If no single modulation or vocal technique works the same for everyone, then expanding the range of available tools seems more useful than narrowing it down. The playfulness of the interface may make it easier to sit with an uncomfortable thought. Exploring and combining modulations can feel more like experimentation than direct confrontation. That playful, experimental quality could make it more accessible for people who find abstract, language-based therapeutic exercises hard to engage with. Metaphor comprehension, for example, has been linked to broader language ability <span class="ref" data-tip="tip46">[46]</span>. Even when a metaphor is explained clearly, using it still requires the client to actively imagine a scene or concept. Everyone has different imaginative abilities, hearing the modulated sound of their own voice requires less imaginative effort.</p>
 
       <div class="popup-subtitle">Conclusion</div>
-      <p>This research explored whether modulating a person&rsquo;s own recorded voice could support cognitive defusion and reduce the impact of a negative self-referential thought. Interacting with the interface lowered both the believability and discomfort of the thought overall, although the four modulations affected participants differently. Robot showed the most consistent change, and for reverb, discomfort increased instead of decreased. Panning showed no measurable effect. Pitch produced no significant effect, but the direction of change varied between participants. To the author&rsquo;s knowledge, this is the first study to combine cognitive defusion with this kind of voice modulation. With a small sample size, these findings are a starting point for more research. Future work could clarify which modulations work best for which people, and test the interface against an unmodulated baseline recording. This project draws on several fields at once, from voice perception and how sound shapes emotion to negative self-referential thoughts, ACT, and psychology more broadly.</p>
+      <p>This research explored whether modulating a person&rsquo;s own recorded voice could facilitate cognitive defusion and reduce the impact of a negative self-referential thought. Interacting with the interface lowered both the believability and discomfort of the thought overall, although the four modulations affected participants differently. Robot showed the most consistent change, and for reverb, discomfort increased instead of decreased. Panning showed no measurable effect. Pitch produced no significant effect, but the direction of change varied between participants. To the author&rsquo;s knowledge, this is the first study to combine cognitive defusion with this kind of voice modulation. With a small sample size, these findings are a starting point for more research. Future work could clarify which modulations work best for which people, and test the interface against an unmodulated baseline recording. This project draws on several fields at once, from voice perception and how sound shapes emotion to negative self-referential thoughts, ACT, and psychology more broadly.</p>
     </div>
   </div>
 </div>
@@ -1074,7 +1072,7 @@ document.querySelectorAll('.popup-overlay').forEach(overlay => {
 });
 
 // Text links that open another popup (worksheet, codebook, interactive
-// table, instruction text, etc.) — same data-target-overlay mechanism.
+// table, instructions, etc.), using the same data-target-overlay attribute.
 document.querySelectorAll('.popup-link').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
@@ -1104,8 +1102,8 @@ document.querySelectorAll('.plugin-row, .gui-image-link, .zoomable-image').forEa
   });
 });
 
-// ── Citation tooltips — tap to toggle instead of hover (no hover on touch).
-// Tapping elsewhere on the page closes whichever tip is open. ─────────────
+// ── Citation tooltips: tap to toggle instead of hover, since touchscreens
+// have no hover. Tapping anywhere else on the page closes the open tip. ──
 let openTipId = null;
 function showTip(el, id) {
   if (openTipId && openTipId !== id) hideTip(openTipId);
@@ -1132,9 +1130,9 @@ document.querySelectorAll('.ref[data-tip]').forEach(el => {
 });
 document.addEventListener('click', () => { if (openTipId) hideTip(openTipId); });
 
-// ── Easter egg — background song, plain play/stop toggle. No custom
-// volume control: on a phone the hardware volume buttons already control
-// whatever audio the browser is playing, so there's nothing to wire up. ──
+// ── Easter egg: background song, a plain play/stop toggle. No volume
+// control is needed here, since on a phone the hardware volume buttons
+// already control whatever audio the browser is playing. ──
 const bgMusic = document.getElementById('bgMusic');
 const easterEggBtn = document.getElementById('easterEggBtn');
 const easterEggLabel = document.getElementById('easterEggLabel');
@@ -1198,14 +1196,13 @@ function fitRenderer(w, h) {
   camera.updateProjectionMatrix();
 }
 fitRenderer();
-// ResizeObserver instead of window's 'resize' event — on a phone rotation,
-// 'resize' can fire before the container's own box has actually settled
+// Using ResizeObserver instead of window's 'resize' event. On a phone
+// rotation, 'resize' can fire before the container has actually settled
 // into its new size, so reading clientWidth/Height right then gives stale
-// numbers: the canvas's internal draw buffer ends up sized for the old
-// aspect ratio while its CSS box (width/height: 100%) is already the new
-// one, and the browser stretches the rendered image to fit — the
-// "uitgerekt" look. ResizeObserver instead reports the container's real,
-// current box size whenever it actually changes, whatever the cause.
+// numbers. That leaves the canvas's draw buffer sized for the old aspect
+// ratio while its CSS box is already the new one, so the browser stretches
+// the image to fit (a "stretched" look). ResizeObserver instead reports
+// the container's real, current size whenever it actually changes.
 new ResizeObserver((entries) => {
   const box = entries[0].contentBoxSize
     ? (Array.isArray(entries[0].contentBoxSize) ? entries[0].contentBoxSize[0] : entries[0].contentBoxSize)
@@ -1214,9 +1211,10 @@ new ResizeObserver((entries) => {
   else fitRenderer(entries[0].contentRect.width, entries[0].contentRect.height);
 }).observe(container);
 
-// Simple three-point-ish lighting — no HDR environment map (that's the
-// ~1.5MB reflections pass the full room scene uses; skipped here to keep
-// this header light, plain lights are enough for a small decorative group).
+// Simple three-point-style lighting, with no HDR environment map. That
+// map is the ~1.5MB reflections pass the full room scene uses; it is
+// skipped here to keep this header light, since plain lights are enough
+// for a small decorative group.
 scene.add(new THREE.AmbientLight(0xffffff, 0.7));
 const key = new THREE.DirectionalLight(0xffffff, 1.4);
 key.position.set(3, 4, 5);
@@ -1228,9 +1226,9 @@ scene.add(fill);
 const group = new THREE.Group();
 scene.add(group);
 
-// Same normalize-to-target-size + orientation approach as inside.html's
-// loadWallProp, minus the wall-mounting position math — these just need to
-// sit centered in their own slot in a row instead.
+// Same approach as inside.html's loadWallProp for scaling to a target
+// size and orientation, minus the wall-mounting position maths, since
+// these objects just need to sit centred in their own slot in a row.
 let loaded = 0;
 const TOTAL = 3;
 function onOneLoaded() {
@@ -1254,9 +1252,9 @@ function loadObject(file, targetSize, x, rotX, rotY, rotZ, axisAngle) {
     obj.position.x += x - center.x;
     obj.position.y += -center.y;
     obj.position.z += -center.z;
-    // Strip any lights baked into the export (same reasoning as
-    // inside.html's loadWallProp — a baked light can wash out this
-    // header's own small, carefully-dim setup).
+    // Remove any lights baked into the export, for the same reason as
+    // inside.html's loadWallProp: a baked light can wash out this
+    // header's own small, deliberately dim lighting setup.
     const lights = [];
     obj.traverse(child => { if (child.isLight) lights.push(child); });
     lights.forEach(l => l.parent.remove(l));
@@ -1268,8 +1266,8 @@ function loadObject(file, targetSize, x, rotX, rotY, rotZ, axisAngle) {
   });
 }
 
-// Same axis-angle/rotation values as inside.html uses for these exact
-// files — empirically correct orientations, not guesses.
+// Same axis-angle/rotation values that inside.html uses for these exact
+// files. These were found by testing, not guessed.
 loadObject('headphones.glb', 1.5, -1.6, 0, Math.PI / 2, 0);
 loadObject('microphone.glb', 1.6, 0, 0, 0, 0,
   { x: -0.7164858561887668, y: 0, z: 0.697601618319116, angle: 1.4449268754124767 });

@@ -147,18 +147,18 @@
     margin-bottom: 14px;
   }
 
-  /* Modulations + Mixer panels — dark background, buttons stay light on top.
-     A flat solid fill read as near-black; a subtle top-to-bottom gradient
-     plus a soft inner highlight along the top edge gives it more of a
-     brushed-panel material feel instead of a plain dark rectangle. */
+  /* Modulations and Mixer panels: dark background, buttons stay light on top.
+     A flat dark fill would just look like a plain black box, so this uses a
+     top-to-bottom gradient plus a soft highlight along the top edge instead,
+     to make it look more like a brushed metal panel. */
   .panel-dark {
     background: linear-gradient(160deg, #6a6a6f 0%, #55545a 22%, #43424a 50%, #55545a 78%, #3b3a40 100%);
     border-color: rgba(255,255,255,0.14);
     box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.25);
   }
   .panel-dark .panel-title { color: rgba(255,255,255,0.65); }
-  /* Same family as .panel-dark, slightly warmer/lighter so the transport
-     panel doesn't read as an identical copy of Modulations/Mixer. */
+  /* Same style as .panel-dark, just a bit warmer and lighter, so the
+     transport panel doesn't look identical to Modulations/Mixer. */
   .panel-dark-transport { background: linear-gradient(160deg, #706e68 0%, #5d5b56 22%, #4a4844 50%, #5d5b56 78%, #403e3a 100%); }
   .panel-dark .volume-row label { color: rgba(255,255,255,0.6); }
 
@@ -237,11 +237,11 @@
     transform: translateY(3px);
     box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
   }
-  /* Resting colour = the 3D radio's "emissive" (mid) colour for that
-     button; .active jumps to its brightest "activeEm" colour. Using the
-     3D radio's own two brighter tiers here, instead of its darkest
-     resting-material tier, keeps red/purple from reading near-black and
-     keeps panning a proper amber/orange instead of drab olive-brown. */
+  /* The resting colour matches the 3D radio's "emissive" (mid) colour for
+     that button, and .active switches to its brightest "activeEm" colour.
+     These use the radio's two brighter colour tiers rather than its
+     darkest resting tier, so red and purple don't look almost black, and
+     panning stays a proper amber/orange rather than a dull olive-brown. */
   .effect-btn[data-key="pitch"]  { background: linear-gradient(180deg, #e2264a 0%, #b8001e 40%, #93001a 100%); border-color: #b8001e; color: #fff; box-shadow: 0 3px 0 #7a0010, 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35); }
   .effect-btn[data-key="robot"]  { background: linear-gradient(180deg, #2f9bef 0%, #0072c0 40%, #005a99 100%); border-color: #0072c0; color: #fff; box-shadow: 0 3px 0 #00427e, 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35); }
   .effect-btn[data-key="reverb"] { background: linear-gradient(180deg, #ab3ce8 0%, #8812cc 40%, #6d0ea3 100%); border-color: #8812cc; color: #fff; box-shadow: 0 3px 0 #500080, 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35); }
@@ -275,16 +275,16 @@
     transform: translateY(3px);
     box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.1);
   }
-  /* Each combo is a diagonal 50/50 split of its two component effect
-     colours (same resting/active tiers as the effect buttons above), so
-     Pitch+Robot reads as red/blue, Pitch+Reverb as red/purple, and
-     Robot+Reverb as blue/purple. */
+  /* Each combo button is a diagonal 50/50 split between its two effect
+     colours, using the same resting/active colours as the effect buttons
+     above. So Pitch+Robot looks red/blue, Pitch+Reverb looks red/purple,
+     and Robot+Reverb looks blue/purple. */
   .mixer-btn {
     color: #fff;
     box-shadow: 0 3px 0 rgba(0,0,0,0.35), 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35);
   }
-  /* Gloss layer painted on top of the diagonal colour split (first
-     background listed sits above the ones after it). */
+  /* A gloss highlight sits on top of the diagonal colour split (the
+     first background listed is layered above the ones after it). */
   .mixer-btn[data-key="mixPitchRobot"]  { background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #b8001e 50%, #0072c0 50%); border-color: rgba(0,0,0,0.35); }
   .mixer-btn[data-key="mixPitchReverb"] { background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #b8001e 50%, #8812cc 50%); border-color: rgba(0,0,0,0.35); }
   .mixer-btn[data-key="mixRobotReverb"] { background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0072c0 50%, #8812cc 50%); border-color: rgba(0,0,0,0.35); }
@@ -557,8 +557,8 @@ AUDIO_SLOTS.forEach(slot => {
   slotAudio[slot] = a;
 });
 
-// Maps each audio slot to the button that plays it, so stopOtherAudio/
-// setSlotUIOff can flip the right button's visual state generically.
+// Maps each audio slot to the button that plays it, so stopOtherAudio
+// and setSlotUIOff can turn off the right button's active state.
 const slotButtons = {};
 document.querySelectorAll('[data-slot], .effect-btn, .mixer-btn').forEach(btn => {
   const key = btn.dataset.slot || btn.dataset.key;
@@ -598,10 +598,10 @@ function onAudioEnded(slot) {
   isPlaying = false;
 }
 
-// Starts/stops a slot, stopping whatever else was playing first — only one
-// slot ever plays at a time (matches the desktop radio: PLAY/PITCH/ROBOT/
-// REVERB/PAN/the 3 mixer combos are mutually exclusive versions of the
-// same thought, not layered on top of each other).
+// Starts or stops a slot, stopping whatever else was playing first. Only
+// one slot plays at a time: PLAY/PITCH/ROBOT/REVERB/PAN and the 3 mixer
+// combos are different versions of the same thought, not layers to
+// combine, matching how the desktop radio works.
 function toggleSlotPlayback(slot, active) {
   stopOtherAudio(slot);
   const audio = slotAudio[slot];
@@ -701,8 +701,8 @@ document.querySelectorAll('.popup-overlay').forEach(overlay => {
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('show'); });
 });
 
-// ── Continue — replaces the desktop's scroll-to-zoom transition into the
-// (also flat, no-3D) inside-mobile.html ──
+// ── Continue: replaces the desktop's scroll-to-zoom transition with a
+// simple link to inside-mobile.html ──
 document.getElementById('continueBtn').addEventListener('click', () => {
   window.location.href = 'inside-mobile.html';
 });
