@@ -17,7 +17,7 @@
   .tab:hover { color: #333; }
   .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
 
-  /* Question-mode toggle — switches between the aggregated ("all questions")
+  /* Question-mode toggle: switches between the aggregated "all questions"
      tables and a per-question breakdown built from questionData. */
   .qmode-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
   .qmode { padding: 5px 12px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #888; border-radius: 4px; transition: all 0.15s; }
@@ -52,8 +52,8 @@
   td.shift-del { background: #2d6a4f; color: white; border-radius: 2px; font-size: 10px; }
   td.shift-noshift { background: #7d8471; color: white; border-radius: 2px; font-size: 10px; }
   td.shift-desc { background: #1f9e89; color: white; border-radius: 2px; font-size: 10px; }
-  /* Metaphors — amber/orange shades, deliberately shuffled (not a dark→light
-     gradient) so neighbouring columns contrast rather than blend together. */
+  /* Metaphors: amber/orange shades. The order is shuffled, not a dark-to-light
+     gradient, so columns next to each other stand out instead of blending in. */
   td.met { background: #e07b00; color: white; border-radius: 2px; font-size: 10px; }
   td.met-spatial { background: #7a3e00; color: white; border-radius: 2px; font-size: 10px; }
   td.met-personification { background: #e07b00; color: white; border-radius: 2px; font-size: 10px; }
@@ -61,7 +61,7 @@
   td.met-atmospheric { background: #f4a83d; color: #3a2400; border-radius: 2px; font-size: 10px; }
   td.met-soundtexture { background: #cc6a00; color: white; border-radius: 2px; font-size: 10px; }
   td.met-repetition { background: #ffd8a8; color: #5a3a00; border-radius: 2px; font-size: 10px; }
-  /* Affective states — blue shades, likewise shuffled for neighbour contrast. */
+  /* Affective states: blue shades, also shuffled so neighbouring columns stand out. */
   td.aff { background: #4a90d9; color: white; border-radius: 2px; font-size: 10px; }
   td.aff-discomfort { background: #1c3f66; color: white; border-radius: 2px; font-size: 10px; }
   td.aff-humor { background: #6fa8e0; color: white; border-radius: 2px; font-size: 10px; }
@@ -80,10 +80,10 @@
   { filter: brightness(1.1); }
   tr.total-row td { font-weight: 600; border-top: 1.5px solid #1a1a1a; background: #f8f8f6 !important; }
 
-  /* Modulation filter — click a modulation header (Pitch/Robot/Reverb/Panning/Volume)
-     to focus on it: the other modulation columns dim, and any participant row that
-     didn't report the selected modulation dims entirely (including their shift/
-     metaphor/affective cells), across all three tabs at once. */
+  /* Modulation filter: clicking a modulation header (Pitch/Robot/Reverb/Panning/Volume)
+     dims the other modulation columns and dims any participant row that did not
+     report that modulation, including their shift/metaphor/affective cells. This
+     applies to all three tabs at once. */
   td.mod-col-dimmed { opacity: 0.3; filter: grayscale(1); }
   tr.row-dimmed td { opacity: 0.22; filter: grayscale(1); }
   tr.row-dimmed:hover td { background-color: transparent; }
@@ -159,7 +159,7 @@
     <tr>
       <th class="row-header">P</th>
       <th class="mod" onclick="selectMod('Pitch')">Pitch</th><th class="mod" onclick="selectMod('Robot')">Robot</th><th class="mod" onclick="selectMod('Reverb')">Reverb</th><th class="mod" onclick="selectMod('Panning')">Panning</th><th class="mod" onclick="selectMod('Volume')">Volume</th>
-      <th class="cat divider" data-cat="Increased intensity" onclick="selectCat(this.dataset.cat)">Increased intensity</th><th class="cat" data-cat="Decreased intensity" onclick="selectCat(this.dataset.cat)">Decreased intensity</th><th class="cat" data-cat="Outsider perspective" onclick="selectCat(this.dataset.cat)">Outsider</th><th class="cat" data-cat="Insider perspective" onclick="selectCat(this.dataset.cat)">Insider</th><th class="cat" data-cat="Deliteralization" onclick="selectCat(this.dataset.cat)">Deliteralization</th><th class="cat" data-cat="No shift" onclick="selectCat(this.dataset.cat)">No shift</th><th class="cat" data-cat="Descriptive" onclick="selectCat(this.dataset.cat)">Descriptive</th>
+      <th class="cat divider" data-cat="Increased intensity" onclick="selectCat(this.dataset.cat)">Increased intensity</th><th class="cat" data-cat="Decreased intensity" onclick="selectCat(this.dataset.cat)">Decreased intensity</th><th class="cat" data-cat="Outsider perspective" onclick="selectCat(this.dataset.cat)">Outsider</th><th class="cat" data-cat="Insider perspective" onclick="selectCat(this.dataset.cat)">Insider</th><th class="cat" data-cat="Deliteralisation" onclick="selectCat(this.dataset.cat)">Deliteralisation</th><th class="cat" data-cat="No shift" onclick="selectCat(this.dataset.cat)">No shift</th><th class="cat" data-cat="Descriptive" onclick="selectCat(this.dataset.cat)">Descriptive</th>
     </tr>
   </thead>
   <tbody>
@@ -223,7 +223,7 @@
     <tr>
       <th class="row-header">P</th>
       <th class="mod" onclick="selectMod('Pitch')">Pitch</th><th class="mod" onclick="selectMod('Robot')">Robot</th><th class="mod" onclick="selectMod('Reverb')">Reverb</th><th class="mod" onclick="selectMod('Panning')">Panning</th><th class="mod" onclick="selectMod('Volume')">Volume</th>
-      <th class="cat divider" data-cat="Discomfort" onclick="selectCat(this.dataset.cat)">Discomfort</th><th class="cat" data-cat="Humor" onclick="selectCat(this.dataset.cat)">Humor</th><th class="cat" data-cat="Hurt" onclick="selectCat(this.dataset.cat)">Hurt</th><th class="cat" data-cat="Loneliness" onclick="selectCat(this.dataset.cat)">Loneliness</th><th class="cat" data-cat="Pleasantness" onclick="selectCat(this.dataset.cat)">Pleasantness</th><th class="cat" data-cat="Sadness" onclick="selectCat(this.dataset.cat)">Sadness</th><th class="cat" data-cat="Seriousness" onclick="selectCat(this.dataset.cat)">Seriousness</th><th class="cat" data-cat="Self-compassion" onclick="selectCat(this.dataset.cat)">Self-compassion</th>
+      <th class="cat divider" data-cat="Discomfort" onclick="selectCat(this.dataset.cat)">Discomfort</th><th class="cat" data-cat="Humour" onclick="selectCat(this.dataset.cat)">Humour</th><th class="cat" data-cat="Hurt" onclick="selectCat(this.dataset.cat)">Hurt</th><th class="cat" data-cat="Loneliness" onclick="selectCat(this.dataset.cat)">Loneliness</th><th class="cat" data-cat="Pleasantness" onclick="selectCat(this.dataset.cat)">Pleasantness</th><th class="cat" data-cat="Sadness" onclick="selectCat(this.dataset.cat)">Sadness</th><th class="cat" data-cat="Seriousness" onclick="selectCat(this.dataset.cat)">Seriousness</th><th class="cat" data-cat="Self-compassion" onclick="selectCat(this.dataset.cat)">Self-compassion</th>
     </tr>
   </thead>
   <tbody>
@@ -292,34 +292,33 @@ const data = {
   P2:  { mods: ['Reverb:dark'], shifts: ['Increased intensity','Decreased intensity'], mets: [], affs: ['Discomfort','Loneliness'] },
   P3:  { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Increased intensity','Decreased intensity'], mets: [], affs: [] },
   P4:  { mods: ['Pitch:dark','Reverb:dark','Volume:dark'], shifts: ['Increased intensity','Descriptive'], mets: ['Personification'], affs: [] },
-  P5:  { mods: ['Pitch:dark'], shifts: ['No shift'], mets: [], affs: ['Humor','Pleasantness'] },
-  P6:  { mods: ['Pitch:dark','Robot:light','Reverb:dark','Panning:light'], shifts: ['Deliteralization'], mets: ['Spatial','Personification'], affs: ['Discomfort'] },
+  P5:  { mods: ['Pitch:dark'], shifts: ['No shift'], mets: [], affs: ['Humour','Pleasantness'] },
+  P6:  { mods: ['Pitch:dark','Robot:light','Reverb:dark','Panning:light'], shifts: ['Deliteralisation'], mets: ['Spatial','Personification'], affs: ['Discomfort'] },
   P7:  { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Increased intensity'], mets: [], affs: [] },
   P8:  { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Sound texture'], affs: [] },
-  P9:  { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: [], affs: ['Humor'] },
-  P10: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: [], mets: ['Sound texture'], affs: ['Humor'] },
-  P11: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Personification'], affs: ['Humor'] },
+  P9:  { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: [], affs: ['Humour'] },
+  P10: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: [], mets: ['Sound texture'], affs: ['Humour'] },
+  P11: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Personification'], affs: ['Humour'] },
   P12: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective','Insider perspective'], mets: ['Personification','Repetition'], affs: ['Discomfort','Self-compassion'] },
   P13: { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: ['Weight','Atmospheric'], affs: ['Discomfort'] },
   P14: { mods: ['Robot:light','Reverb:dark'], shifts: ['Decreased intensity'], mets: ['Spatial','Atmospheric'], affs: [] },
   P15: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Insider perspective'], mets: ['Weight','Atmospheric','Repetition'], affs: ['Sadness','Seriousness'] },
   P16: { mods: ['Pitch:dark'], shifts: ['Outsider perspective','No shift'], mets: [], affs: [] },
-  P17: { mods: ['Robot:light','Reverb:dark'], shifts: ['Deliteralization'], mets: ['Spatial'], affs: [] },
+  P17: { mods: ['Robot:light','Reverb:dark'], shifts: ['Deliteralisation'], mets: ['Spatial'], affs: [] },
   P18: { mods: ['Pitch:dark','Robot:light'], shifts: ['Increased intensity'], mets: [], affs: ['Hurt','Seriousness'] },
 };
 
-const shiftClass = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralization':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
+const shiftClass = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralisation':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
 const metClass = { 'Spatial':'met-spatial','Personification':'met-personification','Weight':'met-weight','Atmospheric':'met-atmospheric','Sound texture':'met-soundtexture','Repetition':'met-repetition' };
-const affClass = { 'Discomfort':'aff-discomfort','Humor':'aff-humor','Hurt':'aff-hurt','Loneliness':'aff-loneliness','Pleasantness':'aff-pleasantness','Sadness':'aff-sadness','Seriousness':'aff-seriousness','Self-compassion':'aff-selfcompassion' };
+const affClass = { 'Discomfort':'aff-discomfort','Humour':'aff-humor','Hurt':'aff-hurt','Loneliness':'aff-loneliness','Pleasantness':'aff-pleasantness','Sadness':'aff-sadness','Seriousness':'aff-seriousness','Self-compassion':'aff-selfcompassion' };
 
 // ── Per-question data ───────────────────────────────────────────────────────
-// A separate breakdown of what each participant reported specifically at
-// Question 1 vs Question 2 (as opposed to `data` above, which is the
-// aggregate across the whole interview). Not everything in `data` necessarily
-// reappears here — anything a participant mentioned that couldn't clearly be
-// tied to one of these two questions is simply left out, per instruction.
-// A modulation entry is either a plain name ('Pitch') or, when a participant
-// specified a sub-detail, { name, detail } (e.g. Pitch: high/low, Panning: left).
+// What each participant reported specifically for Question 1 and Question 2,
+// as opposed to `data` above, which is the total across the whole interview.
+// Not everything in `data` appears here: anything that could not clearly be
+// linked to one of the two questions was left out.
+// A modulation entry is either a plain name ('Pitch') or, if the participant
+// gave a sub-detail, an object { name, detail } (e.g. Pitch: high/low, Panning: left).
 const QUESTION_TEXT = {
   q1: 'Did combining two or more modulations shift your experience of the sentence? Name one such combination and briefly describe what change (or did not).',
   q2: 'Name one specific moment or action during the modulation when something shifted in how you experienced the sentence. What exactly did you do (which control/movement), and what did you notice?',
@@ -335,19 +334,19 @@ const questionData = {
   P4:  { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Volume'], shifts: ['Increased intensity'], mets: [], affs: [] },
          q2: { mods: ['Pitch','Volume','Reverb'], shifts: ['Descriptive'], mets: ['Personification'], affs: [] } },
   P5:  { q1: { mods: [], shifts: ['No shift'], mets: [], affs: [] },
-         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humor','Pleasantness'] } },
-  P6:  { q1: { mods: ['Pitch','Robot','Reverb'], shifts: ['Deliteralization'], mets: [], affs: [] },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humour','Pleasantness'] } },
+  P6:  { q1: { mods: ['Pitch','Robot','Reverb'], shifts: ['Deliteralisation'], mets: [], affs: [] },
          q2: { mods: ['Panning'], shifts: [], mets: ['Personification','Spatial'], affs: ['Discomfort'] } },
   P7:  { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Reverb'], shifts: ['Increased intensity'], mets: [], affs: [] },
          q2: { mods: [], shifts: [], mets: [], affs: [] } },
   P8:  { q1: { mods: ['Pitch','Robot'], shifts: ['Outsider perspective'], mets: ['Sound texture'], affs: [] },
          q2: { mods: ['Reverb'], shifts: [], mets: ['Spatial'], affs: [] } },
-  P9:  { q1: { mods: ['Pitch','Reverb'], shifts: [], mets: [], affs: ['Humor'] },
+  P9:  { q1: { mods: ['Pitch','Reverb'], shifts: [], mets: [], affs: ['Humour'] },
          q2: { mods: ['Pitch'], shifts: [], mets: [], affs: [] } },
   P10: { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Robot','Reverb'], shifts: [], mets: ['Sound texture'], affs: [] },
-         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humor'] } },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humour'] } },
   P11: { q1: { mods: ['Pitch','Reverb'], shifts: ['Outsider perspective'], mets: ['Personification','Spatial'], affs: [] },
-         q2: { mods: ['Pitch'], shifts: [], mets: [], affs: ['Humor'] } },
+         q2: { mods: ['Pitch'], shifts: [], mets: [], affs: ['Humour'] } },
   P12: { q1: { mods: ['Pitch','Reverb'], shifts: ['Insider perspective'], mets: ['Repetition','Personification'], affs: ['Discomfort','Self-compassion'] },
          q2: { mods: ['Pitch','Reverb'], shifts: ['Outsider perspective'], mets: [], affs: [] } },
   P13: { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Reverb'], shifts: [], mets: ['Weight','Atmospheric'], affs: ['Discomfort'] },
@@ -358,28 +357,27 @@ const questionData = {
          q2: { mods: [{ name:'Pitch', detail:'low' }], shifts: ['Insider perspective'], mets: ['Weight'], affs: ['Sadness'] } },
   P16: { q1: { mods: [], shifts: ['No shift'], mets: [], affs: [] },
          q2: { mods: ['Pitch'], shifts: ['Outsider perspective'], mets: [], affs: [] } },
-  P17: { q1: { mods: ['Robot'], shifts: ['Deliteralization'], mets: [], affs: [] },
+  P17: { q1: { mods: ['Robot'], shifts: ['Deliteralisation'], mets: [], affs: [] },
          q2: { mods: ['Reverb'], shifts: [], mets: ['Spatial'], affs: [] } },
   P18: { q1: { mods: ['Pitch','Robot'], shifts: ['Increased intensity'], mets: [], affs: ['Hurt'] },
          q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Seriousness'] } },
 };
 
 const MOD_DARK_MODS = { Pitch:true, Reverb:true, Volume:true, Robot:false, Panning:false };
-const SHIFT_CATS_Q = ['Increased intensity','Decreased intensity','Outsider perspective','Insider perspective','Deliteralization','No shift','Descriptive'];
+const SHIFT_CATS_Q = ['Increased intensity','Decreased intensity','Outsider perspective','Insider perspective','Deliteralisation','No shift','Descriptive'];
 const MET_CATS = ['Spatial','Personification','Weight','Atmospheric','Sound texture','Repetition'];
-const AFF_CATS = ['Discomfort','Humor','Hurt','Loneliness','Pleasantness','Sadness','Seriousness','Self-compassion'];
-const SHIFT_CLASS_Q = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralization':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
+const AFF_CATS = ['Discomfort','Humour','Hurt','Loneliness','Pleasantness','Sadness','Seriousness','Self-compassion'];
+const SHIFT_CLASS_Q = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralisation':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
 
 // ── Cross-window sync ───────────────────────────────────────────────────────
 // When this file is embedded in presentation.html's slide 17, every click
-// here is posted up to that parent window, which relays it over to the
-// other open window (main ↔ presenter view) so both copies of this table
-// mirror each other. `applyingRemoteSync` suppresses the broadcast while
-// we're the one *applying* an incoming sync, so the two windows don't just
-// ping-pong the same action back and forth forever.
+// here is sent up to the parent window, which passes it on to the other
+// open window (main window and presenter view), so both copies of this
+// table stay in sync. `applyingRemoteSync` is turned on while we apply an
+// incoming sync message, so that update does not get sent straight back.
 let applyingRemoteSync = false;
 function broadcastTableAction(action, payload) {
-  if (applyingRemoteSync || window === window.top) return; // not embedded — nothing to sync with
+  if (applyingRemoteSync || window === window.top) return; // not embedded, nothing to sync
   try { window.parent.postMessage(Object.assign({ type: 'table-sync', action: action }, payload), '*'); } catch (err) {}
 }
 function findTabButton(tab) {
@@ -457,10 +455,10 @@ function switchTab(tab, btn) {
 }
 
 // ── Question-mode toggle ────────────────────────────────────────────────────
-// "All questions" shows the original three static tables (aggregated across
-// the whole interview) untouched. "Question 1" / "Question 2" swap in a
-// table built on the fly from questionData for whichever analysis tab
-// (shifts/metaphors/affective) is currently active.
+// "All questions" shows the original three static tables, unchanged.
+// "Question 1" and "Question 2" build a new table on the fly from
+// questionData, for whichever analysis tab (shifts/metaphors/affective)
+// is currently active.
 function selectQuestionMode(mode, btn) {
   questionMode = mode;
   document.querySelectorAll('.qmode').forEach(b => b.classList.remove('active'));
@@ -542,13 +540,13 @@ function renderQuestionTable() {
 }
 
 // ── Modulation filter ───────────────────────────────────────────────────────
-// Clicking a modulation header focuses the view on that modulation: the other
-// four modulation columns dim (across all three tables), and any participant
-// row that didn't report the selected modulation dims entirely — including
-// their shift/metaphor/affective cells — since those aren't relevant to the
-// selected modulation. Clicking the same modulation again clears the filter.
-// The selection lives on the DOM (classes set on all three tables at once), so
-// it survives switching tabs without needing to be reapplied.
+// Clicking a modulation header focuses the view on that modulation: the
+// other four modulation columns dim, across all three tables, and any
+// participant row that did not report the selected modulation dims
+// completely, including its shift/metaphor/affective cells. Clicking the
+// same modulation again clears the filter.
+// The selection is stored as classes on all three tables at once, so it
+// is kept when switching tabs, with no need to reapply it.
 const MOD_NAMES = ['Pitch', 'Robot', 'Reverb', 'Panning', 'Volume'];
 let selectedMod = null;
 
@@ -577,9 +575,9 @@ function applyModFilter() {
         tr.classList.remove('row-dimmed');
       } else {
         const selCell = tr.children[selIdx + 1];
-        // Not just "textContent === ✓" — the per-question view shows a detail
-        // label (e.g. "High", "Left") in this cell instead of a checkmark when
-        // one was reported, so "has this modulation" just means "not empty".
+        // Checking for "not empty" rather than "textContent === ✓", because
+        // the per-question view can show a detail label (e.g. "High", "Left")
+        // in this cell instead of a checkmark.
         const hasMod = !!selCell && !selCell.classList.contains('empty');
         tr.classList.toggle('row-dimmed', !hasMod);
       }
@@ -588,16 +586,15 @@ function applyModFilter() {
 }
 
 // ── Category filter ─────────────────────────────────────────────────────────
-// Clicking a category header (e.g. "Increased intensity") focuses the view on
-// it: the OTHER category columns in that same tab dim. Unlike the modulation
-// filter, this only ever dims columns — it never touches the modulation
-// columns and never dims whole rows, since lacking one category shouldn't
+// Clicking a category header (e.g. "Increased intensity") focuses the view
+// on it: the other category columns in that tab dim. Unlike the modulation
+// filter, this only dims columns. It never touches the modulation columns
+// and never dims whole rows, because not having one category should not
 // hide a participant's modulations or their other reported categories.
-// Matching is done via each header's data-cat attribute rather than its
-// visible text, since the shifts table shows short labels ("Outsider") for
-// categories whose canonical name is longer ("Outsider perspective") —
-// data-cat keeps that in sync with the dynamic per-question tables, which
-// always render the full name.
+// Matching uses each header's data-cat attribute rather than its visible
+// text, because the shifts table shows a short label ("Outsider") for a
+// category whose full name is longer ("Outsider perspective"). The dynamic
+// per-question tables always use the full name, so data-cat keeps both in sync.
 let selectedCat = null;
 
 function selectCat(name) {

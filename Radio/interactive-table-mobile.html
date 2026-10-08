@@ -291,25 +291,25 @@ const data = {
   P2:  { mods: ['Reverb:dark'], shifts: ['Increased intensity','Decreased intensity'], mets: [], affs: ['Discomfort','Loneliness'] },
   P3:  { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Increased intensity','Decreased intensity'], mets: [], affs: [] },
   P4:  { mods: ['Pitch:dark','Reverb:dark','Volume:dark'], shifts: ['Increased intensity','Descriptive'], mets: ['Personification'], affs: [] },
-  P5:  { mods: ['Pitch:dark'], shifts: ['No shift'], mets: [], affs: ['Humor','Pleasantness'] },
-  P6:  { mods: ['Pitch:dark','Robot:light','Reverb:dark','Panning:light'], shifts: ['Deliteralization'], mets: ['Spatial','Personification'], affs: ['Discomfort'] },
+  P5:  { mods: ['Pitch:dark'], shifts: ['No shift'], mets: [], affs: ['Humour','Pleasantness'] },
+  P6:  { mods: ['Pitch:dark','Robot:light','Reverb:dark','Panning:light'], shifts: ['Deliteralisation'], mets: ['Spatial','Personification'], affs: ['Discomfort'] },
   P7:  { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Increased intensity'], mets: [], affs: [] },
   P8:  { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Sound texture'], affs: [] },
-  P9:  { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: [], affs: ['Humor'] },
-  P10: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: [], mets: ['Sound texture'], affs: ['Humor'] },
-  P11: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Personification'], affs: ['Humor'] },
+  P9:  { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: [], affs: ['Humour'] },
+  P10: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: [], mets: ['Sound texture'], affs: ['Humour'] },
+  P11: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective'], mets: ['Spatial','Personification'], affs: ['Humour'] },
   P12: { mods: ['Pitch:dark','Reverb:dark'], shifts: ['Outsider perspective','Insider perspective'], mets: ['Personification','Repetition'], affs: ['Discomfort','Self-compassion'] },
   P13: { mods: ['Pitch:dark','Reverb:dark'], shifts: [], mets: ['Weight','Atmospheric'], affs: ['Discomfort'] },
   P14: { mods: ['Robot:light','Reverb:dark'], shifts: ['Decreased intensity'], mets: ['Spatial','Atmospheric'], affs: [] },
   P15: { mods: ['Pitch:dark','Robot:light','Reverb:dark'], shifts: ['Insider perspective'], mets: ['Weight','Atmospheric','Repetition'], affs: ['Sadness','Seriousness'] },
   P16: { mods: ['Pitch:dark'], shifts: ['Outsider perspective','No shift'], mets: [], affs: [] },
-  P17: { mods: ['Robot:light','Reverb:dark'], shifts: ['Deliteralization'], mets: ['Spatial'], affs: [] },
+  P17: { mods: ['Robot:light','Reverb:dark'], shifts: ['Deliteralisation'], mets: ['Spatial'], affs: [] },
   P18: { mods: ['Pitch:dark','Robot:light'], shifts: ['Increased intensity'], mets: [], affs: ['Hurt','Seriousness'] },
 };
 
-const shiftClass = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralization':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
+const shiftClass = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralisation':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
 const metClass = { 'Spatial':'met-spatial','Personification':'met-personification','Weight':'met-weight','Atmospheric':'met-atmospheric','Sound texture':'met-soundtexture','Repetition':'met-repetition' };
-const affClass = { 'Discomfort':'aff-discomfort','Humor':'aff-humor','Hurt':'aff-hurt','Loneliness':'aff-loneliness','Pleasantness':'aff-pleasantness','Sadness':'aff-sadness','Seriousness':'aff-seriousness','Self-compassion':'aff-selfcompassion' };
+const affClass = { 'Discomfort':'aff-discomfort','Humour':'aff-humor','Hurt':'aff-hurt','Loneliness':'aff-loneliness','Pleasantness':'aff-pleasantness','Sadness':'aff-sadness','Seriousness':'aff-seriousness','Self-compassion':'aff-selfcompassion' };
 
 // ── Per-question data ───────────────────────────────────────────────────────
 // A separate breakdown of what each participant reported specifically at
@@ -334,19 +334,19 @@ const questionData = {
   P4:  { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Volume'], shifts: ['Increased intensity'], mets: [], affs: [] },
          q2: { mods: ['Pitch','Volume','Reverb'], shifts: ['Descriptive'], mets: ['Personification'], affs: [] } },
   P5:  { q1: { mods: [], shifts: ['No shift'], mets: [], affs: [] },
-         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humor','Pleasantness'] } },
-  P6:  { q1: { mods: ['Pitch','Robot','Reverb'], shifts: ['Deliteralization'], mets: [], affs: [] },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humour','Pleasantness'] } },
+  P6:  { q1: { mods: ['Pitch','Robot','Reverb'], shifts: ['Deliteralisation'], mets: [], affs: [] },
          q2: { mods: ['Panning'], shifts: [], mets: ['Personification','Spatial'], affs: ['Discomfort'] } },
   P7:  { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Reverb'], shifts: ['Increased intensity'], mets: [], affs: [] },
          q2: { mods: [], shifts: [], mets: [], affs: [] } },
   P8:  { q1: { mods: ['Pitch','Robot'], shifts: ['Outsider perspective'], mets: ['Sound texture'], affs: [] },
          q2: { mods: ['Reverb'], shifts: [], mets: ['Spatial'], affs: [] } },
-  P9:  { q1: { mods: ['Pitch','Reverb'], shifts: [], mets: [], affs: ['Humor'] },
+  P9:  { q1: { mods: ['Pitch','Reverb'], shifts: [], mets: [], affs: ['Humour'] },
          q2: { mods: ['Pitch'], shifts: [], mets: [], affs: [] } },
   P10: { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Robot','Reverb'], shifts: [], mets: ['Sound texture'], affs: [] },
-         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humor'] } },
+         q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Humour'] } },
   P11: { q1: { mods: ['Pitch','Reverb'], shifts: ['Outsider perspective'], mets: ['Personification','Spatial'], affs: [] },
-         q2: { mods: ['Pitch'], shifts: [], mets: [], affs: ['Humor'] } },
+         q2: { mods: ['Pitch'], shifts: [], mets: [], affs: ['Humour'] } },
   P12: { q1: { mods: ['Pitch','Reverb'], shifts: ['Insider perspective'], mets: ['Repetition','Personification'], affs: ['Discomfort','Self-compassion'] },
          q2: { mods: ['Pitch','Reverb'], shifts: ['Outsider perspective'], mets: [], affs: [] } },
   P13: { q1: { mods: [{ name:'Pitch', detail:'low' }, 'Reverb'], shifts: [], mets: ['Weight','Atmospheric'], affs: ['Discomfort'] },
@@ -357,17 +357,17 @@ const questionData = {
          q2: { mods: [{ name:'Pitch', detail:'low' }], shifts: ['Insider perspective'], mets: ['Weight'], affs: ['Sadness'] } },
   P16: { q1: { mods: [], shifts: ['No shift'], mets: [], affs: [] },
          q2: { mods: ['Pitch'], shifts: ['Outsider perspective'], mets: [], affs: [] } },
-  P17: { q1: { mods: ['Robot'], shifts: ['Deliteralization'], mets: [], affs: [] },
+  P17: { q1: { mods: ['Robot'], shifts: ['Deliteralisation'], mets: [], affs: [] },
          q2: { mods: ['Reverb'], shifts: [], mets: ['Spatial'], affs: [] } },
   P18: { q1: { mods: ['Pitch','Robot'], shifts: ['Increased intensity'], mets: [], affs: ['Hurt'] },
          q2: { mods: [{ name:'Pitch', detail:'high' }], shifts: [], mets: [], affs: ['Seriousness'] } },
 };
 
 const MOD_DARK_MODS = { Pitch:true, Reverb:true, Volume:true, Robot:false, Panning:false };
-const SHIFT_CATS_Q = ['Increased intensity','Decreased intensity','Outsider perspective','Insider perspective','Deliteralization','No shift','Descriptive'];
+const SHIFT_CATS_Q = ['Increased intensity','Decreased intensity','Outsider perspective','Insider perspective','Deliteralisation','No shift','Descriptive'];
 const MET_CATS = ['Spatial','Personification','Weight','Atmospheric','Sound texture','Repetition'];
-const AFF_CATS = ['Discomfort','Humor','Hurt','Loneliness','Pleasantness','Sadness','Seriousness','Self-compassion'];
-const SHIFT_CLASS_Q = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralization':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
+const AFF_CATS = ['Discomfort','Humour','Hurt','Loneliness','Pleasantness','Sadness','Seriousness','Self-compassion'];
+const SHIFT_CLASS_Q = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralisation':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
 
 const MOD_NAMES = ['Pitch', 'Robot', 'Reverb', 'Panning', 'Volume'];
 
