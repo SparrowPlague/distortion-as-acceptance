@@ -265,7 +265,7 @@
 <!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal">
-    <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">×</button>
+    <button class="modal-close" onclick="closeModalDirect()">×</button>
     <h2 id="modal-title">Participant</h2>
     <div class="modal-section">
       <div class="modal-section-title">Modulations reported</div>
@@ -370,10 +370,44 @@ const MET_CATS = ['Spatial','Personification','Weight','Atmospheric','Sound text
 const AFF_CATS = ['Discomfort','Humor','Hurt','Loneliness','Pleasantness','Sadness','Seriousness','Self-compassion'];
 const SHIFT_CLASS_Q = { 'Increased intensity':'shift-inc','Decreased intensity':'shift-dec','Outsider perspective':'shift-out','Insider perspective':'shift-in','Deliteralization':'shift-del','No shift':'shift-noshift','Descriptive':'shift-desc' };
 
+// ── Cross-window sync ───────────────────────────────────────────────────────
+// When this file is embedded in presentation.html's slide 17, every click
+// here is posted up to that parent window, which relays it over to the
+// other open window (main ↔ presenter view) so both copies of this table
+// mirror each other. `applyingRemoteSync` suppresses the broadcast while
+// we're the one *applying* an incoming sync, so the two windows don't just
+// ping-pong the same action back and forth forever.
+let applyingRemoteSync = false;
+function broadcastTableAction(action, payload) {
+  if (applyingRemoteSync || window === window.top) return; // not embedded — nothing to sync with
+  try { window.parent.postMessage(Object.assign({ type: 'table-sync', action: action }, payload), '*'); } catch (err) {}
+}
+function findTabButton(tab) {
+  return [...document.querySelectorAll('.tab')].find(b => (b.getAttribute('onclick') || '').includes("'" + tab + "'"));
+}
+function findQmodeButton(mode) {
+  return [...document.querySelectorAll('.qmode')].find(b => (b.getAttribute('onclick') || '').includes("'" + mode + "'"));
+}
+window.addEventListener('message', (e) => {
+  const d = e.data;
+  if (!d || d.type !== 'table-sync') return;
+  applyingRemoteSync = true;
+  try {
+    if (d.action === 'showModal') showModal(d.p);
+    else if (d.action === 'closeModal') closeModalDirect();
+    else if (d.action === 'switchTab') { const btn = findTabButton(d.tab); if (btn) switchTab(d.tab, btn); }
+    else if (d.action === 'selectQuestionMode') { const btn = findQmodeButton(d.mode); if (btn) selectQuestionMode(d.mode, btn); }
+    else if (d.action === 'selectMod') selectMod(d.name);
+    else if (d.action === 'selectCat') selectCat(d.name);
+  } finally {
+    applyingRemoteSync = false;
+  }
+});
+
 function showModal(p) {
   const d = data[p];
   document.getElementById('modal-title').textContent = 'Participant ' + p.replace('P','');
-  
+
   document.getElementById('modal-mods').innerHTML = d.mods.length
     ? d.mods.map(m => { const [name,type]=m.split(':'); return `<span class="tag mod-${type}">${name}</span>`; }).join('')
     : '<span class="tag none">—</span>';
@@ -391,11 +425,17 @@ function showModal(p) {
     : '<span class="tag none">—</span>';
 
   document.getElementById('modal-overlay').classList.add('open');
+  broadcastTableAction('showModal', { p: p });
+}
+
+function closeModalDirect() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  broadcastTableAction('closeModal', {});
 }
 
 function closeModal(e) {
   if (e.target === document.getElementById('modal-overlay')) {
-    document.getElementById('modal-overlay').classList.remove('open');
+    closeModalDirect();
   }
 }
 
@@ -413,6 +453,7 @@ function switchTab(tab, btn) {
   } else {
     renderQuestionTable();
   }
+  broadcastTableAction('switchTab', { tab: tab });
 }
 
 // ── Question-mode toggle ────────────────────────────────────────────────────
@@ -440,6 +481,7 @@ function selectQuestionMode(mode, btn) {
     caption.textContent = (mode === 'q1' ? 'Question 1: ' : 'Question 2: ') + QUESTION_TEXT[mode];
     renderQuestionTable();
   }
+  broadcastTableAction('selectQuestionMode', { mode: mode });
 }
 
 function renderQuestionTable() {
@@ -513,6 +555,7 @@ let selectedMod = null;
 function selectMod(name) {
   selectedMod = (selectedMod === name) ? null : name;
   applyModFilter();
+  broadcastTableAction('selectMod', { name: name });
 }
 
 function applyModFilter() {
@@ -560,6 +603,7 @@ let selectedCat = null;
 function selectCat(name) {
   selectedCat = (selectedCat === name) ? null : name;
   applyCatFilter();
+  broadcastTableAction('selectCat', { name: name });
 }
 
 function applyCatFilter() {

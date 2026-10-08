@@ -274,16 +274,14 @@
 
 <div id="brain-tip" class="hover-tip">&ldquo;I think, therefore I suffer.&rdquo;<br><br>Forgot the research question? Click on me.</div>
 
-<!-- Hover tips for the RADIO itself (play/loop/thought-arrows/volume/the
-     single PITCH·ROBOT·REVERB·PAN row) -->
+<!-- Hover tips for the radio -->
 <div id="play-tip" class="hover-tip">In the experiment participants heard their own recorded negative thought played back to them.<br>The thoughts on this radio are pre-recorded examples.</div>
 <div id="loop-tip" class="hover-tip"><b>Looping </b>the thought is intentional — repeating a phrase until it loses its meaning is itself a form of defusion, known as <b>semantic satiation</b>.<br><br>The thought keeps repeating. Press to stop the loop.</div>
 <div id="effect-tip" class="hover-tip"></div>
 <div id="volume-tip" class="hover-tip">You can turn it down. But never off.</div>
 <div id="thought-select-tip" class="hover-tip">In the experiment, participants constructed their own thought. Here, you can choose from a selection.</div>
 
-<!-- Hover tips for the separate MIXER box (its "MIXER" title + its 3 combo
-     buttons: Pitch+Robot, Pitch+Reverb, Robot+Reverb) — edit the text here -->
+<!-- Hover tips for the mixer (edit the text here) -->
 <div id="mix1-tip" class="hover-tip"><strong>Pitch + Robot</strong><br>Combines a pitch shift with a robotic voice effect.</div>
 <div id="mix2-tip" class="hover-tip"><strong>Pitch + Reverb</strong><br>Combines a pitch shift with spatial reverberation.</div>
 <div id="mix3-tip" class="hover-tip"><strong>Robot + Reverb</strong><br>Combines a robotic voice effect with spatial reverberation.</div>
@@ -327,9 +325,7 @@
   </div>
 </div>
 
-<!-- "show" is already in the markup, not added by JS, so the popup is visible
-     the moment the page loads — the "How it works" button stays fully
-     functional underneath so it can be reopened any time after closing. -->
+<!-- Popup is visible on load; "How it works" can reopen it -->
 <div class="popup-overlay show" id="howItWorksOverlay">
   <div class="popup-box">
     <button class="popup-close" id="howItWorksClose">&#x2715;</button>
@@ -383,33 +379,22 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xeceef0);
 scene.fog = new THREE.Fog(0xeceef0, 20, 45);
 
-// Environment map — HDR gives the metal body real reflections (metalness needs this).
-// Linear HDR data — no colorSpace set, three.js auto-converts the equirect to a PMREM-style
-// cubeUV map internally once assigned to scene.environment.
+// Environment map (HDR) for reflections on the metal
 new HDRLoader().load('monochrome.hdr', (hdrTexture) => {
   hdrTexture.mapping = THREE.EquirectangularReflectionMapping;
   scene.environment = hdrTexture;
 }, undefined, (err) => {
-  // Common failure: opening this file directly via file:// — fetch() for local files
-  // is blocked by the browser, so the HDR silently never loads. Lighting doesn't
-  // depend on it, but reflections will look flatter without it.
+  // Fails when opened via file:// - reflections look flatter, lighting still works
   console.error('monochrome.hdr failed to load — serve this folder over http(s) if you need env reflections.', err);
 });
 
 const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 80);
-// Starting distance — pulled in a bit on narrower windows (a 15" laptop, say)
-// so the radio/brain-in-a-jar read larger and clearer without needing to
-// scroll-zoom in first. Only set once at load, not on resize, so it doesn't
-// fight the scroll-zoom position (camera.position.z, clamped 7–22 below) if
-// someone resizes mid-visit.
+// Start a bit closer on smaller screens (set once, not on resize)
 const START_Z = window.innerWidth < 1600 ? 10.5 : 13;
 camera.position.set(0, 0.4, START_Z);
 
-// Keep the HORIZONTAL framing constant across window shapes — on a narrower/shorter
-// window (e.g. a laptop screen vs. a wide desktop monitor), widen the vertical FOV
-// instead of letting the scene's horizontal extent shrink, which is what was pushing
-// the antenna sideways into the "Experience" text box.
-const BASE_FOV_DEG = 40;     // vertical FOV tuned at BASE_ASPECT — a bit wider than the original 36°
+// Keep the horizontal framing the same on every screen size
+const BASE_FOV_DEG = 40;     // vertical field of view for the base screen shape
                               // so there's always headroom above the antenna, on every screen shape
 const BASE_ASPECT  = 1.9;    // ~widescreen desktop reference
 const baseHalfVFov = BASE_FOV_DEG * Math.PI / 360;
@@ -425,9 +410,7 @@ function fitCamera() {
 }
 fitCamera();
 
-// ── Post-processing — bloom on the glowing screen ───────────────────────────
-// High threshold so only the bright screen/emissive accents bloom; polished metal
-// speculars and the rest of the scene stay clean instead of washing out.
+// ── Bloom: only the bright screen glows ─────────────────────────────────────
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloomPass = new UnrealBloomPass(
@@ -438,16 +421,12 @@ const bloomPass = new UnrealBloomPass(
 );
 composer.addPass(bloomPass);
 
-// Scene rig — radio, mixer, figure, cable, plugs and the screen-glow light all live
-// here so the whole composition can be shifted together as one unit.
+// Group for the whole scene, so it can be moved as one
 const sceneRig = new THREE.Group();
 scene.add(sceneRig);
 sceneRig.position.x = -1.0;
 
-// ── Lights — three-point (key / fill / rim). Direct lights + ambient carry the visible
-// lighting on their own; the HDR environment only adds reflection detail on top, so the
-// scene still reads correctly if monochrome.hdr fails to load (e.g. opened via file://,
-// where fetch() for local files is blocked by the browser).
+// ── Lights: key / fill / rim (scene still works without the HDR) ─────────
 scene.add(new THREE.AmbientLight(0xfff8f0, 0.7));
 
 // Key — warm, the main shadow-casting light
@@ -464,12 +443,12 @@ keyLight.shadow.camera.far = 25;
 keyLight.shadow.bias = -0.0006;
 scene.add(keyLight);
 
-// Fill — cool, lower intensity, positioned opposite the key, no shadow
+// Fill light, softer, opposite the key light
 const fillLight = new THREE.DirectionalLight(0xbfd9ff, 0.3);
 fillLight.position.set(-5, 5, 4);
 scene.add(fillLight);
 
-// Rim — from behind/above, separates the model silhouette from the background
+// Rim light from behind, separates the model from the background
 const rimLight = new THREE.DirectionalLight(0xcfe6ff, 0.15);
 rimLight.position.set(0, 7, -8);
 scene.add(rimLight);
@@ -479,9 +458,7 @@ screenGlow.position.set(-0.7, 0.8, 2);   // follows the radio's screen
 sceneRig.add(screenGlow);
 
 // ── Shared geometries + materials ──────────────────────────────────────────
-// Chassis — main body + edge trim: metalness 0.85-0.9, roughness 0.2-0.25
-// envMapIntensity kept low — monochrome.hdr has a hot bright spot (luminance ~39 vs a
-// ~0.35 median) that mirrors harshly across low-roughness metal otherwise.
+// Low envMapIntensity: the HDR has a very bright spot
 const bodyMat = new THREE.MeshStandardMaterial({
   color: 0x9b9ba2,
   roughness: 0.48,
@@ -494,7 +471,7 @@ const edgeMat = new THREE.MeshStandardMaterial({
   metalness: 0.48,
   envMapIntensity: 0.17,
 });
-// Antenna/trim — brighter, more polished: metalness 0.85-0.9, roughness ~0.2
+// Antenna/trim: shinier metal
 const metalMat = new THREE.MeshStandardMaterial({
   color: 0x8899aa,
   roughness: 0.2,
@@ -514,7 +491,7 @@ radio.scale.setScalar(0.78);
 radio.position.x = 0.2;   // shifted right; the figure sits back-left
 sceneRig.add(radio);
 
-// Body — slightly taller than before (3.9 → 4.6) for more vertical space
+// Body
 const bodyMesh = new THREE.Mesh(new RoundedBoxGeometry(5.8, 4.6, 1.3, 10, 0.28), bodyMat);
 bodyMesh.castShadow = true;
 bodyMesh.receiveShadow = true;
@@ -542,9 +519,7 @@ antBase.position.set(2.3, 2.45, 0);   // center at body_top(2.3) + half_height(0
 antBase.castShadow = true;
 radio.add(antBase);
 
-// rotation.z = -0.14 leans stick outward. bottom at (2.3, 2.60) = top of antBase.
-// bottom_offset = rotate(0,-1.1,0) by z=-0.14 → (-0.1535, -1.089)
-// center = (2.3+0.1535, 2.60+1.089) = (2.453, 3.689)
+// Antenna stick, tilted outward, bottom on top of the base
 const antStick = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.05, 2.2, 10), metalMat);
 antStick.position.set(2.453, 3.689, 0);
 antStick.rotation.z = -0.14;
@@ -562,11 +537,8 @@ const screenTex = new THREE.CanvasTexture(screenCanvas);
 
 let isPlaying = false;
 
-// Thoughts to cycle through with ◄ ► arrows. Each thought can carry a set of
-// pre-recorded audio files, one per button (PLAY = 'base', PITCH/ROBOT/REVERB/PAN,
-// and the mixer's 3 combos). Thoughts without an `audio` entry — or missing an
-// individual file — just fall back to a silent visual toggle on that button,
-// so it's safe to add thoughts before all their recordings exist.
+// Thoughts for the ◄ ► arrows, each with its own audio files.
+// Missing files just give a silent button.
 const THOUGHTS = [
   {
     text: 'I am not good enough',
@@ -611,9 +583,7 @@ const THOUGHTS = [
 let thoughtIdx = 0;
 
 // ── Audio ───────────────────────────────────────────────────────────────────
-// One reusable <audio> element per button slot — its `src` gets swapped to
-// match the selected thought (see loadThoughtAudio) rather than creating new
-// Audio objects per thought.
+// One <audio> per button; the src changes with the selected thought
 const AUDIO_SLOTS = ['base', 'pitch', 'robot', 'reverb', 'pan', 'mixPitchRobot', 'mixPitchReverb', 'mixRobotReverb'];
 const slotAudio = {};
 AUDIO_SLOTS.forEach(slot => {
@@ -624,13 +594,10 @@ AUDIO_SLOTS.forEach(slot => {
   slotAudio[slot] = a;
 });
 
-// Whichever file was chosen last — LOOP acts on this one, so looping
-// "follows" the currently chosen file rather than being tied to just PLAY.
+// Last chosen file (LOOP works on this one)
 let currentAudio = slotAudio.base;
 
-// Point every slot at the selected thought's files. Slots the thought doesn't
-// have a recording for are fully cleared (not just set to '') so `.src` reads
-// back empty rather than resolving to the page's own URL.
+// Load the files of the selected thought (empty slots are cleared)
 function loadThoughtAudio(idx) {
   const audioMap = THOUGHTS[idx].audio || {};
   AUDIO_SLOTS.forEach(slot => {
@@ -650,8 +617,7 @@ function stopAudio(audio) {
   audio.currentTime = 0;
 }
 
-// Stop any of the other audio slots that might currently be playing, so only
-// one ever plays at a time, and reset that slot's button visuals.
+// Stop other audio, so only one plays at a time
 function stopOtherAudio(exceptSlot) {
   AUDIO_SLOTS.forEach(slot => {
     const a = slotAudio[slot];
@@ -662,9 +628,7 @@ function stopOtherAudio(exceptSlot) {
   });
 }
 
-// Reset a button's visuals to "off" — used on natural end-of-file, on ESC,
-// and when switching thoughts. Covers PLAY ('base'), the 4 effect buttons,
-// and the mixer's 3 combo buttons.
+// Reset a button to "off"
 function setSlotUIOff(slot) {
   if (slot === 'base') {
     playBtn.position.z = BTN_Z_UP;
@@ -689,7 +653,7 @@ function setSlotUIOff(slot) {
   }
 }
 
-// When a file finishes (and loop is off), reset the play state visually
+// When a file ends (loop off), reset the button
 function onAudioEnded(slot) {
   if (slotAudio[slot].loop) return;
   setSlotUIOff(slot);
@@ -698,10 +662,7 @@ function onAudioEnded(slot) {
   redrawScreen();
 }
 
-// Starts/stops a named audio slot (stopping whatever else was playing first),
-// then hands off to `applyVisual(active)` so the calling button can update
-// its own on-screen look (PLAY's own colours, an effect button's icon +
-// position, or a mixer button's split-texture swap all differ).
+// Play/stop an audio slot, then update the button's look
 function toggleSlotPlayback(slot, active, applyVisual) {
   stopOtherAudio(slot);
   const audio = slotAudio[slot];
@@ -907,12 +868,9 @@ radio.add(spkDome);
 const BTN_Z_UP   = 0.73;   // cap protrudes prominently above housing mouth
 const BTN_Z_DOWN = 0.61;   // cap recedes into socket when pressed
 
-// Canvas label helper — engraved style, same as "Thought selection"
-// (hexColor kept for signature compat)
+// Engraved text label
 function makeLabel(text, hexColor, x, y, z, w = 0.8, parent = radio) {
-  // `text` can be a single string, or an array of strings to stack as separate
-  // lines — used by the mixer's combo labels ("PITCH" / "ROBOT") when the
-  // full phrase doesn't fit legibly on one line.
+  // `text` can be one string or an array (one line each)
   const lines = Array.isArray(text) ? text : [text];
   const singleLine = lines.length === 1;
   const c = document.createElement('canvas');
@@ -924,9 +882,7 @@ function makeLabel(text, hexColor, x, y, z, w = 0.8, parent = radio) {
   const startY = singleLine ? 17 : (c.height - lineGap * (lines.length - 1)) / 2;
   lines.forEach((line, i) => {
     const ly = startY + i * lineGap;
-    // Catch-light below, dark recessed text on top — stamped-in-metal look.
-    // The dark pass is stamped twice to stay solid black at this small size
-    // instead of thinning out to grey from anti-aliasing.
+    // Light edge below, dark text on top (drawn twice to stay black)
     cx.fillStyle = 'rgba(255,255,255,0.25)';
     cx.fillText(line, 64, ly + 1.3);
     cx.fillStyle = 'rgba(0,0,0,1.0)';
@@ -941,21 +897,19 @@ function makeLabel(text, hexColor, x, y, z, w = 0.8, parent = radio) {
   parent.add(m);
 }
 
-// Engraved label — dark recessed text with a light catch-light edge below,
-// so it reads as stamped into the metal rather than printed on it
+// Engraved label, looks stamped into the metal
 function makeEngravedLabel(text, x, y, z, w = 1.35, { align = 'right', parent = radio } = {}) {
   const c = document.createElement('canvas');
   c.width = 320; c.height = 48;
   const cx = c.getContext('2d');
   cx.font = 'bold 27px "Courier New", monospace';
-  cx.textAlign = align;   // 'right' ends the text at the plane's right edge; 'center' for standalone titles
+  cx.textAlign = align;   // align: 'right' or 'center'
   cx.textBaseline = 'middle';
   const tx = align === 'right' ? 318 : align === 'left' ? 2 : 160;
-  // Catch-light: bright edge offset downward (light from above hits groove's lower lip)
+  // Light edge below the text
   cx.fillStyle = 'rgba(255,255,255,0.25)';
   cx.fillText(text, tx, 26);
-  // Recessed dark text on top — stamped twice to stay solid black instead of
-  // thinning out to grey from anti-aliasing
+  // Dark text, drawn twice to stay black
   cx.fillStyle = 'rgba(0,0,0,1.0)';
   cx.fillText(text, tx, 24);
   cx.fillText(text, tx, 24);
@@ -968,7 +922,7 @@ function makeEngravedLabel(text, x, y, z, w = 1.35, { align = 'right', parent = 
   return m;
 }
 
-// Shared soft-shadow texture for buttons (radial gradient, dark centre → clear edge)
+// Soft shadow texture for buttons
 const btnShadowTex = (() => {
   const c = document.createElement('canvas');
   c.width = c.height = 128;
@@ -982,8 +936,8 @@ const btnShadowTex = (() => {
   return new THREE.CanvasTexture(c);
 })();
 
-// Button factory — depth comes from material shading, no black frame.
-// Two-tone cap texture — vertical left/right split, used by the mixer's split buttons.
+// Button factory
+// Two-colour cap texture (left/right), for the mixer buttons
 function makeSplitTexture(hexA, hexB) {
   const c = document.createElement('canvas');
   c.width = 64; c.height = 64;
@@ -997,10 +951,9 @@ function makeSplitTexture(hexA, hexB) {
   return tex;
 }
 
-// `parent` defaults to the radio; the mixer passes its own group (same local
-// layout works because both bodies are 1.3 deep with the front face at z=0.65).
+// `parent` is the radio by default, or the mixer
 function makeBtn(x, y, radius, color, emissiveHex, parent = radio) {
-  // Soft fake drop shadow on the body face — offset down-left (key light is upper right)
+  // Soft shadow on the front of the body
   const drop = new THREE.Mesh(
     new THREE.PlaneGeometry(radius * 3.3, radius * 3.3),
     new THREE.MeshBasicMaterial({ map: btnShadowTex, transparent: true, depthWrite: false })
@@ -1017,8 +970,7 @@ function makeBtn(x, y, radius, color, emissiveHex, parent = radio) {
   rim.position.set(x, y, 0.648);
   parent.add(rim);
 
-  // Cap — tapered so the edge is narrower than the base, giving a natural bevel highlight.
-  // Matte plastic knob feel — low-moderate metalness keeps the colour saturated.
+  // Cap: tapered edge, matte plastic look
   const cap = new THREE.Mesh(
     new THREE.CylinderGeometry(radius, radius * 1.08, 0.30, 40),
     new THREE.MeshStandardMaterial({
@@ -1039,9 +991,7 @@ function makeBtn(x, y, radius, color, emissiveHex, parent = radio) {
 // ── Bottom row: 4 effect push-buttons + 1 volume slider ───────────────────
 const ROW_Y = -1.62;   // moved down to give more space (was -1.2)
 
-// Saturation strategy: dark albedo + strong same-hue emissive.
-// Emissive bypasses lighting, so the hue stays deep no matter how bright
-// the ambient light is (bright diffuse washes to pastel under ACES).
+// Dark colour + strong glow keeps the colour saturated
 const EFFECT_CONFIG = [
   { label: 'PITCH',  color: 0x7a0010, emissive: 0xb8001e, activeEm: 0xff2244, x: -2.2, audioKey: 'pitch'  },
   { label: 'ROBOT',  color: 0x00427e, emissive: 0x0072c0, activeEm: 0x22aaff, x: -1.1, audioKey: 'robot'  },
@@ -1103,7 +1053,7 @@ sliderHandle.position.set(SLIDER_X, SLIDER_MIDY, 0.68);
 sliderHandle.castShadow = true;
 radio.add(sliderHandle);
 
-// Handle grip lines (decorative notches on the thumb) — stored for animation
+// Grip lines on the slider handle
 const sliderGrips = [-1, 0, 1].map(g => {
   const grip = new THREE.Mesh(
     new THREE.BoxGeometry(0.38, 0.025, 0.06),
@@ -1130,7 +1080,7 @@ function setSliderY(newY) {
   const fillH = Math.max(0.01, frac * TRACK_H);
   sliderFill.scale.y = fillH;
   sliderFill.position.y = SLIDER_MINY + fillH / 2;
-  // Slider position = audio volume — floored at 10% so the radio never goes silent
+  // Slider = volume (minimum 10%, never silent)
   const vol = Math.max(0.1, frac);
   AUDIO_SLOTS.forEach(slot => { slotAudio[slot].volume = vol; });
 }
@@ -1155,8 +1105,7 @@ const playIcon = new THREE.Mesh(
 playIcon.position.set(-1.85, BTN_Y, BTN_Z_UP + 0.16);
 radio.add(playIcon);
 
-// Same play-triangle glyph on the 4 effect buttons (Pitch/Robot/Reverb/Pan) —
-// visual cue that each one plays a transformed example of the thought.
+// Play triangle on the 4 effect buttons
 effectBtns.forEach(eb => {
   const icon = new THREE.Mesh(
     new THREE.PlaneGeometry(0.3, 0.3),
@@ -1167,7 +1116,7 @@ effectBtns.forEach(eb => {
   eb.icon = icon;
 });
 
-// Loop icon — rounded-rectangle repeat symbol (standard media-player loop icon)
+// Loop icon
 const loopIconCvs = document.createElement('canvas');
 loopIconCvs.width = 64; loopIconCvs.height = 64;
 { const c = loopIconCvs.getContext('2d');
@@ -1218,21 +1167,18 @@ radio.add(loopIcon);
 makeLabel('PLAY', 0x22cc66, -1.85, BTN_Y - 0.40, 0.67);
 makeLabel('LOOP', 0x2288dd, -0.9,  BTN_Y - 0.40, 0.67);
 
-// Loop is on by default — pressing Play should hear the thought on repeat
-// right away, with the Loop button toggling it off/on from there.
+// Loop is on by default
 let isLooping = true;
 loopBtn.position.z = BTN_Z_DOWN;
 loopIcon.position.z = BTN_Z_DOWN + 0.16;
 loopBtn.material.emissive.setHex(0x2288ff);
 
-// ── Thought navigation arrow buttons (below screen) ────────────────────────
-// Pair right edge flush with screen right edge (bezel right = -0.5 + 1.7 = 1.2)
+// ── Thought arrow buttons (below the screen) ───────────────────────────────
 const ARR_Y = -0.38;
 const ARR_LEFT_X  = 0.41;
 const ARR_RIGHT_X = 0.94;
 
-// Engraved "Thought selection" label — text ends at the screen's right edge (1.2),
-// same alignment as the right arrow button (0.94 + 0.26 rim ≈ 1.2)
+// Engraved "Thought selection" label
 makeEngravedLabel('Thought selection', 1.2 - 1.35 / 2, ARR_Y + 0.36, 0.66);
 
 const prevThoughtBtn = makeBtn(ARR_LEFT_X,  ARR_Y, 0.20, 0x55555e, 0x1a1a20);
@@ -1245,7 +1191,7 @@ function makeArrowIcon(dir) {  // dir: -1 = ◄  +1 = ►
   const cx = c.getContext('2d');
   cx.fillStyle = 'rgba(255,255,255,0.92)';
   cx.beginPath();
-  // Coordinates chosen so the triangle's centroid sits at canvas centre (32)
+  // Triangle centred on the canvas
   if (dir < 0) { cx.moveTo(41, 10); cx.lineTo(13, 32); cx.lineTo(41, 54); }
   else         { cx.moveTo(23, 10); cx.lineTo(51, 32); cx.lineTo(23, 54); }
   cx.closePath(); cx.fill();
@@ -1266,20 +1212,15 @@ const nextArrowIcon = new THREE.Mesh(
 nextArrowIcon.position.set(ARR_RIGHT_X, ARR_Y, BTN_Z_UP + 0.16);
 radio.add(nextArrowIcon);
 
-// ── Mixer — square metal box right of the radio, on the floor ──────────────
-// Same scale, materials and lighting as the radio (same scene)
+// ── Mixer: metal box to the right of the radio ─────────────────────────────
 const mixer = new THREE.Group();
 mixer.scale.setScalar(0.78);
-// Floor at y=-1.79; box half-height 1.1 * 0.78 = 0.858 → rests on the floor
+// Rests on the floor
 mixer.position.set(3.9, -0.932, 1.4);   // brought further forward
 mixer.rotation.y = -0.28;   // turned slightly toward the left (toward the radio)
 sceneRig.add(mixer);
 
-// Body — same depth as the radio (1.3) so makeBtn's z-layout matches exactly.
-// Height is stretched taller than the original square (2.2 → 2.7) purely by
-// extending upward — the mesh is nudged up by half the added height so the
-// bottom edge (buttons, floor contact) stays exactly where it was, and the
-// extra 0.5 opens up as clear space above the buttons for the MIXER title.
+// Body: same depth as the radio, taller to make room for the title
 const MIXER_HEIGHT = 2.7;
 const MIXER_HEIGHT_ADD = MIXER_HEIGHT - 2.2;
 const mixerBody = new THREE.Mesh(new RoundedBoxGeometry(2.2, MIXER_HEIGHT, 1.3, 8, 0.18), bodyMat);
@@ -1288,8 +1229,7 @@ mixerBody.castShadow = true;
 mixerBody.receiveShadow = true;
 mixer.add(mixerBody);
 
-// Edge strips top + bottom — same edgeMat trim as the radio. Bottom stays put
-// (bottom edge didn't move); top strip is pushed up to hug the new top edge.
+// Edge strips top + bottom
 [-1.02, 1.02 + MIXER_HEIGHT_ADD].forEach(y => {
   const strip = new THREE.Mesh(new RoundedBoxGeometry(2.08, 0.14, 1.2, 6, 0.06), edgeMat);
   strip.position.y = y;
@@ -1297,28 +1237,24 @@ mixer.add(mixerBody);
   mixer.add(strip);
 });
 
-// "MIXER" title, engraved in the same style/size as the radio's "Thought
-// selection" label, centered in the space freed up above the buttons.
+// "MIXER" title
 const mixerTitle = makeEngravedLabel('MIXER', 0, 1.15, 0.66, 1.7, { align: 'center', parent: mixer });
 
-// 3 round buttons — same buttons/colours as the radio's effect row, with
-// engraved combo labels beneath them (same style as the radio labels).
-// All three are two-tone (split left/right), one combo per button.
+// 3 two-colour buttons, one per combination
 const MIXER_SPLIT = [
   { a: 0x7a0010, b: 0x00427e, emOffA: 0xb8001e, emOffB: 0x0072c0, emOnA: 0xff2244, emOnB: 0x22aaff },   // red / blue
   { a: 0x7a0010, b: 0x500080, emOffA: 0xb8001e, emOffB: 0x8812cc, emOnA: 0xff2244, emOnB: 0xcc44ff },   // red / purple
   { a: 0x00427e, b: 0x500080, emOffA: 0x0072c0, emOffB: 0x8812cc, emOnA: 0x22aaff, emOnB: 0xcc44ff },   // blue / purple
 ];
 
-// Combo labels for the mixer buttons — stacked (2-line) since "PITCH & ROBOT"
-// etc. doesn't fit legibly on one line at this label size.
+// Combination labels, on two lines so they fit
 const MIXER_LABELS = [
   ['PITCH', 'ROBOT'],
   ['PITCH', 'REVERB'],
   ['ROBOT', 'REVERB'],
 ];
 
-// Parallel to MIXER_LABELS — which THOUGHTS[].audio key each combo button plays
+// Audio key for each mixer button (same order as MIXER_LABELS)
 const MIXER_AUDIO_KEYS = ['mixPitchRobot', 'mixPitchReverb', 'mixRobotReverb'];
 
 // Two side by side on top, the third centered below them
@@ -1352,8 +1288,7 @@ const mixerBtns = MIXER_LABELS.map((label, i) => {
   return { cap, ec, active: false, splitOff, splitOn, audioKey: MIXER_AUDIO_KEYS[i] };
 });
 
-// Same play-triangle glyph as the radio's PITCH/ROBOT/REVERB/PAN row —
-// visual cue that each mixer button plays a combined recording too.
+// Play triangle on the mixer buttons
 mixerBtns.forEach((mb, i) => {
   const { bx, by } = MIXER_BTN_POS[i];
   const icon = new THREE.Mesh(
@@ -1365,9 +1300,7 @@ mixerBtns.forEach((mb, i) => {
   mb.icon = icon;
 });
 
-// ── Audio cable — out of the radio's right side, into the mixer ────────────
-// Radio right face ≈ x 1.22 (world); mixer left face (rotated -0.28) lands at
-// roughly world (1.58, -1.10, -0.25). Cable sags toward the floor in between.
+// ── Audio cable from the radio to the mixer ────────────────────────────────
 const cableCurve = new THREE.CatmullRomCurve3([
   new THREE.Vector3(2.36, -0.75,  0.15),   // exit: radio right side
   new THREE.Vector3(2.70, -1.68,  0.65),   // sag near the floor
@@ -1388,14 +1321,14 @@ radioPlug.position.set(2.40, -0.75, 0.15);
 radioPlug.castShadow = true;
 sceneRig.add(radioPlug);
 
-// Mixer-side plug — child of the mixer group so it follows its rotation
+// Plug on the mixer side
 const mixerPlug = new THREE.Mesh(new THREE.CylinderGeometry(0.083, 0.083, 0.28, 14), plugMat);
 mixerPlug.rotation.z = Math.PI / 2;
 mixerPlug.position.set(-1.13, -0.215, 0);   // just outside the left face, in mixer-local coords
 mixerPlug.castShadow = true;
 mixer.add(mixerPlug);
 
-// ── Brain in a jar — replaces the figure, sits in the same spot, far back-left ─
+// ── Brain in a jar (back left) ─
 const FIGURE_SPOT = { x: -6.2, floorY: -1.79, z: -5.5, rotY: 0.55 - Math.PI / 2, targetHeight: 1.8 };
 
 let brainModel = null;   // set once loaded — used for hover raycasting below
@@ -1406,8 +1339,7 @@ brainLoader.load('brain_in_a_jar.glb', (gltf) => {
   const brain = gltf.scene;
   brainModel = brain;
 
-  // Model units are unknown ahead of time — normalize to a sensible tabletop
-  // height, then sit it on the floor at the spot the figure used to stand.
+  // Scale the model to table height and put it on the floor
   const size = new THREE.Box3().setFromObject(brain).getSize(new THREE.Vector3());
   brain.scale.setScalar(FIGURE_SPOT.targetHeight / size.y);
 
@@ -1427,7 +1359,7 @@ brainLoader.load('brain_in_a_jar.glb', (gltf) => {
   console.error('brain_in_a_jar.glb failed to load', err);
 });
 
-// ── Signal icon — 3 arcs that light up one at a time, looping like a signal-strength meter ─
+// ── Signal icon: 3 arcs that light up one by one ─
 function makeArcTexture(radius, lineWidth) {
   const c = document.createElement('canvas');
   c.width = 160; c.height = 160;
@@ -1467,13 +1399,12 @@ function updateSignalIcon(icon, step) {
   });
 }
 
-// Above the jar — normal orientation, as if transmitting (fills inner → outer)
+// Above the jar: sending
 const jarSignal = makeSignalIcon(sceneRig, -6.2, 0.6, -5.5, 0.9, { rotZ: Math.PI / 2 });
-// Above the antenna tip (radio-local) — flipped + reversed, as if receiving (fills outer → inner)
+// Above the antenna: receiving
 const antennaSignal = makeSignalIcon(radio, 2.62, 5.25, 0, 0.9, { rotZ: Math.PI / 2, flip: true, reversed: true });
 
-// ── Ground (shadow) — raised so the radio rests on it ──────────────────────
-// Radio bottom: (-2.18 - 0.11) local * 0.78 scale ≈ -1.79
+// ── Ground (shadow), the radio rests on it ─────────────────────────────────
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(50, 50),
   new THREE.ShadowMaterial({ opacity: 0.35 })
@@ -1483,8 +1414,7 @@ ground.position.y = -1.79;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// ── Scroll zoom (no OrbitControls — avoids pointer-event conflicts) ────────
-// Scrolling past the closest zoom level dives through the screen into a new page.
+// ── Scroll zoom; zooming past the closest level goes into the screen ───────
 let isZoomTransitioning = false;
 let zoomTransitionStart = 0;
 let zoomTransitionFov = 36;
@@ -1500,8 +1430,7 @@ renderer.domElement.addEventListener('wheel', e => {
     isZoomTransitioning = true;
     zoomTransitionStart = performance.now();
     zoomTransitionFov = camera.fov;
-    // Navigate on a plain timer — independent of the render loop, so the
-    // page-change still happens even if a rendering hiccup stalls a frame.
+    // Go to the next page on a timer
     setTimeout(() => { window.location.href = 'inside.html'; }, ZOOM_TRANSITION_MS);
     return;
   }
@@ -1522,8 +1451,7 @@ const effectCapMeshes = effectBtns.map(b => b.cap);
 const mixerCapMeshes  = mixerBtns.map(b => b.cap);
 const allHit = [sliderHandle, playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, mixerTitle, ...effectCapMeshes, ...mixerCapMeshes];
 
-// Buttons that light up brighter on hover — play, loop, the 4 effect buttons
-// (pitch/robot/reverb/pan), the thought-selection arrows, and the 3 mixer buttons.
+// Buttons that light up on hover
 const hoverCapMeshes = [playBtn, loopBtn, prevThoughtBtn, nextThoughtBtn, ...effectCapMeshes, ...mixerCapMeshes];
 const HOVER_EMISSIVE_INTENSITY = 1.8;
 let hoveredCap = null;
@@ -1551,8 +1479,7 @@ const mixTips = [
   document.getElementById('mix3-tip'),
 ];
 
-// Reflective one-liners shown when hovering each effect button, keyed by
-// EFFECT_CONFIG's label
+// Hover texts for the effect buttons
 const EFFECT_TIPS = {
   PITCH:  'What happens when the tone changes?',
   ROBOT:  'What happens when the voice becomes mechanical?',
@@ -1570,8 +1497,7 @@ function positionHoverTip(tipEl, clientX, clientY) {
   tipEl.style.top = y + 'px';
 }
 
-// ── "How it works" — a popup now (was inline text that competed for corner
-// space with the radio, overlapping it on narrower/laptop-sized windows) ──
+// ── "How it works" popup ──
 const howItWorksBtn = document.getElementById('howItWorksBtn');
 const howItWorksArrow = document.getElementById('howItWorksArrow');
 const howItWorksOverlay = document.getElementById('howItWorksOverlay');
@@ -1581,8 +1507,7 @@ howItWorksBtn.addEventListener('click', () => {
   howItWorksArrow.style.display = 'none';   // bouncing arrow was just to draw the eye to the button once
 });
 
-// ── Radio metaphor info popup — plain click button (a hover tooltip here kept
-// re-triggering as the mouse moved, making the button inside unclickable) ──
+// ── Radio metaphor info popup ──
 const radioInfoBtn = document.getElementById('radio-info-btn');
 const radioDeepDiveOverlay = document.getElementById('radioDeepDiveOverlay');
 
@@ -1590,9 +1515,7 @@ radioInfoBtn.addEventListener('click', () => {
   radioDeepDiveOverlay.classList.add('show');
 });
 
-// Anchor (in the radio's own local space) just above its top-left corner —
-// projected to screen space every frame so the button tracks the radio
-// through zoom/resize instead of sitting at a guessed fixed percentage.
+// Button position above the radio, updated on zoom/resize
 const radioInfoAnchor = new THREE.Vector3(-2.7, 2.6, 0.9);
 function updateRadioInfoBtnPosition() {
   const world = radio.localToWorld(radioInfoAnchor.clone());
@@ -1603,12 +1526,7 @@ function updateRadioInfoBtnPosition() {
   radioInfoBtn.style.top = y + 'px';
 }
 
-// "MIXER" title frame — a plain HTML/CSS rectangle rather than 3D geometry,
-// so it always reads as a crisp, undistorted rectangle regardless of the
-// mixer's rotation or camera zoom (a flat 3D outline on a rotated surface
-// looks skewed/trapezoidal under perspective — this sidesteps that entirely).
-// Corners are in the mixer's own local space, projected to screen space
-// every frame like the button above.
+// "MIXER" title frame (HTML, so it never looks skewed)
 const mixerFrameEl = document.getElementById('mixerTitleFrame');
 const mixerFrameTL = new THREE.Vector3(-0.42, 1.29, 0.66);
 const mixerFrameBR = new THREE.Vector3( 0.42, 1.01, 0.66);
@@ -1624,8 +1542,7 @@ function updateMixerTitleFramePosition() {
   mixerFrameEl.style.width = Math.abs(x2 - x1) + 'px';
   mixerFrameEl.style.height = Math.abs(y2 - y1) + 'px';
 }
-// ── Method popup — summarizes the original experiment, points to the radio's
-// zoomed-in deep dive for the full method/results/findings ─────────────────
+// ── Method popup ──
 const methodBtn = document.getElementById('methodBtn');
 const methodOverlay = document.getElementById('methodOverlay');
 
@@ -1633,8 +1550,7 @@ methodBtn.addEventListener('click', () => {
   methodOverlay.classList.add('show');
 });
 
-// "here" link inside the How-it-works popup jumps straight to the Real-life
-// setup popup instead — closes the one to avoid stacking two overlays.
+// "here" link: close this popup and open the setup popup
 document.getElementById('realLifeSetupLink').addEventListener('click', (e) => {
   e.preventDefault();
   howItWorksOverlay.classList.remove('show');
@@ -1644,9 +1560,7 @@ document.getElementById('realLifeSetupLink').addEventListener('click', (e) => {
 // ── Research question popup — opened by clicking the brain in a jar ────────
 const researchQuestionOverlay = document.getElementById('researchQuestionOverlay');
 
-// Every popup above shares this close-button/backdrop-click behavior — one
-// generic loop instead of a hand-wired pair per overlay (matches the same
-// pattern already used in inside.html).
+// Close every popup with the X button or by clicking outside it
 document.querySelectorAll('.popup-overlay').forEach(overlay => {
   overlay.querySelector('.popup-close').addEventListener('click', () => {
     overlay.classList.remove('show');
@@ -1659,8 +1573,7 @@ document.querySelectorAll('.popup-overlay').forEach(overlay => {
 renderer.domElement.addEventListener('pointerdown', e => {
   const hit = raycastHit(e);
   if (!hit) {
-    // Brain isn't part of the button raycast list (it's not clickable in the
-    // usual sense) — reuse the ray raycastHit() just set up to test it here.
+    // Check if the mouse is on the brain
     if (brainModel && raycaster.intersectObject(brainModel, true).length > 0) {
       researchQuestionOverlay.classList.add('show');
     }
@@ -1688,7 +1601,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
     if (slotAudio.base.src) {
       toggleSlotPlayback('base', slotAudio.base.paused, applyVisual);
     } else {
-      // No recording for this thought yet — button still animates, just silently
+      // No recording yet: button only animates
       isPlaying = !isPlaying;
       applyVisual(isPlaying);
       screenGlow.intensity = isPlaying ? 1.2 : 0;
@@ -1697,7 +1610,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
     return;
   }
 
-  // Loop button — arms looping on whichever file was chosen last (PLAY or PITCH)
+  // Loop button: loops the last chosen file
   if (hit === loopBtn) {
     isLooping = !isLooping;
     currentAudio.loop = isLooping;
@@ -1712,8 +1625,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
     const dir = hit === nextThoughtBtn ? 1 : -1;
     thoughtIdx = (thoughtIdx + dir + THOUGHTS.length) % THOUGHTS.length;
 
-    // Switching thoughts changes which recordings are valid — stop whatever
-    // was playing and reset every button before loading the new set
+    // New thought: stop the audio and reset all buttons
     AUDIO_SLOTS.forEach(slot => { stopAudio(slotAudio[slot]); setSlotUIOff(slot); });
     isPlaying = false;
     screenGlow.intensity = 0;
@@ -1731,9 +1643,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
     return;
   }
 
-  // Effect buttons (PITCH/ROBOT/REVERB/PAN) — each plays its own transformed
-  // recording when the current thought has one; otherwise just a silent
-  // visual toggle (no recording for this thought yet)
+  // Effect buttons: play their recording, or just toggle if there is none
   const ei = effectCapMeshes.indexOf(hit);
   if (ei >= 0) {
     const eb = effectBtns[ei];
@@ -1745,8 +1655,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
     return;
   }
 
-  // Mixer combo buttons — each plays its own combined recording when the
-  // current thought has one; otherwise a silent visual toggle
+  // Mixer buttons: same as the effect buttons
   const mi = mixerCapMeshes.indexOf(hit);
   if (mi >= 0) {
     const mb = mixerBtns[mi];
@@ -1758,11 +1667,7 @@ renderer.domElement.addEventListener('pointerdown', e => {
   }
 });
 
-// Shared by the effect and mixer-combo buttons above: if this modulation has
-// a real recording for the current thought, toggle its playback; otherwise
-// there's nothing to play yet, so just flip the pressed/unpressed visual.
-// Only how "pressed" looks differs between the two (emissive color vs.
-// emissiveMap texture), so that stays as each call site's own applyVisual.
+// Play the recording if there is one, otherwise only toggle the button
 function toggleComboBtn(btn, audioKey, applyVisual) {
   if (slotAudio[audioKey].src) {
     btn.active = slotAudio[audioKey].paused;
@@ -1773,10 +1678,7 @@ function toggleComboBtn(btn, audioKey, applyVisual) {
   }
 }
 
-// Static one-mesh(-or-two)-to-one-tooltip mappings — looped instead of a
-// separate if/else per control in both pointermove (show) and pointerleave
-// (hide). Tooltips needing extra logic (brain, mixer combos, effect label
-// text) stay handled separately below, since they aren't a plain lookup.
+// Simple control-to-tooltip lookups
 const SIMPLE_HOVER_TIPS = [
   { hits: [playBtn], tip: playTip },
   { hits: [loopBtn], tip: loopTip },
@@ -1795,7 +1697,7 @@ renderer.domElement.addEventListener('pointermove', e => {
   const hit = raycastHit(e);
   renderer.domElement.style.cursor = hit ? 'pointer' : 'default';
 
-  // Hover glow — boost emissiveIntensity on the targeted cap, restore the rest
+  // Hover glow on the button under the mouse
   const newHover = hoverCapMeshes.includes(hit) ? hit : null;
   if (newHover !== hoveredCap) {
     if (hoveredCap) hoveredCap.material.emissiveIntensity = 1;
@@ -1803,28 +1705,27 @@ renderer.domElement.addEventListener('pointermove', e => {
     hoveredCap = newHover;
   }
 
-  // Brain hover tooltip — only when not already hovering a control.
-  // Reuses the ray already set up by raycastHit() above.
+  // Brain tooltip (only when not on a control)
   if (!hit && brainModel && raycaster.intersectObject(brainModel, true).length > 0) {
     positionHoverTip(brainTip, e.clientX, e.clientY);
   } else {
     brainTip.style.display = 'none';
   }
 
-  // Play/loop/thought-arrows/volume/mixer-title — plain one-mesh-to-one-tip lookups
+  // Simple control-to-tooltip lookups
   SIMPLE_HOVER_TIPS.forEach(({ hits, tip }) => {
     if (hits.includes(hit)) positionHoverTip(tip, e.clientX, e.clientY);
     else tip.style.display = 'none';
   });
 
-  // Mixer combo buttons — explains what each pair of transformations does
+  // Mixer button tooltips
   const mixIdx = mixerCapMeshes.indexOf(hit);
   mixTips.forEach((tip, i) => {
     if (i === mixIdx) positionHoverTip(tip, e.clientX, e.clientY);
     else tip.style.display = 'none';
   });
 
-  // Effect buttons (pitch/robot/reverb/pan) — a one-line reflective prompt each
+  // Effect button tooltips
   const effectIdx = effectCapMeshes.indexOf(hit);
   if (effectIdx >= 0) {
     effectTip.textContent = EFFECT_TIPS[effectBtns[effectIdx].ec.label];
@@ -1854,15 +1755,7 @@ renderer.domElement.addEventListener('pointerleave', () => {
   effectTip.style.display = 'none';
 });
 
-// Initial placement — afterwards these only need to run again when the
-// camera actually moves (wheel-zoom, the zoom-transition dive, or resize).
-// Both projections read matrixWorld off the radio/camera, which is only kept
-// current by the render loop — and that loop hasn't run yet at this point in
-// the script. Without forcing an update first, this first projection uses
-// stale (identity) matrices and places the button off-screen; it only
-// self-corrects once the user resizes or scrolls the wheel, since those
-// handlers also call these two functions. Forcing the update here means the
-// button is positioned correctly from the very first frame.
+// Place the buttons once at the start (update matrices first)
 camera.updateMatrixWorld();
 scene.updateMatrixWorld(true);
 updateRadioInfoBtnPosition();
@@ -1889,7 +1782,7 @@ renderer.setAnimationLoop(time => {
   if (isPlaying) {
     const pulse = 0.9 + Math.sin(time * 0.0028) * 0.1;
     screenGlow.intensity = 1.2 * pulse;
-    // Fast redraw while playing — animates the glitch distortion (+ cursor blink)
+    // Redraw often while playing (glitch + cursor)
     if (time - lastScreenRedraw > 80) {
       lastScreenRedraw = time;
       redrawScreen();
@@ -1906,8 +1799,7 @@ renderer.setAnimationLoop(time => {
   updateSignalIcon(jarSignal, signalStep);
   updateSignalIcon(antennaSignal, signalStep);
 
-  // Zoom-into-screen transition — dives the camera through the screen, fades out,
-  // then hands off to the "inside the radio" page.
+  // Zoom into the screen, fade out, go to the inside page
   if (isZoomTransitioning) {
     const t = Math.min((performance.now() - zoomTransitionStart) / ZOOM_TRANSITION_MS, 1);
     const ease = t * t;   // accelerating dive
@@ -1915,10 +1807,7 @@ renderer.setAnimationLoop(time => {
     camera.fov = THREE.MathUtils.lerp(zoomTransitionFov, 75, ease);
     camera.updateProjectionMatrix();
     zoomFadeEl.style.opacity = t;
-    // Camera moves every frame during this transition, so the screen-space
-    // anchors need to track it here too (outside this, they only change on
-    // wheel/resize — see those handlers — so there's no need to redo this
-    // projection on every single frame the rest of the time).
+    // Camera moves here, so keep the buttons in place
     updateRadioInfoBtnPosition();
     updateMixerTitleFramePosition();
   }

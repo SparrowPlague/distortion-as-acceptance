@@ -226,7 +226,7 @@ video {
   position: absolute;
   width: calc(100% - 340px);
   height: calc(100% - 340px);
-  object-fit: contain;   /* was "cover" — that crops to fill the box instead of preserving the video's own aspect ratio */
+  object-fit: contain;   /* show the whole video, no cropping */
   transform-origin: center center;
   transition: none;
   border-radius: 5px;
@@ -493,7 +493,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
   transform: translateX(-50%) translateY(20px);
   pointer-events: none;
 }
-#innerCards #continueBtn { align-self: center; }   /* prevents the flex row's default stretch from pulling the button as tall as the card boxes */
+#innerCards #continueBtn { align-self: center; }   /* keep the button its own height */
 
 .inner-card {
   position: relative;
@@ -586,9 +586,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
 .ref-overlay.show .ref-popup { transform: translateY(0); }
 .ref-popup.expanded { max-width: 760px; max-height: 88vh; }
 .ref-popup.expanded > .ref-popup-title { display: none; }
-/* Lighter than the default .ref-popup navy — this box sits over the same
-   near-black video/cover background the rest of the page uses, so the
-   default dark tone barely read as a distinct panel. */
+/* Lighter box so it stands out from the dark background */
 #thoughtIntroOverlay .ref-popup { max-width: 700px; background: #a2b6df; border-color: rgba(255,255,255,0.22); }
 #thoughtIntroOverlay .ref-popup-body { color: #000; }
 #thoughtIntroOverlay .ref-popup-title { color: #000; }
@@ -692,10 +690,8 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
   margin-bottom: 8px;
 }
 
-/* ── "Power on" transition — plays before handing off to the radio page ──
-   A CRT coming to life: a single point blooms into a thin bright line, holds,
-   then that line unrolls to fill the screen — the reverse of the classic
-   "old TV switching off" flash. */
+/* ── "POWER ON" TRANSITION ──
+   Old TV turning on: a dot becomes a line, then fills the screen. */
 #radio-transition {
   position: fixed;
   inset: 0;
@@ -832,15 +828,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
 }
 
 /* ── MOBILE: title page ──
-   Desktop keeps the title on one line (nowrap) since clamp() always has
-   room to shrink it enough on a wide viewport. On a narrow phone screen
-   the clamp() floor (2.9rem) is still wider than the viewport, so nowrap
-   forces "Distortion as Acceptance" to run off both edges instead of
-   shrinking further. Below 600px, drop nowrap and stack each word — a
-   smaller floor alone still doesn't reliably fit the longest word, but a
-   dedicated line per word always does. The logo/tag-corner's generous
-   --s8 side padding (64px) also reads as "centered" on a ~375px-wide
-   screen — cut it down to --s4 so they sit back in the corners. */
+   Title on three lines so it fits, less padding in the corners. */
 @media (max-width: 700px), (max-height: 700px) {
   .cover-top {
     padding: var(--s4) var(--s4);
@@ -861,11 +849,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
 }
 
 /* ── MOBILE: video ──
-   The desktop margin (calc(100% - 340px)) was tuned so the video isn't
-   upscaled past its native resolution on a large screen. On a ~375px-wide
-   phone that same fixed 340px margin eats almost the entire width, leaving
-   the video a sliver — a small fixed margin instead lets it fill most of
-   the (much smaller) screen. */
+   Smaller margin so the video fills the screen. */
 @media (max-width: 700px), (max-height: 700px) {
   video {
     width: calc(100% - 40px);
@@ -873,19 +857,8 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
   }
 }
 
-/* ── MOBILE: thought/anatomy diagram layer ──
-   Desktop surrounds the sentence with four labels placed via negative
-   offsets (above/below/either side) and connects them with drawn SVG
-   lines — a layout that assumes real width and height to spread out into.
-   The "inner cards" row below is separately pinned to a fixed bottom
-   offset, and .inner-layer itself doesn't scroll, so on a short phone
-   screen all of this piles on top of itself instead of just running off
-   the bottom. Below 600px: let the layer scroll, drop every absolute
-   position in favour of normal stacked flow (the sentence, then each
-   label, then the cards, top to bottom), and hide the now-meaningless
-   connector lines and the "hover" hint (there's no hover on touch).
-   Tapping a label still opens the same bottom-sheet popup as on desktop —
-   that already works fine on touch and needs no change. */
+/* ── MOBILE: thought diagram ──
+   Stack everything vertically and let the page scroll. */
 .mobile-thought { display: none; }
 
 @media (max-width: 700px), (max-height: 700px) {
@@ -896,17 +869,14 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
     padding: 140px 20px 40px;
     gap: 0;
   }
-  /* The desktop diagram (absolute-positioned labels + drawn connector
-     lines around the sentence) is built for a layout with real width and
-     height to spread into — hide it entirely on phones rather than
-     continuing to fight its positioning with overrides. */
+  /* Hide the desktop diagram, show the mobile version instead */
   .thought-diagram, .thought-hint { display: none; }
   .mobile-thought {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 480px;   /* caps how wide this gets in landscape — .inner-layer's own align-items:center keeps it centred instead of stretched edge to edge */
+    max-width: 480px;   /* not too wide in landscape */
     margin: 0 auto 56px;
   }
   .mobile-thought-title {
@@ -929,16 +899,13 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
     bottom: auto;
     transform: none;
     width: 100%;
-    max-width: 480px;   /* was 100% — stretched edge to edge in landscape; capped and centred like .mobile-thought above */
+    max-width: 480px;   /* not too wide in landscape */
     margin: 0 auto;
   }
 }
 
 /* ── MOBILE: popup text size ──
-   Same issue as inside-mobile.html: the ref-popup/anatomy-popup text was
-   sized and padded for a wide desktop panel, so on a narrow phone the
-   lines wrap awkwardly and feel cramped despite being "large" text.
-   Smaller, tighter-padded text reads more comfortably at this width. */
+   Smaller text and padding so popups read better on a phone. */
 @media (max-width: 700px), (max-height: 700px) {
   .ref-popup {
     padding: 26px 18px;
@@ -1037,16 +1004,8 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
     <div class="anatomy-label anatomy-believable" data-key="believable"><span class="anatomy-dot"></span>Believable</div>
   </div>
 
-  <!-- Mobile-only stacked stand-in for .thought-diagram above — shown instead
-       of it below 700px (see the matching @media block). Built as a fully
-       separate, plain block rather than trying to further override the
-       desktop diagram's absolute-positioned labels/connector-line layout,
-       since those overrides kept fighting something we couldn't pin down.
-       Reuses the "anatomy-label" class + data-key on each row so the
-       existing generic click handlers (which just do
-       document.querySelectorAll('.anatomy-label')) pick these up too, with
-       no JS changes needed — tapping one opens the same bottom-sheet popup
-       as the desktop version. -->
+  <!-- Mobile version of the thought diagram (shown below 700px).
+       Uses the same .anatomy-label class, so tapping opens the same popup. -->
   <div class="mobile-thought" id="mobileThought">
     <div class="mobile-thought-title">&ldquo;I am not good enough.&rdquo;</div>
     <div class="anatomy-label mobile-anatomy-label" data-key="negative"><span class="anatomy-dot"></span>Negative</div>
@@ -1095,9 +1054,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
   <div class="anatomy-popup-body" id="anatomyPopupBody"></div>
 </div>
 
-<!-- Shown once, the moment the thought page itself first comes into view
-     (from either the video transition or the #thoughts deep-link) — see
-     the two innerLayer.classList.add('show') call sites further down. -->
+<!-- Welcome box, shown once when the thought page first appears -->
 <div class="ref-overlay" id="thoughtIntroOverlay">
   <div class="ref-popup">
     <button class="ref-popup-close" id="thoughtIntroClose">&#x2715;</button>
@@ -1188,7 +1145,7 @@ video.glitching { animation: video-glitch-slice 0.5s steps(1,end) infinite; }
 </div>
 <div class="ref-tooltip" id="tip11">[11] Blackledge JT (2015) Cognitive Defusion in Practice: A Clinician's Guide to Assessing, Observing, and Supporting Change in Your Client. Context Press.</div>
 <div class="ref-tooltip" id="tip12">[12] Fletcher L and Hayes SC (2005) Relational Frame Theory, Acceptance and Commitment Therapy, and a Functional Analytic Definition of Mindfulness. Journal of Rational-Emotive and Cognitive-Behavior Therapy 23(4), 315&ndash;336. doi: 10.1007/s10942-005-0017-7</div>
-<div class="ref-tooltip" id="tip13">[13] Stoddard J (2014) The Big Book of ACT Metaphors: A Practitioner's Guide to Experiential Exercises and Metaphors in Acceptance and Commitment Therapy (1st ed.). New Harbinger Publications.</div>
+<div class="ref-tooltip" id="tip13">[13] Stoddard JA and Afari N (2014) The Big Book of ACT Metaphors: A Practitioner's Guide to Experiential Exercises and Metaphors in Acceptance and Commitment Therapy (1st ed.). New Harbinger Publications.</div>
 <div class="ref-tooltip" id="tip14">[14] Bennett R and Oliver JE (2019) Acceptance and Commitment Therapy: 100 Key Points and Techniques. London: Routledge.</div>
 <div class="ref-tooltip" id="tip15">[15] Twohig, M. P., Levin, M. E., & Petersen, J. M. (Eds.). (2023). The Oxford handbook of acceptance and commitment therapy. Oxford University Press. https://doi.org/10.1093/oxfordhb/9780197550076.001.0001</div>
 
@@ -1286,9 +1243,8 @@ function drawCoverWave() {
 drawCoverWave();
 window.addEventListener('resize', drawCoverWave);
 
-/* ── TITLE GLITCH — re-triggers the glitch animation on hover (replaying a CSS
-   class-toggle animation needs a reflow between remove/add, or the browser
-   just sees the class was already there and skips it) ── */
+/* ── TITLE GLITCH ──
+   Replays the glitch animation on hover. */
 function wireGlitch(el) {
   if (!el) return;
   let timer = null;
@@ -1329,9 +1285,7 @@ function closePopup(overlay) {
   if (extra) extra.classList.remove('zoom-in');
 }
 
-// Shared by every .ref-overlay below: close button + click-outside-to-close.
-// Opening is wired separately per overlay, since not all of them open the
-// same way (a card click vs. programmatically, for the thought-intro box).
+// Close a popup with the X button or by clicking outside it
 function wirePopupClose(overlay) {
   overlay.querySelector('.ref-popup-close').addEventListener('click', () => closePopup(overlay));
   overlay.addEventListener('click', (e) => {
@@ -1345,8 +1299,7 @@ document.querySelectorAll('.inner-card[data-overlay]').forEach(card => {
   wirePopupClose(overlay);
 });
 
-// Thought-page intro box — not tied to a card, just opened programmatically
-// the moment the thought page itself appears (see the two call sites below).
+// Welcome box, opens automatically when the thought page appears
 const thoughtIntroOverlay = document.getElementById('thoughtIntroOverlay');
 wirePopupClose(thoughtIntroOverlay);
 
@@ -1356,11 +1309,11 @@ document.querySelectorAll('.popup-readmore').forEach(btn => {
     const original = popup.querySelector('.ref-popup-original');
     const extra = popup.querySelector('.ref-popup-extra');
 
-    // Phase 1: zoom the current text away, like sinking past it
+    // Step 1: zoom out the current text
     original.classList.add('zoom-out');
 
     setTimeout(() => {
-      // Phase 2: box expands (via .expanded) while the new text zooms in from depth
+      // Step 2: make the box bigger and zoom in the new text
       popup.classList.add('expanded');
       void extra.offsetWidth;
       extra.classList.add('zoom-in');
@@ -1377,7 +1330,7 @@ document.addEventListener('keydown', (e) => {
 const thoughtTitle = document.getElementById('thoughtTitle');
 wireGlitch(thoughtTitle);
 
-/* ── THOUGHT DIAGRAM: stepped anatomy-style connector lines ── */
+/* ── THOUGHT DIAGRAM: lines from the words to the labels ── */
 function drawThoughtLines() {
   const diagram = document.getElementById('thoughtDiagram');
   if (!diagram) return;
@@ -1445,11 +1398,7 @@ function showAnatomyTip(label, tip, side) {
   tip.style.top = y + 'px';
 }
 
-// Excludes .mobile-anatomy-label: on touch, a tap can fire a synthetic
-// mouseenter just before the click, which popped this hover box open at
-// the same time as the tap-triggered bottom-sheet popup below — showing
-// the same explanation twice. The desktop diagram's labels still get the
-// hover box as normal.
+// Hover tooltips on desktop only (on mobile the popup already shows the text)
 document.querySelectorAll('.anatomy-label:not(.mobile-anatomy-label)').forEach(label => {
   const info = anatomyTooltips[label.dataset.key];
   if (!info) return;
@@ -1457,7 +1406,7 @@ document.querySelectorAll('.anatomy-label:not(.mobile-anatomy-label)').forEach(l
   label.addEventListener('mouseleave', () => { info.el.style.display = 'none'; });
 });
 
-/* ── INNER CARD HOVER TOOLTIP — explains the two-layer (overview / deep dive) structure ── */
+/* ── CARD HOVER TOOLTIP ── */
 const cardHoverTip = document.getElementById('cardHoverTip');
 function showTipAbove(el, tip) {
   const r = el.getBoundingClientRect();
@@ -1518,12 +1467,7 @@ const homeBtn = document.getElementById('homeBtn');
 const replayBtn = document.getElementById('replayBtn');
 const skipBtn = document.getElementById('skipBtn');
 const continueBtn = document.getElementById('continueBtn');
-// No separate click handler here — continueBtn is wired up together with
-// the "Try the radio" text links in the "POWER ON" transition block further
-// down, so it plays the same transition before navigating instead of
-// jumping to radio-v2.html instantly. It deliberately doesn't get the
-// .radio-link CLASS though — that also carries that link's small/uppercase
-// text styling, which would look wrong on a nav-bar button.
+// continueBtn click is handled in the "POWER ON" block at the bottom
 
 beginBtn.addEventListener('click', () => {
   // Fade out title page
@@ -1555,7 +1499,7 @@ function resetScene() {
   innerLayer.querySelector('.inner-title').classList.remove('glitch-in');
   progressBar.style.width = '0%';
   continueBtn.style.display = 'none';
-  skipBtn.style.display = '';   // back to video-playing state (e.g. "Play video again")
+  skipBtn.style.display = '';   // show skip button again
 }
 
 /* ── GO HOME ── */
@@ -1576,29 +1520,24 @@ replayBtn.addEventListener('click', () => {
   vid.play();
 });
 
-/* ── SKIP VIDEO (dev shortcut) ── */
+/* ── SKIP VIDEO ── */
 skipBtn.addEventListener('click', () => {
   if (transitionActive) return;
   vid.pause();
   autoZoom();
 });
 
-// Shared "reveal the thought stage" step, used both by the video's phase-2
-// hard cut (autoZoom, below) and the #thoughts deep link (jumpToThoughts) —
-// the title glitch-retrigger and progress bar differ per caller (autoZoom
-// needs to force a reflow to replay the glitch on an already-visible title;
-// jumpToThoughts never had it playing, so a plain class add is enough), so
-// those two bits stay at each call site.
+// Show the thought page (after the video or via the #thoughts link)
 function showThoughtLayer() {
   innerLayer.classList.add('show');
   thoughtIntroOverlay.classList.add('show');
   continueBtn.style.display = '';
-  skipBtn.style.display = 'none';   // no video left to skip once the thought page is showing
+  skipBtn.style.display = 'none';   // nothing left to skip
 }
 
 function autoZoom() {
-  const glitchDuration = 900;  // full digital breakdown, starts immediately
-  const cutDuration = 350;     // hard cut to next layer
+  const glitchDuration = 900;  // glitch effect (ms)
+  const cutDuration = 350;     // cut to the thought page (ms)
   const start = performance.now();
 
   transitionActive = true;
@@ -1610,7 +1549,7 @@ function autoZoom() {
     const elapsed = now - start;
 
     if (elapsed < glitchDuration) {
-      // Phase 1: breakdown — scanline tearing, flicker, jittering RGB split
+      // Step 1: glitch (flicker and colour shift)
       const gt = elapsed / glitchDuration;
       const jitter = 2 + Math.random() * 6 + gt * 6;
       glitchOffsetR.setAttribute('dx', -jitter);
@@ -1621,7 +1560,7 @@ function autoZoom() {
       requestAnimationFrame(frame);
 
     } else if (elapsed < glitchDuration + cutDuration) {
-      // Phase 2: hard cut to the next layer
+      // Step 2: cut to the thought page
       if (vid.classList.contains('glitching')) {
         vid.classList.remove('glitching');
         vid.style.opacity = '0';
@@ -1642,7 +1581,7 @@ function autoZoom() {
   requestAnimationFrame(frame);
 }
 
-/* ── DEEP LINK: jump straight to the thought diagram (skip cover + video) ── */
+/* ── #thoughts LINK: skip the title page and video ── */
 function jumpToThoughts() {
   titlePage.classList.add('hide');
   titlePage.style.display = 'none';
@@ -1657,19 +1596,11 @@ if (location.hash === '#thoughts') {
   jumpToThoughts();
 }
 
-/* ── "POWER ON" TRANSITION — plays before jumping to the radio page ── */
-// #continueBtn included by id, not by giving it the .radio-link class —
-// that class also carries that link's small/uppercase text styling, which
-// would look wrong on a nav-bar button.
+/* ── "POWER ON" TRANSITION, then go to the radio page ── */
 const radioLinks = document.querySelectorAll('.radio-link, #continueBtn');
 const radioTransition = document.getElementById('radio-transition');
 
-// Below 700px (same breakpoint used for every other mobile rebuild on this
-// site), the radio itself has no 3D/WebGL version — send those visitors to
-// the flat, button-based radio-mobile.html instead, so a phone never even
-// downloads Three.js for a scene it wouldn't render well anyway. Checked as
-// the smaller of width/height, not width alone, so a phone held sideways
-// (width temporarily > 700px) still counts as a phone.
+// Phones (700px or smaller) go to the simple mobile radio instead of the 3D one
 radioLinks.forEach((link) => {
   link.addEventListener('click', (e) => {
     e.preventDefault();

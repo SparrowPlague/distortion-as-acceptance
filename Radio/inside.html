@@ -51,15 +51,8 @@
     transition: opacity 0.25s ease, left 0s 0.25s;
     padding: 24px;
   }
-  /* left/opacity/pointer-events alone can't be trusted to keep a hidden popup from
-     intercepting clicks: the Datawrapper chart embedded in #mixerOverlay sets its
-     own inline `style="all: initial"`, which resets pointer-events (and visibility)
-     back to their defaults on itself, overriding whatever this hidden ancestor
-     inherits down. Physically moving the whole overlay off-screen while hidden
-     sidesteps that — no override on the embed's part can make an off-screen element
-     receive clicks meant for the 3D canvas. The "left 0s 0.25s" delay keeps the
-     existing fade-out animation intact: position only snaps away once the fade
-     (same 0.25s) has finished, not the instant .show is removed. */
+  /* Move hidden popups off-screen, so they can't catch clicks
+       (the Datawrapper embed resets pointer-events). Waits for the fade-out. */
   .popup-overlay.show { opacity: 1; pointer-events: all; left: 0; transition: opacity 0.25s ease; }
   .popup-box {
     background: #f5f3ee;
@@ -69,10 +62,7 @@
     max-width: 760px;
     max-height: 88vh;
     overflow-y: auto;
-    overscroll-behavior-y: contain;   /* stops wheel-scroll momentum "chaining" past the
-                                          box's top/bottom edge — a known cause of scroll
-                                          seeming to randomly stop until you grab the
-                                          scrollbar directly */
+    overscroll-behavior-y: contain;   /* keeps scrolling inside the box */
     padding: 40px 48px;
     position: relative;
     font: 400 1.02rem/1.7 'Spectral', serif;
@@ -96,7 +86,7 @@
     border: 1px solid rgba(0,0,0,0.15);
     border-radius: 4px;
   }
-  /* Extra large — an interactive multi-tab data table needs real room to be readable. */
+  /* Extra large, for the interactive table */
   .interactive-table-box { max-width: 1400px; }
   .interactive-table-frame {
     width: 100%;
@@ -105,9 +95,8 @@
     border-radius: 4px;
   }
   #mixerOverlay .popup-box { max-width: 920px; }
-  #introOverlay .popup-body { font-size: 1.1rem; }   /* bigger body text for the room's opening blurb — title stays default size */
-  /* Section heading inside a long popup — same serif family as .popup-title,
-     a step down in size so it reads as a subhead rather than a second title. */
+  #introOverlay .popup-body { font-size: 1.1rem; }   /* bigger text for the intro popup */
+  /* Subheading inside a long popup */
   .popup-subtitle {
     font-family: Georgia, serif;
     font-weight: 700;
@@ -115,9 +104,7 @@
     margin: 26px 0 10px;
   }
   .popup-body .popup-subtitle:first-child { margin-top: 0; }
-  /* Illustrative participant quotes (original Dutch + English translation)
-     under a written analysis subsection — the coded excerpt within each
-     quote is bracketed in the source text and highlighted here. */
+  /* Participant quotes (Dutch + English), coded part highlighted */
   .quote-label {
     font-family: Georgia, serif;
     font-weight: 700;
@@ -176,8 +163,7 @@
     pointer-events: none;
     box-shadow: 0 8px 24px rgba(0,0,0,0.18);
   }
-  /* Same look as radio-v2.html's .hover-tip (font/size/background), a step
-     up in size per request — used for the back-wall knob hover tips. */
+  /* Hover tips for the back-wall buttons (like radio-v2.html, a bit bigger) */
   .knob-tip {
     position: fixed;
     display: none;
@@ -192,9 +178,7 @@
     pointer-events: none;
     box-shadow: 0 8px 24px rgba(0,0,0,0.18);
   }
-  /* Shown for the duration of the PLAY-button track, positioned above it in
-     screen space — same look as .knob-tip, just driven by playback state
-     instead of hover, and re-centered on resize (see updatePlayHintPosition). */
+  /* Hint above the PLAY button while the track plays */
   #playHint {
     position: fixed;
     display: none;
@@ -237,12 +221,12 @@
     color: rgba(0,0,0,0.5);
     margin-top: 6px;
   }
-  #cfqOverlay .popup-box, #pitchOverlay .popup-box, #robotOverlay .popup-box, #reverbOverlay .popup-box, #panningOverlay .popup-box { max-width: 920px; }   /* wider — CFQ fits the pre/post VAS table, the others fit three side-by-side plots */
+  #cfqOverlay .popup-box, #pitchOverlay .popup-box, #robotOverlay .popup-box, #reverbOverlay .popup-box, #panningOverlay .popup-box { max-width: 920px; }   /* wider, fits the tables and plots */
   #cfqOverlay .popup-table-hint, #pitchOverlay .popup-table-hint, #robotOverlay .popup-table-hint, #reverbOverlay .popup-table-hint, #panningOverlay .popup-table-hint { font-size: 0.8rem; }   /* smaller here than the default hint size elsewhere */
   .popup-image-row { display: flex; gap: 12px; margin: 20px 0 4px; }
   .zoomable-image { cursor: zoom-in; }
   .popup-image-row img { width: 100%; border-radius: 4px; display: block; }
-  .plugin-image-box { max-width: 1100px; background: #111; border-color: rgba(255,255,255,0.15); }   /* was 620px — barely bigger than most inline thumbnails, so "enlarge" didn't read as bigger */
+  .plugin-image-box { max-width: 1100px; background: #111; border-color: rgba(255,255,255,0.15); }   /* big enough to look enlarged */
   .plugin-image-box .popup-title { margin-bottom: 14px; color: #eee; }
   .plugin-image-box .popup-close { color: rgba(255,255,255,0.55); }
   .plugin-image-box .popup-close:hover { color: #fff; }
@@ -262,11 +246,7 @@
   <span>Go back to the radio</span>
 </div>
 
-<!-- Shown automatically on load (the "show" class is already in the markup,
-     not added by JS) so it appears the moment you arrive from the radio
-     scene, before you can interact with anything else. Dismissing it uses
-     the same generic .popup-close/backdrop-click handling wired up for
-     every .popup-overlay further down the script — no extra JS needed. -->
+<!-- Intro popup, visible on load -->
 <div class="popup-overlay show" id="introOverlay">
   <div class="popup-box" style="max-width:560px">
     <button class="popup-close">&#x2715;</button>
@@ -513,7 +493,7 @@
 <div class="ref-tooltip" id="tip17">[17] Smith, L., &amp; Klein, R. (1990). Evidence for Semantic Satiation: Repeating a Category Slows Subsequent Semantic Processing. Journal of Experimental Psychology. Learning, Memory, and Cognition, 16(5), 852&ndash;861. https://doi.org/10.1037/0278-7393.16.5.852</div>
 <div class="ref-tooltip" id="tip29">[29] Masuda, A., Hayes, S. C., Twohig, M. P., Drossel, C., Lillis, J., &amp; Washio, Y. (2009). A Parametric Study of Cognitive Defusion and the Believability and Discomfort of Negative Self-Relevant Thoughts. Behavior Modification, 33(2), 250&ndash;262. https://doi.org/10.1177/0145445508326259</div>
 <div class="ref-tooltip" id="tip30">[30] Elo, S., &amp; Kyng&auml;s, H. (2008). The qualitative content analysis process. Journal of Advanced Nursing, 62(1), 107&ndash;115. https://doi.org/10.1111/j.1365-2648.2007.04569.x</div>
-<div class="ref-tooltip" id="tip31">[31] Rampin et al., (2021). Taguette: open-source qualitative data analysis. Journal of Open Source Software, 6(68), 3522. https://doi.org/10.21105/joss.03522</div>
+<div class="ref-tooltip" id="tip31">[31] Rampin, R., &amp; Rampin, V. (2021). Taguette: open-source qualitative data analysis. Journal of Open Source Software, 6(68), 3522. https://doi.org/10.21105/joss.03522</div>
 <div class="ref-tooltip" id="tip32">[32] Salda&ntilde;a, J. (2009). The coding manual for qualitative researchers. Sage.</div>
 <div class="ref-tooltip" id="tip11">[11] Blackledge JT (2015) Cognitive Defusion in Practice: A Clinician's Guide to Assessing, Observing, and Supporting Change in Your Client. Context Press.</div>
 <div class="ref-tooltip" id="tip20">[20] Juslin, P. N., &amp; Laukka, P. (2003). Communication of Emotions in Vocal Expression and Music Performance: Different Channels, Same Code? Psychological Bulletin, 129(5), 770&ndash;814. https://doi.org/10.1037/0033-2909.129.5.770</div>
@@ -522,7 +502,7 @@
 <div class="ref-tooltip" id="tip3">[3] Hayes, S. C., Strosahl, K. D., &amp; Wilson, K. G. (2012). Acceptance and Commitment Therapy: The Process and Practice of Mindful Change (2nd ed.). Guilford Press.</div>
 <div class="ref-tooltip" id="tip19">[19] Nussbaum, C., Schirmer, A., &amp; Schweinberger, S. R. (2022). Contributions of fundamental frequency and timbre to vocal emotion perception and their electrophysiological correlates. Social Cognitive and Affective Neuroscience, 17(12), 1145&ndash;1154. https://doi.org/10.1093/scan/nsac033</div>
 <div class="ref-tooltip" id="tip42">[42] Mo, R.K., &amp; Horner, A. (2023). The Effects of Convolution Reverberation on the Emotional Characteristics of Musical Instrument Sounds. Computer Music Journal 47(2), 57&ndash;71. https://muse.jhu.edu/article/944605.</div>
-<div class="ref-tooltip" id="tip43">[43] Wilkie, H., &amp; Harrison, P. (2025). Reverberation Time and Musical Emotion in Recorded Music Listening.</div>
+<div class="ref-tooltip" id="tip43">[43] Wilkie, H., &amp; Harrison, P. (2025). Reverberation Time and Musical Emotion in Recorded Music Listening. https://doi.org/10.17863/CAM.110863</div>
 <div class="ref-tooltip" id="tip44">[44] Rodero, E., &amp; Rodr&iacute;guez-de-Dios, I. (2024). The 3D Sound Power of Immersion Processing and Psychophysiological Effects of Binaural versus Stereo Audio Stories. Media Psychology, 27(5), 715&ndash;736. https://doi.org/10.1080/15213269.2023.2281545</div>
 <div class="ref-tooltip" id="tip45">[45] Bell, I. H., Li, C., Thompson, A., Ellinghaus, C., O&rsquo;Sullivan, S., Reynolds, K. A., Wadley, G., Liu, Y., Bendall, S., Gleeson, J., Valmaggia, L., &amp; Alvarez-Jimenez, M. (2025). A Virtual Reality&ndash;Based Cognitive Defusion Application for Youth Depression and Anxiety: Mixed Methods Experimental Study. JMIR Mental Health, 12, e70160. https://doi.org/10.2196/70160</div>
 <div class="ref-tooltip" id="tip46">[46] Kalandadze, T., Norbury, C., N&aelig;rland, T., &amp; N&aelig;ss, K.-A. B. (2018). Figurative language comprehension in individuals with autism spectrum disorder: A meta-analytic review. Autism : The International Journal of Research and Practice, 22(2), 99&ndash;117. https://doi.org/10.1177/1362361316668652</div>
@@ -532,7 +512,7 @@
 <div class="ref-tooltip" id="tip50">[50] Baras, H.L. Effect of mode of presentation on semantic satiation. Psychon Sci 11, 345&ndash;346 (1968). https://doi.org/10.3758/BF03328227</div>
 <div class="ref-tooltip" id="tip38">[38] Lisboa, R., Barbosa, E., Moura, I., Salgado, J., &amp; Sousa, M. (2026). Flexibility between immersion and distancing: Relationship with depressive symptoms and therapeutic alliance. Psychotherapy Research, 36(1), 139&ndash;151. https://doi.org/10.1080/10503307.2025.2451330</div>
 
-<!-- Hover tips for the back-wall PITCH/ROBOT/REVERB/PANNING/MIXER knobs -->
+<!-- Hover tips for the back-wall buttons -->
 <div class="knob-tip" id="pitchHoverTip">View the results for the pitch modulation</div>
 <div class="knob-tip" id="robotHoverTip">View the results for the robot modulation</div>
 <div class="knob-tip" id="reverbHoverTip">View the results for the reverb modulation</div>
@@ -574,7 +554,7 @@
         <p>&ldquo;The reverb manipulation in combination with pitch had the most impact for me. I noticed even more that my own voice with reverb did the most, because it started to feel like a negative mantra being recited by a dark priest, but it was me. This possibly made me feel some self-compassion for thinking this about myself.&rdquo;</p>
       </div>
 
-      <p>Psychological flexibility, the ability to experience uncomfortable emotions without them controlling one&rsquo;s thoughts and actions, is one of the core aims of ACT. Barbosa et al. <span class="ref" data-tip="tip38">[38]</span> found that flexibility between immersed and distanced perspectives was associated with adaptive change. In the present experiment, several participants showed shifts consistent with the described flexibility. Their descriptions were coded with contrasting perspectives such as outsider and insider perspective, but also show both increased and decreased intensity and a variety of affective states. The study by Barbosa et al researched that flexibility in context of a longer time-span during sessions with a therapist. Here, participants interacted with the interface on their own. Whether the audio interface is able to support this kind of flexibility over the long term, has not been tested and therefore remains an open question.</p>
+      <p>Psychological flexibility, the ability to experience uncomfortable emotions without them controlling one&rsquo;s thoughts and actions, is one of the core aims of ACT. Lisboa et al. <span class="ref" data-tip="tip38">[38]</span> found that flexibility between immersed and distanced perspectives was associated with adaptive change. In the present experiment, several participants showed shifts consistent with the described flexibility. Their descriptions were coded with contrasting perspectives such as outsider and insider perspective, but also show both increased and decreased intensity and a variety of affective states. The study by Lisboa et al. researched that flexibility in context of a longer time-span during sessions with a therapist. Here, participants interacted with the interface on their own. Whether the audio interface is able to support this kind of flexibility over the long term, has not been tested and therefore remains an open question.</p>
 
       <p>A recent study on VR-based cognitive defusion in young people with depression and anxiety <span class="ref" data-tip="tip45">[45]</span> compared a VR defusion exercise with a non-immersive audio exercise within a single session. Participants in the audio condition listened to a recording of a therapist guiding them through a cognitive defusion exercise. Although participants preferred the VR condition and rated it as more engaging, the audio condition produced more immediate improvements. The authors attributed this outcome to how demanding defusion can be. Individuals have to focus and mentally manipulate a thought. In contrast to the VR environment, the audio condition lacked visual stimuli. This could explain why the audio condition was better equipped to support the process of cognitive defusion. The same rationale can be applied to the interface presented here. Participants engaged directly with recorded sound of their own negative thought. The screen which showed the controls and instructions were kept deliberately plain. Possibly, the attention could therefore be more easily directed to the sound. This is important because distractions could interfere with cognitive defusion. It would be harder to determine whether an observed improvement resulted from being distracted or from a process of cognitive defusion. Future research could compare the audio condition from the VR study against the audio-modulation condition from the present study to explore whether a self-directed exercise based on audio modulation can achieve effects comparable to those of an established guided defusion exercise. However, these two conditions differentiate on a deeper level. They differ in the content of the exercise itself and whose voice is used, so any different outcome can not be contributed to guidance alone. It would therefore be more robust if the controlled variable would be the exercise content and the independent variable would be whether the audio is guided or self-directed.</p>
 
@@ -887,12 +867,7 @@ const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerH
 camera.position.set(2, 5.0, 8);
 camera.lookAt(-2, 2.5, -3);
 
-// A fixed vertical FOV means the *horizontal* FOV shrinks as the window gets
-// narrower than the widescreen aspect this scene was framed for — at some
-// point that pushes the back-wall knobs (spread out ~8 units, edge to edge)
-// past the camera's view entirely, with no way to scroll to them. Below the
-// design aspect, widen the vertical FOV just enough to keep the same
-// horizontal coverage; at/above it, use the original tuned 45°.
+// Widen the field of view on narrow screens, so the wall buttons stay visible
 const BASE_ASPECT = 16 / 9;
 const BASE_VFOV_DEG = 45;
 const BASE_HFOV_RAD = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(BASE_VFOV_DEG) / 2) * BASE_ASPECT);
@@ -906,8 +881,7 @@ function updateCameraFov() {
 }
 updateCameraFov();
 
-// Environment map — reuses the same HDR as the radio scene, for PBR reflections
-// on the metal-ish room surfaces. Linear HDR data — no colorSpace set.
+// Environment map (same HDR as the radio) for reflections
 new HDRLoader().load('monochrome.hdr', (hdrTexture) => {
   hdrTexture.mapping = THREE.EquirectangularReflectionMapping;
   scene.environment = hdrTexture;
@@ -915,10 +889,7 @@ new HDRLoader().load('monochrome.hdr', (hdrTexture) => {
   console.error('monochrome.hdr failed to load — serve this folder over http(s) for env reflections.', err);
 });
 
-// ── Lights — ambient + three-point ──────────────────────────────────────────
-// Ambient/fill/rim don't cast shadows, so they're what "fills in" shadowed
-// areas — kept lower than before so the key light's shadows read as darker
-// and more visible on the walls.
+// ── Lights: ambient + three-point (fill kept low for darker shadows) ─────
 scene.add(new THREE.AmbientLight(0xcfd6dd, 0.3));
 
 // Key — the main shadow-casting light
@@ -945,7 +916,7 @@ const rimLight = new THREE.DirectionalLight(0xcfe6ff, 0.4);
 rimLight.position.set(-4, 6, -8);
 scene.add(rimLight);
 
-// ── Materials — metal-ish, PBR, tuned conservatively to avoid blown-out specular ─
+// ── Materials ─
 const floorMat = new THREE.MeshStandardMaterial({
   color: 0x8a8d92,
   roughness: 0.5,
@@ -959,9 +930,7 @@ const wallMat = new THREE.MeshStandardMaterial({
   envMapIntensity: 0.45,
 });
 
-// ── Room — floor, back wall, left wall (open corner) ────────────────────────
-// Floor/back wall extend further right than before (left edge stays fixed where the
-// left wall is) — the room wasn't wide enough on the right, exposing the void.
+// ── Room: floor, back wall, left wall ───────────────────────────────────────
 const ROOM_LEFT_X = -8, ROOM_RIGHT_X = 16;
 const ROOM_WIDTH = ROOM_RIGHT_X - ROOM_LEFT_X;
 const ROOM_CENTER_X = (ROOM_LEFT_X + ROOM_RIGHT_X) / 2;
@@ -984,22 +953,15 @@ leftWall.position.set(ROOM_LEFT_X, ROOM_HEIGHT / 2, 0);
 leftWall.receiveShadow = true;
 scene.add(leftWall);
 
-// Set once the REC button's material loads (inside the Ableton logo callback
-// below) — the animation loop pulses its emissiveIntensity to read as "recording".
+// REC button material (set once it loads), pulses in the animation loop
 let recMaterial = null;
 let recHoverBoost = 0;   // added on top of the pulse while REC is hovered
 
-// Populated as pieces load in (some load asynchronously, e.g. the REC button
-// and the title inside the Ableton logo texture callback below) — declared
-// here, up front, so both the async callback and the hover/click wiring
-// further down the file share the same array references.
+// Hover/click targets, filled as the pieces load
 const hoverTargets = [];
 const clickTargets = [];
 
-// Loads a small prop model, scales it to `targetSize` (its largest dimension),
-// and centers it at world (x, y, z) — used to hang the microphone and
-// headphones on the wall next to the REC light (see the Ableton logo
-// callback below, where those wall coordinates are in scope).
+// Load a small prop, scale it to `targetSize` and place it at (x, y, z)
 function loadWallProp(file, targetSize, x, y, z, rotX = 0, rotY = 0, rotZ = 0, axisAngle = null, extraTiltX = 0) {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
@@ -1008,20 +970,13 @@ function loadWallProp(file, targetSize, x, y, z, rotX = 0, rotY = 0, rotZ = 0, a
     const size = new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3());
     obj.scale.setScalar(targetSize / Math.max(size.x, size.y, size.z));
     if (axisAngle) {
-      // Exact rotation computed from the model's real (post-export-transform)
-      // long axis via PCA, rather than a guessed Euler angle — some Sketchfab/
-      // FBX exports bake an arbitrary rotation into parent nodes, so the
-      // model's "up" in its own local mesh space doesn't match its actual
-      // orientation once loaded into the scene.
+      // Exact rotation from the model's real long axis
       obj.quaternion.setFromAxisAngle(new THREE.Vector3(axisAngle.x, axisAngle.y, axisAngle.z), axisAngle.angle);
     } else {
       obj.rotation.set(rotX, rotY, rotZ);
     }
     if (extraTiltX) {
-      // Same world-space roll trick as the METHOD/MATERIALS wall titles
-      // (see titleTilt below) — applied on top of the base orientation above,
-      // in world space, so it reads as a subtle tilt rather than re-aiming
-      // the whole object.
+      // Small extra tilt in world space
       const tiltQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), extraTiltX);
       obj.quaternion.premultiply(tiltQ);
     }
@@ -1032,11 +987,7 @@ function loadWallProp(file, targetSize, x, y, z, rotX = 0, rotY = 0, rotZ = 0, a
     obj.position.y += y - center.y;
     obj.position.z += z - center.z;
 
-    // Some exports (e.g. this Babylon.js one) bake their own KHR_lights_punctual
-    // light into the file — GLTFLoader adds that as a real THREE.Light, which
-    // then blows out this room's own carefully-tuned lighting (washed the
-    // floor light grey). Strip any lights the prop brought with it; only mesh
-    // geometry from these prop files should affect the scene.
+    // Remove lights that come with the model (they ruin the room lighting)
     const lights = [];
     obj.traverse(child => {
       if (child.isMesh) {
@@ -1053,11 +1004,7 @@ function loadWallProp(file, targetSize, x, y, z, rotX = 0, rotY = 0, rotZ = 0, a
   });
 }
 
-// ── Ableton logo — mounted on the left wall, with an L/R channel indicator
-// underneath (same dot + label styling as the speaker's L/R indicator below).
-// Wall plane is rotated +90° around Y, so its local +X (the texture's right
-// edge) maps to world -Z — that also happens to be the viewer's right hand
-// when facing the wall, so the logo reads un-mirrored with no extra flip.
+// ── Ableton logo on the left wall, with an L/R indicator below
 const ABLETON_X             = ROOM_LEFT_X + 0.05;   // just off the wall, interior side
 const ABLETON_LOGO_Z        = -2;                   // position along the wall's depth
 const ABLETON_LR_Y          = ROOM_HEIGHT * 0.10;   // L/R row — 10% up from the floor
@@ -1072,10 +1019,7 @@ const abletonRightDotZ = ABLETON_LOGO_Z - ABLETON_LR_GAP / 2;   // viewer's righ
 new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   const img = tex.image;
 
-  // The PNG is a 700x700 canvas with the mark centered in a transparent margin.
-  // Trim that margin so the plane hugs the visible artwork — otherwise the dead
-  // space at the bottom keeps the logo looking far from the L/R row below it
-  // no matter how small ABLETON_LOGO_GAP is set.
+  // Trim the empty margin around the logo
   const off = document.createElement('canvas');
   off.width = img.width; off.height = img.height;
   const octx = off.getContext('2d');
@@ -1103,10 +1047,7 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   const aspect = cropW / cropH;
   const logoH = ABLETON_LOGO_W / aspect;
 
-  // A plain white-on-black mask of the logo's silhouette, for the hover glow.
-  // Using the base texture itself as the emissiveMap doesn't work — the logo's
-  // artwork is black, so emissive(white) * emissiveMap(black) is still black
-  // no matter the intensity. This mask is white wherever the artwork is opaque.
+  // White mask of the logo, used for the hover glow
   const maskCanvas = document.createElement('canvas');
   maskCanvas.width = cropW; maskCanvas.height = cropH;
   const mctx = maskCanvas.getContext('2d');
@@ -1180,8 +1121,7 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   makeAbletonLRLabel('L', abletonLeftDotZ + 0.25);
   makeAbletonLRLabel('R', abletonRightDotZ - 0.25);
 
-  // ── REC button — 3D, above the logo, left-aligned with it, glowing red like
-  // an active recording light (see the pulse in the animation loop below).
+  // ── REC button above the logo, glows red (pulse in the animation loop)
   const REC_RADIUS = 0.32;
   const REC_GAP    = 0.4;   // clearance between the logo's top and the button
   const logoTopY  = ABLETON_LR_Y + ABLETON_LOGO_GAP + logoH;
@@ -1189,9 +1129,7 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   const recCenterZ = logoLeftZ - REC_RADIUS;               // REC button's left edge matches the logo's
   const recCenterY = logoTopY + REC_GAP + REC_RADIUS;
 
-  // A real push-button, not a flat disc — tapered cylinder, no ring/frame.
-  // Cylinder axis defaults to local Y; rotation.z=-90° swings that to world +X
-  // (out of the wall), same way the radio's own buttons rotate onto their axis.
+  // Push button: tapered cylinder, turned to face out of the wall
   const REC_THICKNESS = 0.18;
   const recCylX = ROOM_LEFT_X + 0.05 + REC_THICKNESS / 2;
 
@@ -1232,84 +1170,55 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   recLabel.position.set(recCylX + REC_THICKNESS / 2 + 0.01, recCenterY, recCenterZ);
   scene.add(recLabel);
 
-  // ── Microphone & headphones — hung on the wall, upright, to the left of
-  // the REC light (+Z is the viewer's left on this wall) with clear space
-  // between them, headphones directly below the mic.
+  // ── Microphone & headphones on the wall, left of the REC light
   const WALL_PROP_X    = ROOM_LEFT_X + 0.05 + 0.3;   // a bit further off the wall for a visible contact shadow
-  // Mic scales down from a wider raw bounding box (capsule included) than the
-  // headphones do — kept proportionally further off the wall than the headphones.
+  // Mic a bit further off the wall than the headphones
   const MIC_WALL_X = ROOM_LEFT_X + 0.05 + 0.55;
   const HEADPHONES_Z = recCenterZ + 1.1;             // clear gap to the left of REC
   const MIC_Z       = HEADPHONES_Z + 0.15;           // nudged further left, centered over the headphones
   const MIC_Y       = recCenterY;                   // hangs at the same height as REC
-  // Mic: this GLB has export-baked rotations on its parent nodes, so the
-  // mesh's own "local Z" is not its real long axis once loaded — computed via
-  // PCA on the actual world-space vertices (capsule end vs. prong/base end),
-  // this axis-angle rotation is the exact (not guessed) turn that brings the
-  // capsule straight up and the body hanging below it.
+  // Mic: exact rotation so the capsule points up
   loadWallProp('microphone.glb', 0.85, MIC_WALL_X, MIC_Y, MIC_Z, 0, 0, 0,
     { x: -0.7164858561887668, y: 0, z: 0.697601618319116, angle: 1.4449268754124767 });
-  // Headphones: the Z rotation put the top/bottom face toward the room
-  // (profile → Z rotation cycles X/Y-facing views) — the untouched local Z
-  // axis is the front-facing one, so a Y rotation is what brings that to
-  // face the room instead.
+  // Headphones: Y rotation so they face the room
   loadWallProp('headphones.glb', 0.8, WALL_PROP_X, MIC_Y - 1.0, HEADPHONES_Z, 0, Math.PI / 2, 0);
 
-  // MOTU audio interface — mounted flat on the wall (same treatment as
-  // headphones, not sitting free-standing on the floor), roughly beneath the
-  // headphones but nudged right (-Z is "right" on this wall).
+  // MOTU audio interface, flat on the wall below the headphones
   loadWallProp('motu_m2_audio_interface.glb', 0.9, WALL_PROP_X, MIC_Y - 1.9, HEADPHONES_Z - 0.2, 0, Math.PI / 2, 0);
 
-  // ── Monitor — flat screen hung on the wall above the mic/REC cluster; the
-  // METHOD/MATERIALS & SETUP text below is positioned to sit on its face, as
-  // if displayed on the screen rather than engraved into the bare wall.
+  // ── Monitor on the wall; the METHOD titles sit on its screen
   const MONITOR_X = ROOM_LEFT_X + 0.05 + 0.12;
   const MONITOR_Y = recCenterY + 1.6;
-  const MONITOR_Z = recCenterZ + 0.35 - 0.7;   // -0.7: +Z is "left" on this wall, so this moves it right — text (TITLE_Z) stays put
-  // rotY flipped an extra 180° — was showing its back to the room. extraTiltX
-  // rolls it slightly left/right in world space (same trick as titleTilt
-  // below) — negative here so the bottom-left corner lifts a touch instead
-  // of dipping.
+  const MONITOR_Z = recCenterZ + 0.35 - 0.7;   // -0.7 moves it right on this wall
+  // Turned 180° to face the room, small tilt
   loadWallProp('monitor.glb', 3.0, MONITOR_X, MONITOR_Y, MONITOR_Z, 0, Math.PI / 2 + Math.PI, 0, null, -0.02);
   const MONITOR_SCREEN_X = ROOM_LEFT_X + 0.05 + 0.25;   // just proud of the screen's front face, avoids z-fighting
 
-  // ── Wall titles — "METHOD" stacked above "MATERIALS & SETUP", both in the
-  // same font/weight as the REC label, sitting on the monitor's screen above
-  // the REC light + mic/headphones cluster. Same rotation.y trick as the REC
-  // label/Ableton logo (see the comment above the logo load) so the text
-  // reads un-mirrored, not backwards.
-  const TITLE_Z = recCenterZ + 0.35 - 0.7 + 0.2;   // shifted right (matches the monitor), then nudged back left a touch to sit better on-screen
+  // ── Wall titles: "METHOD" above "MATERIALS & SETUP", on the monitor
+  const TITLE_Z = recCenterZ + 0.35 - 0.7 + 0.2;   // lined up with the monitor
   const TITLE_Y = recCenterY + 1.15;
   const TITLE_FONT = '900 118px "Arial Black", Arial, sans-serif';
   const TITLE_PAD = 60;
   const TITLE_CANVAS_H = 180;
-  const TITLE_W = 2.6;   // world width of "MATERIALS & SETUP", padding included — also sets METHOD's size (shared scale)
+  const TITLE_W = 2.6;   // width of "MATERIALS & SETUP" (also sets the METHOD size)
 
-  // Wall-align first (same as the REC label/Ableton logo), then add a small
-  // extra roll around the world X axis (the wall's own normal) — negative, to
-  // match the monitor's own tilt (its left/"M" side lifts, doesn't dip), so
-  // the text reads aligned with the screen it's sitting on.
+  // Align to the wall, then tilt to match the monitor
   const titleWallAlign = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
   const titleTilt = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.03);
 
-  // Both titles share one world-units-per-canvas-pixel scale, fixed by the
-  // first (longest) one — a shorter title gets a narrower plane rather than
-  // being stretched across a fixed width, so the glyphs come out the same size.
+  // Both titles use the same scale, so the letters are the same size
   let titlePxToWorld = null;
   function makeWallTitle(text, popupTarget) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    // Measure first, then size the canvas to fit — a fixed canvas width was
-    // narrower than the actual rendered text, silently clipping "M" and "UP"
-    // off both edges since fillText draws past the canvas bounds unclipped.
+    // Size the canvas to the text, so nothing gets cut off
     ctx.font = TITLE_FONT;
     canvas.width = Math.ceil(ctx.measureText(text).width) + TITLE_PAD * 2;
     canvas.height = TITLE_CANVAS_H;
     ctx.font = TITLE_FONT;   // resizing the canvas resets all context state, so re-apply it
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    // Drawn white, then tinted dark via the material's own colour below — that
-    // way "hover lightens it" is just a colour swap, not a second texture.
+    // Drawn white, tinted dark by the material (hover = lighter)
     ctx.fillStyle = '#ffffff';
     ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 4);
     if (titlePxToWorld === null) titlePxToWorld = TITLE_W / canvas.width;
@@ -1331,11 +1240,7 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   const titleLabel = makeWallTitle('MATERIALS & SETUP', 'materialsOverlay');
   titleLabel.position.set(MONITOR_SCREEN_X, TITLE_Y, TITLE_Z);
 
-  // "METHOD" — one line up, its "M" over the "M" of "MATERIALS". Both canvases
-  // carry the same padding at the same scale, so lining the planes' +Z edges up
-  // (+Z is the viewer's left on this wall) lines the glyphs up too. The offset
-  // is rotated by the shared tilt so the two lines stay parallel rather than
-  // drifting apart toward the left.
+  // "METHOD" one line up, its M above the M of MATERIALS
   const methodLabel = makeWallTitle('METHOD', 'methodOverlay');
   const methodOffset = new THREE.Vector3(
     0,
@@ -1344,9 +1249,7 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   ).applyQuaternion(titleTilt);
   methodLabel.position.set(MONITOR_SCREEN_X, TITLE_Y, TITLE_Z).add(methodOffset);
 
-  // ── Cables — white from L, red from R, running from the left wall across
-  // the floor to the circuit board, tucking their ends in near its centre so
-  // they read as plugged into the board (behind whatever sits there).
+  // ── Cables (white L, red R) from the left wall to the circuit board
   function makeAbletonWire(startZ, waypoints, color) {
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(ROOM_LEFT_X + 0.08, abletonLRY, startZ),   // exits from the centre of the dot
@@ -1388,10 +1291,7 @@ new THREE.TextureLoader().load('abletonlogo.png', (tex) => {
   console.error('abletonlogo.png failed to load', err);
 });
 
-// ── Speaker grille — set into the back wall, left side, a bit clear of the
-// left wall corner. No frame — just a clean dot grid sitting directly on the
-// wall, with a metal ring + dome over the centre (echoes the radio's own
-// speaker). Bottom sits 30% up from the floor, not flush with it.
+// ── Speaker grille on the back wall (dot grid + ring + dome)
 const SPEAKER_PANEL_X      = -6.4;
 const SPEAKER_PANEL_W      = 2.0;
 const SPEAKER_PANEL_H      = 3.4;
@@ -1415,8 +1315,7 @@ for (let row = 0; row < SPEAKER_DOT_ROWS; row++) {
   }
 }
 
-// Speaker ring + dome — sits in front of the grid, over its centre, same
-// metal styling as the radio's own speaker ring/dome
+// Speaker ring + dome in front of the grid
 const speakerRing = new THREE.Mesh(
   new THREE.TorusGeometry(0.42, 0.07, 12, 40),
   new THREE.MeshStandardMaterial({ color: 0x555566, roughness: 0.25, metalness: 0.85 })
@@ -1432,9 +1331,7 @@ speakerDome.position.set(SPEAKER_PANEL_X, SPEAKER_PANEL_CENTER_Y, -7.93);
 speakerDome.rotation.x = -Math.PI / 2;
 scene.add(speakerDome);
 
-// L/R channel indicator dots — below the grille, centred, a bit bigger than
-// the grille holes (0.05) and spaced apart so they don't touch, with an L/R
-// label right next to each one.
+// L/R dots with labels below the grille
 const SPEAKER_LR_Y      = SPEAKER_PANEL_BOTTOM_Y - 0.35;
 const SPEAKER_LR_GAP    = 0.36;   // centre-to-centre spacing between the two dots
 const SPEAKER_LR_RADIUS = 0.08;
@@ -1473,17 +1370,13 @@ function makeLRLabel(text, x, y) {
 makeLRLabel('L', leftDotX - 0.25, SPEAKER_LR_Y);
 makeLRLabel('R', rightDotX + 0.25, SPEAKER_LR_Y);
 
-// ── Back-wall buttons — circle + torus frame + mirrored branded label, one per
-// effect, spaced out to the left of the red PITCH one ───────────────────────
-// Shifts the PCB, the back-wall buttons/labels and their connecting wires to
-// the right by 5% of the room width, without touching the unrelated floor cables.
+// ── Back-wall buttons: one per effect ───────────────────────────────────────
+// Moves the board, buttons and wires 5% to the right
 const BACKWALL_SHIFT_X = ROOM_WIDTH * 0.05;
 
 const MARKER_X = 8 - 0.25 * 16 + BACKWALL_SHIFT_X;    // kept anchored to the original 16-wide back wall, not the extended floor
 const MARKER_Y = 0.2 * ROOM_HEIGHT;
-// Sizing shared by all six back-wall marker buttons (PITCH/ROBOT/REVERB/
-// PANNING here, and PLAY/LOOP further below) — one knob applied to every
-// frame/circle/label/icon so they all shrink together and stay proportional.
+// Shared size for all back-wall buttons
 const KNOB_SCALE = 0.8;
 
 function makeButtonMarker(x, y, color, label) {
@@ -1503,12 +1396,7 @@ function makeButtonMarker(x, y, color, label) {
   circle.userData.glowHex = color;   // hover target — lights up to its own hue
   scene.add(circle);
 
-  // Invisible companion disc, matching the torus frame's own outer edge
-  // (0.55 + tube 0.046) rather than just the coloured disc's smaller radius
-  // — this is what actually gets raycast (hoverTargets/clickTargets use this,
-  // not `circle`), so the whole visible ring is clickable, not just the
-  // slightly-smaller coloured centre with a thin dead zone at the rim.
-  // Hover/click state still targets the real `circle` via glowMesh.
+  // Invisible disc over the whole ring, used for hover/click
   const hitArea = new THREE.Mesh(
     new THREE.CircleGeometry((0.55 + 0.046) * KNOB_SCALE, 32),
     new THREE.MeshBasicMaterial({ visible: false })
@@ -1518,7 +1406,7 @@ function makeButtonMarker(x, y, color, label) {
   hitArea.userData.glowHex = color;
   scene.add(hitArea);
 
-  // Branded label underneath — mirrored, engraved look (no glow, just grey/black)
+  // Label below (mirrored, engraved)
   const brandTex = (() => {
     const c = document.createElement('canvas');
     c.width = 512; c.height = 160;
@@ -1526,8 +1414,7 @@ function makeButtonMarker(x, y, color, label) {
     g.font = 'bold 92px "Courier New", monospace';
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    // Catch-light below, fully-opaque dark recessed text on top — reads as
-    // stamped/engraved into the metal rather than printed on it.
+    // Light edge below, dark text on top (engraved look)
     g.fillStyle = 'rgba(255,255,255,0.3)';
     g.fillText(label, c.width / 2, c.height / 2 + 3);
     g.fillStyle = 'rgba(0,0,0,1.0)';
@@ -1545,8 +1432,7 @@ function makeButtonMarker(x, y, color, label) {
   return { frame, circle, hitArea, x, y };
 }
 
-// MIXER marker — same frame/label as the others, but the face is split into
-// four coloured quadrants (one per effect it mixes) instead of a flat colour.
+// MIXER button: four coloured quarters, one per effect
 function makeQuadrantButtonMarker(x, y, colors, label) {
   const frame = new THREE.Mesh(
     new THREE.TorusGeometry(0.55 * KNOB_SCALE, 0.046 * KNOB_SCALE, 16, 48),
@@ -1555,16 +1441,13 @@ function makeQuadrantButtonMarker(x, y, colors, label) {
   frame.position.set(x, y, -7.95);
   scene.add(frame);
 
-  // Pastel tint — lightened toward white, not toward the frame's grey (grey
-  // would just dull/darken them, not read as "pastel"). One shared amount so
-  // all four quadrants get an equal, easy-to-retune lift.
+  // Pastel: mix the colours toward white
   const QUADRANT_PASTEL = 0.2;
   function pastelHex(hex, amt) {
     return new THREE.Color(hex).lerp(new THREE.Color(0xffffff), amt).getHex();
   }
 
-  // Four pie-slice CircleGeometries (thetaStart/thetaLength), each its own
-  // colour/material and its own hover target, tiled edge-to-edge into a whole circle.
+  // Four pie slices, each with its own colour and hover target
   const quadrants = colors.map((color, i) => {
     const finalColor = pastelHex(color, QUADRANT_PASTEL);
     const wedge = new THREE.Mesh(
@@ -1577,7 +1460,7 @@ function makeQuadrantButtonMarker(x, y, colors, label) {
     return wedge;
   });
 
-  // Branded label underneath — identical styling to the single-colour markers
+  // Label below (same as the other buttons)
   const brandTex = (() => {
     const c = document.createElement('canvas');
     c.width = 512; c.height = 160;
@@ -1602,9 +1485,7 @@ function makeQuadrantButtonMarker(x, y, colors, label) {
   return { frame, quadrants, x, y };
 }
 
-// ── Wires — one per button, from the centre of its circle down to the board ─
-// BOARD_Z nudged toward the camera (less negative, away from the back wall) so
-// the board's left edge clears the PANNING knob mounted on the wall behind it.
+// ── Wires from each button down to the board ─
 const BOARD_X = -3 + BACKWALL_SHIFT_X, BOARD_Z = -1.5;
 
 function makeWire(startX, startY, midX, midY, midZ, endX, endY, endZ) {
@@ -1632,9 +1513,7 @@ function makeWire(startX, startY, midX, midY, midZ, endX, endY, endZ) {
   scene.add(connector);
 }
 
-// PANNING keeps its original position as a fixed anchor; REVERB/ROBOT/PITCH
-// are pulled in toward it (spacing tightened from the original 3.2) rather
-// than the whole row shifting right.
+// PANNING stays in place; the other buttons move closer to it
 const MARKER_SPACING_ORIGINAL = 3.2;
 const PANNING_X = MARKER_X - MARKER_SPACING_ORIGINAL * 3;
 const MARKER_SPACING = 2.0;
@@ -1655,31 +1534,26 @@ const pitchMarker   = makeButtonMarker(PANNING_X + MARKER_SPACING * 3, MARKER_Y,
 pitchMarker.hitArea.userData.popupTarget = 'pitchOverlay';
 pitchMarker.hitArea.userData.hoverTipId = 'pitchHoverTip';
 clickTargets.push(pitchMarker.hitArea);
-// MIXER — one spacing step to the right of PITCH, quadrants in the same four
-// hues already used above (yellow/purple/blue/red = PANNING/REVERB/ROBOT/PITCH).
+// MIXER, to the right of PITCH
 const mixerMarker = makeQuadrantButtonMarker(
   PANNING_X + MARKER_SPACING * 4, MARKER_Y,
   [0xcfa227, 0x7c3aa0, 0x2f5fb0, 0xb23030], 'MIXER'
 );
-// Any quadrant opens the same popup/tooltip, regardless of which colour was clicked/hovered.
+// Every quarter opens the same popup/tooltip
 mixerMarker.quadrants.forEach(quadrant => {
   quadrant.userData.hoverTipId = 'mixerHoverTip';
   quadrant.userData.popupTarget = 'mixerOverlay';
   clickTargets.push(quadrant);
 });
 
-// Each wire takes its own route and ends at a different spot around the board,
-// so they read as separate connections rather than overlapping paths
+// Each wire has its own route to the board
 makeWire(pitchMarker.x,   pitchMarker.y,  -1.8 + BACKWALL_SHIFT_X, 0.35, -4.4,  BOARD_X - 0.8, 0.65, BOARD_Z + 0.3);
 makeWire(robotMarker.x,   robotMarker.y,  -3.0 + BACKWALL_SHIFT_X, 0.2,  -5.2,  BOARD_X - 0.3, 0.55, BOARD_Z - 0.6);
 makeWire(reverbMarker.x,  reverbMarker.y, -2.6 + BACKWALL_SHIFT_X, 1.0,  -5.6,  BOARD_X + 0.5, 0.5,  BOARD_Z + 0.5);
 makeWire(panningMarker.x, panningMarker.y, -4.4 + BACKWALL_SHIFT_X, 0.04, -3.4, BOARD_X + 0.2, 0.6,  BOARD_Z - 0.3);
 makeWire(mixerMarker.x,   mixerMarker.y,  0.6 + BACKWALL_SHIFT_X,  0.3,  -4.8,  BOARD_X + 1.3, 0.7,  BOARD_Z - 0.8);
 
-// ── Thought-selection nav buttons — small, grey, translucent echo of the pair
-// on the outside panel. Seen from the inside, so both the arrows and the
-// label are mirrored, same convention as the branded marker labels above.
-// Sits above the marker row with a clear gap before it.
+// ── Thought-selection buttons (mirrored, seen from inside)
 const THOUGHT_NAV_Y      = MARKER_Y + 3.2;
 const THOUGHT_NAV_LEFT_X  = -4.4 + BACKWALL_SHIFT_X;
 const THOUGHT_NAV_RIGHT_X = -3.2 + BACKWALL_SHIFT_X;
@@ -1699,8 +1573,7 @@ function makeMirroredArrowIcon(dir) {  // dir: -1 = ◄  +1 = ►
 const THOUGHT_NAV_SCALE = 0.85;   // a bit smaller than the original frame/circle/icon
 
 function makeThoughtNavButton(x, dir) {
-  // Frame is solid, dark and reflective — same material as the marker frames
-  // above, giving it real mass — while the face stays translucent/ghosted.
+  // Solid dark frame, see-through face
   const frame = new THREE.Mesh(
     new THREE.TorusGeometry(0.46 * THOUGHT_NAV_SCALE, 0.06 * THOUGHT_NAV_SCALE, 16, 40),
     new THREE.MeshStandardMaterial({ color: 0x4a4a4e, roughness: 0.28, metalness: 0.8, envMapIntensity: 0.55 })
@@ -1726,12 +1599,11 @@ function makeThoughtNavButton(x, dir) {
   return circle;
 }
 
-// Mirrored relative to the outside panel (◄ left / ► right there) — flipped here
+// Arrows mirrored (seen from inside)
 const thoughtNavLeftBtn  = makeThoughtNavButton(THOUGHT_NAV_LEFT_X,  -1);
 const thoughtNavRightBtn = makeThoughtNavButton(THOUGHT_NAV_RIGHT_X, +1);
 
-// "Thought selection" label — mirrored engraved look, same style as the
-// PITCH/ROBOT/REVERB/PANNING brand labels
+// "Thought selection" label (mirrored, engraved)
 const THOUGHT_LABEL_W = 3.4; const THOUGHT_LABEL_CANVAS_W = 860, THOUGHT_LABEL_CANVAS_H = 124;
 const THOUGHT_LABEL_MARGIN = 6;
 const THOUGHT_LABEL_FONT = 'bold 70px "Courier New", monospace';
@@ -1751,10 +1623,7 @@ const thoughtNavLabel = new THREE.Mesh(
   new THREE.PlaneGeometry(THOUGHT_LABEL_W, THOUGHT_LABEL_W * THOUGHT_LABEL_CANVAS_H / THOUGHT_LABEL_CANVAS_W),
   new THREE.MeshBasicMaterial({ map: thoughtNavLabelTex, transparent: true })
 );
-// The end of the text (last letter) should land on the left edge of the left
-// thought-nav button — they line up in the same vertical column. After
-// mirroring (scale.x = -1), world = position.x - localX, so solve position.x
-// from the *measured* pixel width of the text rather than guessing.
+// Line up the end of the text with the left arrow button
 const THOUGHT_NAV_BTN_OUTER_R = (0.46 + 0.06) * THOUGHT_NAV_SCALE;   // torus radius 0.46 + tube 0.06
 const thoughtTextEndPx = THOUGHT_LABEL_MARGIN + tlCtx.measureText('Thought selection').width;
 const thoughtTextEndLocalX = THOUGHT_LABEL_W * (thoughtTextEndPx / THOUGHT_LABEL_CANVAS_W - 0.5);
@@ -1763,9 +1632,7 @@ thoughtNavLabel.position.set(thoughtTextEndTargetX + thoughtTextEndLocalX, THOUG
 thoughtNavLabel.scale.x = -1;   // mirrored
 scene.add(thoughtNavLabel);
 
-// ── Play / Loop buttons — mirrored pair from the outside panel (green PLAY on
-// the left there, blue LOOP on the right). Same size/frame as the PITCH etc.
-// markers. Sits below the thought-selection buttons, above PITCH/ROBOT, shifted left.
+// ── Play / Loop buttons (mirrored from the outside panel)
 const PLAYLOOP_Y      = MARKER_Y + 2.4;
 const PLAYLOOP_SHIFT_X = -1.0;   // nudges both buttons further left
 const PLAYLOOP_BLUE_X  = 0.6 + BACKWALL_SHIFT_X + PLAYLOOP_SHIFT_X;    // LOOP, mirrored to the left
@@ -1796,7 +1663,7 @@ playMarkerCircle.userData.isPlayButton = true;   // clicking it triggers the bac
 playMarkerCircle.userData.hoverTipId = 'playHoverTip';
 clickTargets.push(playMarkerCircle);
 
-// Brand labels — identical style/font to the PITCH/ROBOT/etc. labels, mirrored the same way
+// Labels (same style as the other buttons)
 function makeMirroredBrandLabel(x, y, label) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 160;
@@ -1820,7 +1687,7 @@ function makeMirroredBrandLabel(x, y, label) {
 makeMirroredBrandLabel(PLAYLOOP_BLUE_X,  PLAYLOOP_Y, 'LOOP');
 makeMirroredBrandLabel(PLAYLOOP_GREEN_X, PLAYLOOP_Y, 'PLAY');
 
-// Play icon — mirrored (points left, instead of the outside panel's right-pointing triangle)
+// Play icon (mirrored, points left)
 const playIconLeftTex = (() => {
   const c = document.createElement('canvas');
   c.width = 64; c.height = 64;
@@ -1836,8 +1703,7 @@ const playIconLeft = new THREE.Mesh(
 playIconLeft.position.set(PLAYLOOP_GREEN_X, PLAYLOOP_Y, -7.93);
 scene.add(playIconLeft);
 
-// Loop icon — mirrored repeat symbol (rounded-rectangle path is symmetric so it
-// traces the same outline; the two arrowheads land on the opposite corners)
+// Loop icon (mirrored)
 const loopIconMirroredTex = (() => {
   const c = document.createElement('canvas');
   c.width = 64; c.height = 64;
@@ -1887,13 +1753,7 @@ const loopIconMirrored = new THREE.Mesh(
 loopIconMirrored.position.set(PLAYLOOP_BLUE_X, PLAYLOOP_Y, -7.93);
 scene.add(loopIconMirrored);
 
-// ── Screen back panel — a black stripe echoing the outside panel's LCD screen
-// (mirrored), but run all the way up to the top of the wall so it reads as the
-// back of the screen housing rather than just a bezel lip. Spans from the
-// thought-nav buttons' left edge across to the PLAY button's right edge — same
-// horizontal relationship as the outside screen sitting above its arrow row
-// and PLAY/LOOP row. No live text/glow logic — this page can't sync with the
-// outside screen state, so it's a static visual anchor rather than a working display.
+// ── Back of the screen: black stripe up to the top of the wall (static)
 const PLAYLOOP_BTN_OUTER_R = (0.55 + 0.046) * KNOB_SCALE;   // marker frame radius + tube
 const SCREEN_BOTTOM_LEFT_X  = THOUGHT_NAV_LEFT_X - THOUGHT_NAV_BTN_OUTER_R;
 const SCREEN_BOTTOM_RIGHT_X = PLAYLOOP_GREEN_X + PLAYLOOP_BTN_OUTER_R;
@@ -1901,8 +1761,7 @@ const SCREEN_BOTTOM_W = SCREEN_BOTTOM_RIGHT_X - SCREEN_BOTTOM_LEFT_X;
 const SCREEN_BOTTOM_CENTER_X = (SCREEN_BOTTOM_LEFT_X + SCREEN_BOTTOM_RIGHT_X) / 2;
 const SCREEN_BOTTOM_Y = THOUGHT_NAV_Y + 1.7;
 
-// Bottom edge stays anchored where the old bezel lip sat; the stripe extends
-// upward from there to the top of the wall (ROOM_HEIGHT).
+// Bottom stays in place, the stripe goes up to the top of the wall
 const SCREEN_BACK_BOTTOM = SCREEN_BOTTOM_Y - 0.07;
 const SCREEN_BACK_HEIGHT = ROOM_HEIGHT - SCREEN_BACK_BOTTOM;
 
@@ -1913,8 +1772,7 @@ const screenBottomBar = new THREE.Mesh(
 screenBottomBar.position.set(SCREEN_BOTTOM_CENTER_X, SCREEN_BACK_BOTTOM + SCREEN_BACK_HEIGHT / 2, -7.95);
 scene.add(screenBottomBar);
 
-// Corner bracket — drawn once as the bottom-left corner, mirrored via scale.x
-// for the bottom-right corner, same bracket language as the outside screen.
+// Corner bracket (mirrored for the right corner)
 const cornerBracketTex = (() => {
   const c = document.createElement('canvas');
   c.width = 64; c.height = 64;
@@ -1940,15 +1798,9 @@ const cornerBracketTex = (() => {
   scene.add(bracket);
 });
 
-// ── Floor cables — front of the room, simulating loose internal radio wiring.
-// Each cable is two fixed anchors (off-screen near the camera, off-screen through
-// the bottom-left corner) with a smooth lateral wave relaxed through a small
-// verlet-style distance-constraint solver — this removes sharp hand-placed kinks
-// and lets the slack settle naturally, instead of an authored zig-zag path.
+// ── Floor cables: loose wiring, relaxed into a smooth curve
 function relaxCable(waypoints, restHeight, segments, waveAmp, wavePhase, waveFreq) {
-  // waypoints: [start, ...visible via-points..., end] as [x, z] pairs. The via-point
-  // is required — a pure start→end relax between two off-screen anchors never dips
-  // through the visible middle of the floor, which is why the cables vanished.
+  // waypoints as [x, z]; the middle point keeps the cable visible
   const anchors = waypoints.map(p => new THREE.Vector3(p[0], restHeight, p[1]));
   const legLengths = [];
   let totalLen = 0;
@@ -2017,8 +1869,7 @@ pcbLoader.setMeshoptDecoder(MeshoptDecoder);
 pcbLoader.load('pcb_amp_audio.optimized.glb', (gltf) => {
   const pcb = gltf.scene;
 
-  // Auto-detect the thinnest axis (the board's thickness) and rotate it to vertical,
-  // so the board lies flat regardless of how it was originally authored/exported.
+  // Rotate the board so it lies flat
   let size = new THREE.Box3().setFromObject(pcb).getSize(new THREE.Vector3());
   if (size.z <= size.x && size.z <= size.y) {
     pcb.rotation.x = -Math.PI / 2;
@@ -2026,8 +1877,7 @@ pcbLoader.load('pcb_amp_audio.optimized.glb', (gltf) => {
     pcb.rotation.z = Math.PI / 2;
   }
 
-  // Scale it up, then place it further back and to the left — closer to the camera
-  // (near z=8) it was sitting low in frame and partly out of view
+  // Scale up and move further back and to the left
   size = new THREE.Box3().setFromObject(pcb).getSize(new THREE.Vector3());
   const targetFootprint = 5.5;
   pcb.scale.setScalar(targetFootprint / Math.max(size.x, size.z));
@@ -2038,9 +1888,7 @@ pcbLoader.load('pcb_amp_audio.optimized.glb', (gltf) => {
   pcb.position.z += BOARD_Z - center.z;
   pcb.position.y -= box.min.y;   // sit flush on the floor (y=0)
 
-  // Re-measure now that the board sits at its final position — `box` above
-  // was taken before the position offset just applied, so it described where
-  // the model *used to* sit (near the origin), not where it actually ended up.
+  // Measure again after moving the board
   const finalBox = new THREE.Box3().setFromObject(pcb);
 
   pcb.traverse(child => {
@@ -2052,14 +1900,7 @@ pcbLoader.load('pcb_amp_audio.optimized.glb', (gltf) => {
 
   scene.add(pcb);
 
-  // ── Cables — from two exit points tucked under the board's back-left (top-left
-  // on screen) corner, up to the L/R indicator dots below the speaker grille.
-  //
-  // This model (unlike the old Circuitboard.glb) has no named component to
-  // hook the exit points to — it's a raw, unnamed mesh dump — so instead of
-  // reading real mounting-hole coordinates, the two exits sit low (near floor
-  // height) right at that corner, so the ends read as tucked away under the
-  // board rather than needing to land on a precise real connector.
+  // ── Cables from under the board's back-left corner to the L/R dots
   const exitY = finalBox.min.y + 0.03;                    // low, hidden under the board's edge
   const exitBaseX = finalBox.min.x + finalBox.getSize(new THREE.Vector3()).x * 0.08;   // just in from the left edge
   const exitZ      = finalBox.min.z + finalBox.getSize(new THREE.Vector3()).z * 0.08;  // just in from the back edge
@@ -2102,10 +1943,7 @@ pcbLoader.load('pcb_amp_audio.optimized.glb', (gltf) => {
   console.error('pcb_amp_audio.optimized.glb failed to load', err);
 });
 
-// ── Mouse-arrow prop — stands on the floor to the right of the PCB, at the
-// same depth as the board (not back near the wall — x=10/z=-7 previously put
-// it well outside the camera's frustum, off to the right of frame, hence
-// invisible), roughly midway between the board and the room's right side.
+// ── Mouse-arrow prop on the floor, right of the board
 const mouseArrowLoader = new GLTFLoader();
 mouseArrowLoader.setMeshoptDecoder(MeshoptDecoder);
 mouseArrowLoader.load('mouse_arrow.glb', (gltf) => {
@@ -2115,9 +1953,7 @@ mouseArrowLoader.load('mouse_arrow.glb', (gltf) => {
   const targetHeight = 1.1;   // a bit smaller than before
   cursor.scale.setScalar(targetHeight / size.y);
 
-  // It was standing straight up with the point in the air — tipped 80°
-  // clockwise, then another 45° clockwise (was lying on its side with the
-  // point aimed right instead of down), so the point now aims at the floor.
+  // Rotate so the point aims at the floor
   cursor.rotation.z = -125 * Math.PI / 180;
 
   const box = new THREE.Box3().setFromObject(cursor);
@@ -2140,10 +1976,7 @@ mouseArrowLoader.load('mouse_arrow.glb', (gltf) => {
   console.error('mouse_arrow.glb failed to load', err);
 });
 
-// ── "DISCUSSION" floor text — lies flat on the floor to the right of the
-// mouse-arrow prop. Same font/weight as the METHOD wall title, but white and
-// lying down (rotation.x, same trick as the floor plane itself) instead of
-// standing upright against a wall.
+// ── "DISCUSSION" text on the floor, right of the arrow
 const DISCUSSION_TEXT = 'DISCUSSION';
 const DISCUSSION_FONT = '900 118px "Arial Black", Arial, sans-serif';
 const discussionCanvas = document.createElement('canvas');
@@ -2160,9 +1993,7 @@ dctx.fillText(DISCUSSION_TEXT, discussionCanvas.width / 2, discussionCanvas.heig
 const DISCUSSION_W = 2.0;
 const discussionLabel = new THREE.Mesh(
   new THREE.PlaneGeometry(DISCUSSION_W, DISCUSSION_W * discussionCanvas.height / discussionCanvas.width),
-  // Drawn white on the canvas; the material's own colour dims it at rest and
-  // hover brings it back to full white — same basicColorGlow trick as the
-  // METHOD/MATERIALS wall titles, so it visibly "lights up" on hover.
+  // Drawn white, dimmed at rest, full white on hover
   new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(discussionCanvas), transparent: true, color: 0x999999 })
 );
 discussionLabel.userData.basicColorGlow = true;
@@ -2171,35 +2002,18 @@ discussionLabel.userData.hoverColorHex = 0xffffff;
 discussionLabel.userData.popupTarget = 'discussionOverlay';
 hoverTargets.push(discussionLabel);
 clickTargets.push(discussionLabel);
-// Not the font — it's laid perfectly flat, and the camera only looks down
-// about 12° below horizontal, so a fully flat decal is viewed almost edge-on
-// and reads heavily skewed (looks "italic") purely from that grazing angle.
-// Tilted up partway toward the camera instead of fully flat (-90°) fixes the
-// skew while still reading as sitting low, near the floor.
+// Tilted up a bit, otherwise it looks skewed from this camera angle
 discussionLabel.rotation.x = -Math.PI / 2 + (35 * Math.PI / 180);
-// Same anchor the mouse-arrow prop uses (BOARD_X + 4.8 + 0.3, BOARD_Z - 0.8),
-// pulled toward the camera (+z) so it sits below the arrow. The text is drawn
-// centred on this mesh, so it's shifted right by half its own width — that
-// puts the mesh's (and so the word's) *left* edge, where the "D" starts,
-// under the arrow's x instead of the middle of the word landing there.
+// Place the start of the word under the arrow
 discussionLabel.position.set(BOARD_X + 4.8 + 0.3 + DISCUSSION_W / 2, 0.25, BOARD_Z - 0.8 + 1.0 - 0.25 + 0.2);
 scene.add(discussionLabel);
 
-// ── Pulldown-chart prop — mounted flat on the back wall, up and to the right
-// of the PLAY button. The back wall's outward normal is already +Z (same as
-// a model's default front-facing direction), unlike the left wall, so no
-// wall-alignment rotation is needed here — loadWallProp's default rotX/Y/Z=0
-// is the correct "in perspective" (facing into the room) orientation.
+// ── Pulldown-chart prop on the back wall, above right of PLAY
 const PULLDOWN_X = 5.2, PULLDOWN_Y = 5.3, PULLDOWN_Z = -7.9;
-// rotY=Math.PI — was showing its back to the room, flipped to face the camera.
+// Turned to face the camera
 loadWallProp('Pulldown Chart 01.glb', 1.8, PULLDOWN_X, PULLDOWN_Y, PULLDOWN_Z, 0, Math.PI, 0);
 
-// ── "CFQ13 & VAS" wall text — mounted on the back wall below the pulldown
-// chart. Same font as before, but now using the back-wall brand-label
-// convention (mirrored via scale.x=-1, no rotation — same trick as the
-// PITCH/ROBOT/etc. engraved labels) instead of the floor-decal tilt trick,
-// since a flat wall plane facing the camera doesn't suffer the grazing-angle
-// skew that a flat floor decal does.
+// ── "CFQ13 & VAS" text on the back wall, below the chart
 const CFQ_TEXT = 'CFQ13 & VAS';
 const CFQ_FONT = '900 118px "Arial Black", Arial, sans-serif';
 const cfqCanvas = document.createElement('canvas');
@@ -2213,16 +2027,12 @@ cctx.textAlign = 'center';
 cctx.textBaseline = 'middle';
 cctx.fillStyle = '#ffffff';
 cctx.fillText(CFQ_TEXT, cfqCanvas.width / 2, cfqCanvas.height / 2 + 4);
-// Same pixels-per-world-unit scale as DISCUSSION (not an independently chosen
-// plane width) — otherwise two different-length words at the same font size
-// end up rendered at two different physical letter sizes.
+// Same scale as DISCUSSION, so the letters are the same size
 const discussionPxToWorld = DISCUSSION_W / discussionCanvas.width;
 const CFQ_PLANE_W = cfqCanvas.width * discussionPxToWorld;
 const cfqLabel = new THREE.Mesh(
   new THREE.PlaneGeometry(CFQ_PLANE_W, cfqCanvas.height * discussionPxToWorld),
-  // Same basicColorGlow trick as DISCUSSION, but inverted: drawn white on the
-  // canvas, tinted grey at rest (reads dark against the mid-grey wall) and
-  // lightened to white on hover.
+  // Grey at rest, white on hover
   new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cfqCanvas), transparent: true, color: 0x707070 })
 );
 cfqLabel.userData.basicColorGlow = true;
@@ -2232,19 +2042,11 @@ cfqLabel.userData.popupTarget = 'cfqOverlay';
 cfqLabel.userData.hoverTipId = 'cfqHoverTip';
 hoverTargets.push(cfqLabel);
 clickTargets.push(cfqLabel);
-// No mirroring — the PITCH/ROBOT/etc. labels are deliberately mirrored for a
-// stylised "engraved into the metal" look, not because back-wall text needs
-// it to read correctly. This one should just read normally.
+// Not mirrored, reads normally
 cfqLabel.position.set(PULLDOWN_X, PULLDOWN_Y - 1.1, PULLDOWN_Z + 0.05);
 scene.add(cfqLabel);
 
-// ── "CONTENT ANALYSIS" — same engraved brand-label look as "MIXER" itself
-// (Courier New, mirrored, non-interactive), sitting one line below it. "MIXER"
-// fits its short text on a fixed 512px-wide canvas at 1.3*KNOB_SCALE world
-// units wide; this phrase is much longer, so the canvas is measured/sized to
-// fit first (same trick as the wall titles) and the plane scaled using the
-// same px-to-world ratio MIXER's own label uses, so the letters come out the
-// same physical size instead of being squeezed to fit a fixed-width plane.
+// ── "CONTENT ANALYSIS" label below MIXER (same letter size)
 const CA_FONT = 'bold 92px "Courier New", monospace';
 const caCanvas = document.createElement('canvas');
 const cactx = caCanvas.getContext('2d');
@@ -2268,10 +2070,7 @@ caLabel.position.set(mixerMarker.x, mixerMarker.y - 0.95 * KNOB_SCALE - 0.22, -7
 caLabel.scale.x = -1;   // mirrored
 scene.add(caLabel);
 
-// ── Hover glow — PITCH/ROBOT/REVERB/PANNING, PLAY/LOOP and the thought-nav
-// arrows light up under the mouse. Camera is static here, so a plain
-// screen-space raycast against the back-wall circles is enough — no drag/click
-// behaviour, this page is a static visual echo of the outside panel.
+// ── Hover glow on the back-wall buttons
 hoverTargets.push(
   pitchMarker.hitArea, robotMarker.hitArea, reverbMarker.hitArea, panningMarker.hitArea,
   ...mixerMarker.quadrants,
@@ -2284,32 +2083,23 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let hoveredMesh = null;
 
-// Blend a hex colour toward white — a same-hue glow reads weakly on darker/muted
-// hues (blue ROBOT, purple REVERB, gold PANNING), so hover lightens the colour
-// itself rather than just adding more of it.
+// Mix a colour toward white (for the hover glow)
 function lightenHex(hex, amt) {
   return new THREE.Color(hex).lerp(new THREE.Color(0xffffff), amt).getHex();
 }
 
 function setHoverState(mesh, isHover) {
-  // "MATERIALS & SETUP" title — plain MeshBasicMaterial (unlit text on a
-  // transparent canvas), so there's no emissive channel to drive; instead the
-  // text is drawn white and tinted dark at rest, and hover just swaps the
-  // material's own colour back toward white to "light up".
+  // "MATERIALS & SETUP" title: hover makes the text lighter
   if (mesh.userData.basicColorGlow) {
     mesh.material.color.setHex(isHover ? mesh.userData.hoverColorHex : mesh.userData.baseColorHex);
     return;
   }
-  // REC button — already has its own per-frame pulse (see the animation
-  // loop), so hover just adds an extra boost on top rather than fighting it.
+  // REC button: hover adds extra glow on top of the pulse
   if (mesh.userData.recPulse) {
     recHoverBoost = isHover ? 0.9 : 0;
     return;
   }
-  // PITCH/ROBOT/REVERB/PANNING: the raycast target is an invisible, slightly
-  // larger hit-area disc (covers the full metal ring, not just the smaller
-  // coloured centre — see makeButtonMarker), so the glow has to be applied to
-  // the real, visible circle it points at instead of to `mesh` itself.
+  // Effect buttons: glow the visible circle, not the invisible hit disc
   const target = mesh.userData.glowMesh || mesh;
   if (target.userData.emissiveMapGlow) {
     target.material.emissiveIntensity = isHover ? 1.1 : 0;
@@ -2324,9 +2114,7 @@ function setHoverState(mesh, isHover) {
   }
 }
 
-// Converts a pointer event to normalized device coords, aims the shared
-// raycaster from the camera, and returns whichever of `targets` it hit
-// first (or null) — used by both the hover and click listeners below.
+// Return the first of `targets` under the mouse (or null)
 function raycastFromEvent(e, targets) {
   const rect = renderer.domElement.getBoundingClientRect();
   mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
@@ -2341,9 +2129,7 @@ renderer.domElement.addEventListener('pointermove', e => {
   if (hit !== hoveredMesh) {
     if (hoveredMesh) setHoverState(hoveredMesh, false);
     if (hit) setHoverState(hit, true);
-    // Back-wall PITCH/ROBOT/REVERB/PANNING/MIXER knobs carry a hoverTipId —
-    // same showTip/hideTip DOM tooltip used for the citation superscripts,
-    // just triggered from the 3D raycast hit instead of a mouseenter/leave.
+    // Tooltip for the back-wall buttons
     if (hoveredMesh?.userData.hoverTipId) hideTip(hoveredMesh.userData.hoverTipId);
     if (hit?.userData.hoverTipId) showTip(e, hit.userData.hoverTipId);
     hoveredMesh = hit;
@@ -2359,14 +2145,8 @@ renderer.domElement.addEventListener('pointerleave', () => {
   renderer.domElement.style.cursor = 'default';
 });
 
-// ── Popups — opened by clicking REC/title (materials & setup) or the
-// Ableton logo (technical specs). Each clickable mesh names its own overlay
-// via userData.popupTarget, so this stays a single generic handler.
-// Closing a popup normally just hides it — except overlays opened via a
-// .popup-link (see below), which carry a data-return-to naming the popup
-// they were opened from. Closing those returns you to that popup instead of
-// dropping you back at the bare 3D scene, so "open the codebook from Mixer &
-// Content Analysis" and "close it again" is a round trip, not a dead end.
+// ── Popups: each clickable object names its popup in userData.popupTarget.
+// Popups opened from another popup go back to that one when closed.
 function closePopup(overlay) {
   overlay.classList.remove('show');
   const returnToId = overlay.dataset.returnTo;
@@ -2386,17 +2166,8 @@ document.querySelectorAll('.popup-overlay').forEach(overlay => {
   });
 });
 
-// Text links that open another popup (the codebook, the worksheet, the
-// interactive table) instead of a new tab — `data-target-overlay` names the
-// overlay to open, so one generic handler covers all of them. Shared class,
-// not an id, since more than one such link can appear on the page (e.g. two
-// separate codebook links) — see the duplicate-id fix this replaced.
-// Each one closes its own parent popup first: every .popup-overlay shares
-// the same z-index, so with two open at once it's DOM order — not click
-// order — that decides which one paints on top. codebookOverlay happens to
-// sit earlier in the document than e.g. mixerOverlay, so opening it from
-// inside mixerOverlay without closing that parent first left it rendering
-// underneath, invisible behind the popup you clicked it from.
+// Links that open another popup (codebook, worksheet, table).
+// Close the current popup first, so the new one shows on top.
 document.querySelectorAll('.popup-link').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
@@ -2420,10 +2191,7 @@ renderer.domElement.addEventListener('click', e => {
 });
 window.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  // A hard exit, unlike the close button/backdrop click — Escape drops you
-  // straight back to the 3D scene rather than stepping back through any
-  // codebook/interactive-table "return to" chain, so any pending one is
-  // cleared here too.
+  // Escape closes everything and goes back to the 3D scene
   document.querySelectorAll('.popup-overlay.show').forEach(overlay => {
     overlay.classList.remove('show');
     delete overlay.dataset.returnTo;
@@ -2431,10 +2199,7 @@ window.addEventListener('keydown', (e) => {
   stopBgMusic();
 });
 
-// ── PLAY button — triggers a short background track (kept quiet on purpose;
-// this is ambient, not the point of the demo) with an on-screen reminder
-// that ESC stops it. Clicking PLAY always restarts from the beginning,
-// matching the "trigger pad" feel of the sampler this page is modelled on.
+// ── PLAY button: plays a quiet track from the start, ESC stops it
 const bgMusic = document.getElementById('bgMusic');
 const playHint = document.getElementById('playHint');
 bgMusic.volume = 0.35;
@@ -2466,16 +2231,14 @@ function stopBgMusic() {
 
 bgMusic.addEventListener('ended', () => { playHint.style.display = 'none'; });
 
-// Volume control — plain number keys rather than the browser's own (hidden,
-// inconsistent-looking) native <audio> volume so it behaves the same for
-// every visitor regardless of browser.
+// Volume with the number keys
 const VOLUME_STEP = 0.1;
 window.addEventListener('keydown', (e) => {
   if (e.key === '1') bgMusic.volume = Math.max(0, bgMusic.volume - VOLUME_STEP);
   else if (e.key === '2') bgMusic.volume = Math.min(1, bgMusic.volume + VOLUME_STEP);
 });
 
-// ── Citation tooltips — same showTip/hideTip pattern as the other pages ────
+// ── Citation tooltips ──
 function showTip(e, id) {
   const tip = document.getElementById(id);
   let x = e.clientX + 12;
@@ -2494,9 +2257,7 @@ document.querySelectorAll('.ref[data-tip]').forEach(el => {
   el.addEventListener('mouseleave', () => hideTip(el.dataset.tip));
 });
 
-// ── Plugin screenshots — click a row in the specs table (or a text link like
-// the GUI paragraph's "screen") to see that image, sized from its own
-// data-img/data-title rather than a hardcoded filename per link. ─────────
+// ── Plugin screenshots: click a table row or link to see the image ─────────
 const pluginImageOverlay = document.getElementById('pluginImageOverlay');
 const pluginImageImg = document.getElementById('pluginImageImg');
 const pluginImageTitle = document.getElementById('pluginImageTitle');
@@ -2510,8 +2271,7 @@ document.querySelectorAll('.plugin-row, .gui-image-link').forEach(el => {
   });
 });
 
-// Same lightbox, reused for any inline popup image (e.g. the Pitch plots) —
-// clicking one opens it full-size in the same overlay/close/backdrop machinery.
+// Same lightbox for images inside popups
 document.querySelectorAll('.zoomable-image').forEach(img => {
   img.addEventListener('click', () => {
     pluginImageImg.src = img.src;
@@ -2537,20 +2297,13 @@ renderer.setAnimationLoop((time) => {
   renderer.render(scene, camera);
 });
 
-// ── Go back to the radio ────────────────────────────────────────────────────
-// Same width check as thesis-experience.html's "Try the radio" links — a
-// phone-sized visitor gets sent back to the flat radio-mobile.html instead
-// of the 3D radio-v2.html.
+// ── Back to the radio (phones go to the mobile radio) ──────────────────────
 document.getElementById('go-back').addEventListener('click', () => {
-  // The smaller of width/height, not width alone — a landscape phone is
-  // still a phone (its width can exceed 700px once rotated), so checking
-  // width only would wrongly route it to the heavy 3D version.
+  // Use the smaller side, so a phone in landscape still counts as a phone
   window.location.href = Math.min(window.innerWidth, window.innerHeight) <= 700 ? 'radio-mobile.html' : 'radio-v2.html';
 });
 
-// ── Go back to the thought (jumps straight past thesis-experience.html's
-// cover/video, landing on the "What is this? / Why does it feel real? / ..."
-// card layer — same deep-link hash that jumpToThoughts() there listens for) ──
+// ── Back to the thought page (skips the title page and video) ──
 document.getElementById('go-thought').addEventListener('click', () => {
   window.location.href = 'thesis-experience.html#thoughts';
 });
